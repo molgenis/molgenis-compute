@@ -1,1 +1,16 @@
 target/
+.settings/
+.project
+.classpath
+*.iml
+*.ipr
+*.iws
+git.properties
+compute.properties
+.compute.properties
+molgenis-compute-core/src/main/resources/workflows/*/out/
+molgenis-compute-core/src/main/resources/workflows/*/rundir/
+molgenis-compute-core/test-output
+data/
+test-output/
+
