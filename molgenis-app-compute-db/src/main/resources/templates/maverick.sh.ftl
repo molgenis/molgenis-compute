@@ -7,7 +7,7 @@ getRemoteLocation()
 {
     ARGS=($@)
     myFile=${ARGS[0]}
-    remoteFile=srm://srm.grid.sara.nl/pnfs/grid.sara.nl/data/bbmri.nl/RP2${myFile:`expr length $TMPDIR`}
+    remoteFile=srm://srm.grid.sara.nl/pnfs/grid.sara.nl/data/bbmri.nl/RP3${myFile:`expr length $TMPDIR`}
     echo $remoteFile
 }
 
@@ -110,7 +110,7 @@ while [ 1 ] ; do
                 #time to make sure that job reported back to db
                 if [ $COUNTER -eq 10 ];
                 then
-                	echo 'FAILED 3 TIMES'
+                	echo 'FAILED 10 TIMES'
                 	cp log.log inter.log
                 	curl -s -S -u api:api -F pilotid=${pilotid} -F status=nopulse -F log_file=@inter.log http://$SERVER:8080/api/pilot
                 	#kill the actual analysis, which does not guarantie that the process is killed
@@ -126,5 +126,5 @@ while [ 1 ] ; do
         fi
         #this sleep can be modified depending on how often, you like to receive the job status
         #it also depends on the number of running jobs, more jobs -> bigger interval
-        sleep 30
+        sleep 720
 done
