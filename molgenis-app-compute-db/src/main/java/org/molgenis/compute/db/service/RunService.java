@@ -19,6 +19,7 @@ import org.molgenis.framework.db.DatabaseException;
 import org.molgenis.omx.auth.MolgenisUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 
 /**
@@ -27,21 +28,16 @@ import org.springframework.stereotype.Component;
  * @author erwin
  * 
  */
-@Scope("request")
+@Scope(proxyMode = ScopedProxyMode.TARGET_CLASS, value="request")
 @Component
 public class RunService
 {
 	private static final Logger LOG = Logger.getLogger(RunService.class);
 	private static final long DEFAULT_POLL_DELAY = 30000;
-	private final Database database;
-	private final Scheduler scheduler;
-
 	@Autowired
-	public RunService(Database database, Scheduler scheduler)
-	{
-		this.database = database;
-		this.scheduler = scheduler;
-	}
+	private Database database;
+	@Autowired
+	private Scheduler scheduler;
 
 	/**
 	 * Create a new ComputeRun

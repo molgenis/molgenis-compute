@@ -15,8 +15,8 @@ import org.molgenis.compute5.db.api.RunStatus;
 import org.molgenis.framework.db.Database;
 import org.molgenis.framework.db.DatabaseException;
 import org.molgenis.framework.db.Query;
+import org.molgenis.framework.ui.MolgenisPlugin;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -32,10 +32,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * 
  * @author erwin
  */
-@Scope("request")
 @Controller
 @RequestMapping(PilotDashboardController.URI)
-public class PilotDashboardController
+public class PilotDashboardController extends MolgenisPlugin
 {
 	public static final String URI = "/plugin/dashboard";
 	private static final String VIEW_NAME = "PilotDashboard";
@@ -45,6 +44,8 @@ public class PilotDashboardController
 	@Autowired
 	public PilotDashboardController(Database database, RunService runService)
 	{
+		super(URI);
+		
 		this.database = database;
 		this.runService = runService;
 	}

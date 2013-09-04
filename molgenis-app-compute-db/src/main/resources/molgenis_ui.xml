@@ -2,11 +2,10 @@
 <molgenis name="compute" label="Compute Testing">
     <plugin name="MolgenisHeader" type="org.molgenis.compute.db.ui.ComputeHeader"/>
     
-    <menu name="mainmenu" position="left" startswith="PilotDashboardPlugin">
-    	<plugin name="UserLogin" type="org.molgenis.omx.auth.ui.SimpleUserLogin" label="Login" />
-    	
+    <menu name="mainmenu">
+    	<plugin id="home" label="Home" name="HomePlugin" type="org.molgenis.compute.db.plugin.HomePlugin"/>
         <menu name="Compute">
-            <plugin name="PilotDashboardPlugin" label="Pilot dashboard"
+            <plugin id="dashboard" name="PilotDashboardPlugin" label="Pilot dashboard"
                     type="org.molgenis.compute.db.plugin.PilotDashboardPlugin"/>
             
             <form name="ComputeRuns" label="Runs" entity="ComputeRun" viewtype="list">
@@ -29,6 +28,6 @@
 				<form name="MolgenisEntity" entity="MolgenisEntity" view="list" label="Entities" />
 				<form name="MolgenisPermission" entity="MolgenisPermission" />
 			</menu>
-        
+        <plugin id="useraccount" name="UserAccountPlugin" type="org.molgenis.omx.auth.ui.UserAccountPlugin" label="Account" />
     </menu>
 </molgenis>
