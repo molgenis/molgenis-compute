@@ -1,6 +1,6 @@
-<!DOCTYPE html>
-<html>
-	<head>
+<#include "molgenis-header.ftl">
+<#include "molgenis-footer.ftl">
+<@header/>
 		<title>Pilot plugin</title>
 		<meta charset="utf-8">
 		<link rel="stylesheet" href="/css/bootstrap.min.css" type="text/css">
@@ -168,6 +168,4 @@
     			</div>
     		</#list>					
 		</div>
-		
-	</body>
-</html>
+<@footer/>
