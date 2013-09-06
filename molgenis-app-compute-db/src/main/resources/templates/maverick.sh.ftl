@@ -126,5 +126,5 @@ while [ 1 ] ; do
         fi
         #this sleep can be modified depending on how often, you like to receive the job status
         #it also depends on the number of running jobs, more jobs -> bigger interval
-        sleep 720
+        sleep 15m
 done
