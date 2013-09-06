@@ -7,13 +7,12 @@
         <menu name="Compute">
             <plugin id="dashboard" name="PilotDashboardPlugin" label="Pilot dashboard"
                     type="org.molgenis.compute.db.plugin.PilotDashboardPlugin"/>
-
             <plugin id="form/ComputeRun" label="Runs" name="ComputeRunFormPlugin"
                     type="org.molgenis.ui.form.MolgenisEntityFormPlugin"/>
             <plugin id="form/ComputeTask" label="Tasks" name="ComputeTaskFormPlugin"
                     type="org.molgenis.ui.form.MolgenisEntityFormPlugin"/>
             <menu name="ComputeTaskValueMenu" label="Parameters">
-                <plugin id="form/ComputeTaskValue" label="Parameters" name="ComputeTaskValueFormPlugin"
+                <plugin id="form/ComputeParameterValue" label="Parameters" name="ComputeParameterValueFormPlugin"
                         type="org.molgenis.ui.form.MolgenisEntityFormPlugin"/>
                 <plugin id="form/ComputeTaskHistory" label="History" name="ComputeTaskHistoryFormPlugin"
                         type="org.molgenis.ui.form.MolgenisEntityFormPlugin"/>
@@ -21,14 +20,18 @@
             <plugin id="form/ComputeBackend" label="Backends" name="ComputeBackendFormPlugin"
                     type="org.molgenis.ui.form.MolgenisEntityFormPlugin"/>
         </menu>
-
-
         <menu label="User management" name="Management">
-            <form name="MolgenisUser" entity="MolgenisUser"/>
-            <form name="MolgenisGroup" entity="MolgenisGroup"/>
-            <form name="MolgenisRoleGroupLink" entity="MolgenisRoleGroupLink"/>
-            <form name="MolgenisEntity" entity="MolgenisEntity" view="list" label="Entities"/>
+            <plugin id="form/MolgenisUser" label="Users" name="MolgenisUserFormPlugin"
+                    type="org.molgenis.ui.form.MolgenisEntityFormPlugin"/>
+            <plugin id="form/MolgenisGroup" label="Group" name="MolgenisGroupFormPlugin"
+                    type="org.molgenis.ui.form.MolgenisEntityFormPlugin"/>
+            <plugin id="form/MolgenisRoleGroupLink" label="RoleGroupLink" name="MolgenisRoleGroupLinkFormPlugin"
+                    type="org.molgenis.ui.form.MolgenisEntityFormPlugin"/>
+            <plugin id="form/MolgenisEntity" label="Entity" name="MolgenisEntityFormPlugin"
+                    type="org.molgenis.ui.form.MolgenisEntityFormPlugin"/>
             <form name="MolgenisPermission" entity="MolgenisPermission"/>
+            <plugin id="form/MolgenisPermission" label="Permissions" name="MolgenisPermissionFormPlugin"
+                    type="org.molgenis.ui.form.MolgenisEntityFormPlugin"/>
         </menu>
         <plugin id="useraccount" name="UserAccountPlugin" type="org.molgenis.omx.auth.ui.UserAccountPlugin"
                 label="Account"/>
