@@ -146,7 +146,7 @@ public class PilotService implements MolgenisService
 		else
 		{
 
-			LOG.info("Checking pilot ID");
+			LOG.info("Checking pilot ID in report");
 			String pilotID = request.getString(PILOT_ID);
 
 			List<Pilot> pilots = ApplicationUtil.getDatabase().query(Pilot.class).eq(Pilot.VALUE, pilotID)
@@ -168,6 +168,19 @@ public class PilotService implements MolgenisService
 				else
 				{
 					LOG.warn("MALICIOUS PILOT [ " + pilotID + " ] in report");
+					return;
+				}
+			}
+
+			Pilot pilot_withTask = null;
+			pilots = ApplicationUtil.getDatabase().query(Pilot.class).eq(Pilot.VALUE, pilotID).find();
+			if(pilots.size() > 0)
+			{
+				pilot_withTask = pilots.get(0);
+				ComputeTask task_from_pilot = pilot_withTask.getComputeTask();
+				if(task_from_pilot == null)
+				{
+					//the reporting pilot is empty
 					return;
 				}
 			}
