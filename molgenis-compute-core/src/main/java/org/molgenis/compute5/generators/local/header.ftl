@@ -90,7 +90,7 @@ alloutputsexist()
       sleep 30
       exit 0;
   else
-      return;
+      return 0;
   fi
 }
 </#noparse>
