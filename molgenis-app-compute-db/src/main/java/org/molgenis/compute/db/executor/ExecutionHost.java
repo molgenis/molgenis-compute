@@ -130,11 +130,11 @@ public class ExecutionHost extends Ssh
 			}
         }
 
-//        LOG.info("Removing maverick" + pilotID + ".jdl ...");
-//        executeCommand("rm maverick/maverick" + pilotID +".jdl" );
-//
-//        LOG.info("Removing maverick" + pilotID + ".sh ...");
-//        executeCommand("rm maverick/maverick" + pilotID +".sh" );
+        LOG.info("Removing maverick" + pilotID + ".jdl ...");
+        executeCommand("rm maverick/maverick" + pilotID +".jdl" );
+
+        LOG.info("Removing maverick" + pilotID + ".sh ...");
+        executeCommand("rm maverick/maverick" + pilotID +".sh" );
 
     }
 
