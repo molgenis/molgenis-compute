@@ -8,6 +8,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.log4j.Logger;
 import org.molgenis.compute.db.ComputeDbException;
 import org.molgenis.compute.db.service.RunService;
 import org.molgenis.compute.runtime.ComputeRun;
@@ -41,6 +42,8 @@ public class PilotDashboardController
 	private static final String VIEW_NAME = "PilotDashboard";
 	private final Database database;
 	private final RunService runService;
+	private static final Logger LOG = Logger.getLogger(PilotDashboardController.class);
+
 
 	@Autowired
 	public PilotDashboardController(Database database, RunService runService)
@@ -70,6 +73,7 @@ public class PilotDashboardController
 	public String stop(@RequestParam("run")
 	String runName, Model model) throws DatabaseException
 	{
+		LOG.debug(">> In PilotDashboardController:stop");
 		runService.stop(runName);
 		return init(model);
 	}

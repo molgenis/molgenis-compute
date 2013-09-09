@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 
+import org.apache.log4j.Logger;
 import org.molgenis.compute.db.ComputeDbException;
 import org.molgenis.compute.runtime.ComputeRun;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,8 @@ public class Scheduler
 {
 	private final TaskScheduler taskScheduler;
 	private final Map<Integer, ScheduledFuture<?>> scheduledJobs = new HashMap<Integer, ScheduledFuture<?>>();
+
+	private static final Logger LOG = Logger.getLogger(Scheduler.class);
 
 	@Autowired
 	public Scheduler(TaskScheduler taskScheduler)
@@ -45,6 +48,8 @@ public class Scheduler
 
 	public synchronized void unschedule(Integer computeRunId)
 	{
+		LOG.debug(">> In scheduler:unschedule");
+
 		if (!isRunning(computeRunId))
 		{
 			throw new ComputeDbException("Not running");
