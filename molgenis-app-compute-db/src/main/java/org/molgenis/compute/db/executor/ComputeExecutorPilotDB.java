@@ -90,6 +90,7 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 						IOUtils.copy(inStreamJDL, writer);
 						String jdlTemplate = writer.toString();
 
+						writer = new StringWriter();
 						IOUtils.copy(inStreamSH, writer);
 						String shTemplate = writer.toString();
 
