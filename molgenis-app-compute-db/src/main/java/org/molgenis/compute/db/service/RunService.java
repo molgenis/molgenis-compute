@@ -225,6 +225,7 @@ public class RunService
 				throw new ComputeDbException("Unknown run name [" + runName + "]");
 			}
 
+			LOG.debug(">> In RunService:stop");
 			scheduler.unschedule(run.getId());
 
             run.setIsSubmittingPilots(false);
