@@ -20,6 +20,8 @@ import org.molgenis.framework.db.Database;
 import org.molgenis.framework.db.DatabaseException;
 import org.molgenis.util.ApplicationUtil;
 
+import javax.servlet.ServletContext;
+
 /**
  * Created with IntelliJ IDEA. User: georgebyelas Date: 22/08/2012 Time: 14:26
  * To change this template use File | Settings | File Templates.
@@ -78,8 +80,19 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 						//generate unique pilot and its submission command
 						String pilotID = String.valueOf(UUID.randomUUID());
 
-						String jdlTemplate = getFileAsString("src/main/resources/templates/maverick.jdl.ftl");
-						String shTemplate = getFileAsString("src/main/resources/templates/maverick.sh.ftl");
+//						String jdlTemplate = getFileAsString("src/main/resources/templates/maverick.jdl.ftl");
+//						String shTemplate = getFileAsString("src/main/resources/templates/maverick.sh.ftl");
+
+						InputStream inStreamJDL = getClass().getClassLoader().getResourceAsStream("templates/maverick.jdl.ftl");
+						InputStream inStreamSH = getClass().getClassLoader().getResourceAsStream("templates/maverick.sh.ftl");
+
+						StringWriter writer = new StringWriter();
+						IOUtils.copy(inStreamJDL, writer);
+						String jdlTemplate = writer.toString();
+
+						IOUtils.copy(inStreamSH, writer);
+						String shTemplate = writer.toString();
+
 						String comTemplate = computeRun.getComputeBackend().getCommand();
 
 						Hashtable<String, String> values = new Hashtable<String, String>();
