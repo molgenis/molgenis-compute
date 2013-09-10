@@ -48,8 +48,6 @@ public class ComputeCommandLineTest
 			Assert.fail("workflow is not generated correctly");
 		}
 
-
-
 	}
 
 
@@ -180,6 +178,83 @@ public class ComputeCommandLineTest
 			Assert.fail("get/put file is not inserted");
 		}
 	}
+
+	@Test
+	public void testNBIC3() throws Exception
+	{
+		System.out.println("--- Start TestCommandLineParametersComputePropertiesFilesCreated ---");
+
+		File f = new File(outputDir);
+		FileUtils.deleteDirectory(f);
+		Assert.assertFalse(f.exists());
+
+		f = new File(".compute.properties");
+		FileUtils.deleteQuietly(f);
+		Assert.assertFalse(f.exists());
+
+		ComputeCommandLine.main(new String[]{
+				"--generate", "--run", "--parameters", "src/main/resources/workflows/demoNBIC3/parameters.csv",
+				"--workflow", "src/main/resources/workflows/demoNBIC3/parameters/workflow.csv",
+				"--rundir",outputDir,
+				"--backend","local",
+				"--database","none"
+
+		});
+
+
+		System.out.println("--- Test Running ---");
+
+		File file = new File(outputDir + "/step2report_0.sh.finished");
+		if (!file.exists())
+		{
+			Assert.fail("step2report_0.sh.finished is not produced");
+		}
+
+		file = new File(outputDir + "/step1assessRisk_2.sh.finished");
+		if (!file.exists())
+		{
+			Assert.fail("step1assessRisk_2.sh.finished is not produced");
+		}
+
+	}
+
+	@Test
+	public void testNBIC3Auto() throws Exception
+	{
+		System.out.println("--- Start TestCommandLineParametersComputePropertiesFilesCreated ---");
+
+		File f = new File(outputDir);
+		FileUtils.deleteDirectory(f);
+		Assert.assertFalse(f.exists());
+
+		f = new File(".compute.properties");
+		FileUtils.deleteQuietly(f);
+		Assert.assertFalse(f.exists());
+
+		ComputeCommandLine.main(new String[]{
+				"--generate", "--run", "--parameters", "src/main/resources/workflows/demoNBIC3/parameters.csv",
+				"--workflow", "src/main/resources/workflows/demoNBIC3/parameters/workflow_auto.csv",
+				"--rundir",outputDir,
+				"--backend","local",
+				"--database","none"
+
+		});
+
+		System.out.println("--- Test Running ---");
+
+		File file = new File(outputDir + "/step2report_0.sh.finished");
+		if (!file.exists())
+		{
+			Assert.fail("step2report_0.sh.finished is not produced");
+		}
+
+		file = new File(outputDir + "/step1assessRisk_2.sh.finished");
+		if (!file.exists())
+		{
+			Assert.fail("step1assessRisk_2.sh.finished is not produced");
+		}
+	}
+
 
 	@Test
 	public void testPropertiesFilesCreatedLocal() throws Exception
@@ -1139,8 +1214,6 @@ public class ComputeCommandLineTest
 		}
 
 	}
-
-
 
 	@Test
 	public void testDoubleParameterNames() throws Exception
