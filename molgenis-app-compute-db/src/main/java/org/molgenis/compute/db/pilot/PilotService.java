@@ -16,6 +16,7 @@ import org.molgenis.framework.server.MolgenisService;
 import org.molgenis.util.ApplicationContextProvider;
 import org.molgenis.util.ApplicationUtil;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -58,6 +59,7 @@ public class PilotService implements MolgenisService
 	public synchronized void handleRequest(MolgenisRequest request, MolgenisResponse response) throws ParseException,
 			DatabaseException, IOException
 	{
+
 		LOG.debug(">> In handleRequest!");
 		LOG.debug(request);
 
