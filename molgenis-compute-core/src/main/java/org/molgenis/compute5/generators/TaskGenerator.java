@@ -150,7 +150,9 @@ public class TaskGenerator
 
 							if(input.isKnownRunTime())
 								value = value.replace(Parameters.STEP_PARAM_SEP_PROTOCOL,
-														Parameters.STEP_PARAM_SEP_SCRIPT);
+										Parameters.STEP_PARAM_SEP_SCRIPT);
+							else
+								value = EnvironmentGenerator.GLOBAL_PREFIX + value;
 
 							parameterHeader += parameterName + "[" + i + "]=${" + value + "[" + rowIndexString
 									+ "]}\n";
@@ -171,6 +173,10 @@ public class TaskGenerator
 										value = value.replaceFirst(Parameters.UNDERSCORE,
 												Parameters.STEP_PARAM_SEP_SCRIPT);
 									}
+									else
+									{
+										value = EnvironmentGenerator.GLOBAL_PREFIX + value;
+									}
 								}
 								else if (oValue instanceof ArrayList)
 								{
@@ -179,6 +185,10 @@ public class TaskGenerator
 										value = (String) ((ArrayList) oValue).get(i);
 										value = value.replaceFirst(Parameters.UNDERSCORE,
 												Parameters.STEP_PARAM_SEP_SCRIPT);
+									}
+									else
+									{
+										value = EnvironmentGenerator.GLOBAL_PREFIX + value;
 									}
 								}
 

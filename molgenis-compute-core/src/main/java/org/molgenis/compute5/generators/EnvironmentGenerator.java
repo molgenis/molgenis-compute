@@ -1,8 +1,6 @@
 package org.molgenis.compute5.generators;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
+import java.io.*;
 import java.util.*;
 
 import org.apache.log4j.Logger;
@@ -16,6 +14,8 @@ public class EnvironmentGenerator
 	 * @param compute
 	 * @return
 	 */
+
+	public static final String GLOBAL_PREFIX = "global_";
 
 	private HashMap<String, String> environment = new HashMap<String, String>();
 	private List<Step> steps = null;
@@ -211,13 +211,27 @@ public class EnvironmentGenerator
 
 			// give user environment to compute
 			String strUserEnvironment = getEnvironmentAsString(compute);
-			compute.setUserEnvironment(strUserEnvironment);
-			
+
 			// create new environment file
 			env.createNewFile();
 
+			//start global prefix fix
+			String prefixedEnvironment = "";
+			String[] lines = strUserEnvironment.split(System.getProperty("line.separator"));
+			for(int i = 0; i < lines.length; i++)
+			{
+				String line = lines[i];
+				if(line.startsWith("#"))
+					prefixedEnvironment += line + "\n";
+				else
+					prefixedEnvironment += GLOBAL_PREFIX + line + "\n";
+			}
+
+			compute.setUserEnvironment(prefixedEnvironment);
+			//end fix
+
 			BufferedWriter output = new BufferedWriter(new FileWriter(env, true));
-			output.write(strUserEnvironment);
+			output.write(prefixedEnvironment);
 			output.close();
 
 		return environment;

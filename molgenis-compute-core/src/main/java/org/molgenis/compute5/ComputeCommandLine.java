@@ -3,9 +3,7 @@ package org.molgenis.compute5;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.log4j.BasicConfigurator;
