@@ -30,9 +30,6 @@ import org.molgenis.omx.auth.util.PasswordHasher;
 import org.molgenis.omx.controller.DataSetsIndexerController;
 import org.molgenis.omx.core.MolgenisEntity;
 import org.molgenis.omx.core.RuntimeProperty;
-import org.molgenis.servlet.GuiService;
-import org.molgenis.ui.HomePluginPlugin;
-import org.molgenis.ui.PilotDashboardPluginPlugin;
 import org.molgenis.ui.MolgenisMenuController.VoidPluginController;
 import org.molgenis.compute.db.controller.HomeController;
 import org.molgenis.compute.db.controller.PilotDashboardController;
@@ -66,7 +63,6 @@ public class WebAppDatabasePopulator extends MolgenisDatabasePopulator
 		{
 			Map<String, String> runtimePropertyMap = new HashMap<String, String>();
 			
-			runtimePropertyMap.put(GuiService.KEY_APP_NAME, "Compute");
 			List<MolgenisGroup> listMolgenisGroup = database.find(MolgenisGroup.class, new QueryRule(MolgenisGroup.NAME,
 					Operator.EQUALS, "AllUsers"));
 			
@@ -181,8 +177,6 @@ public class WebAppDatabasePopulator extends MolgenisDatabasePopulator
 			setPermissionsForUserGroup(permissionService, database, readUsersGroup, Permission.READ);
 			setPermissionsForUserGroup(permissionService, database, readWriteUsersGroup, Permission.WRITE);
 
-			permissionService.setPermissionOnPlugin(HomePluginPlugin.class.getSimpleName(), anonymousUser.getId(),
-					Permission.READ);
 			permissionService.setPermissionOnPlugin(VoidPluginController.class, anonymousUser.getId(), Permission.READ);
 			permissionService.setPermissionOnPlugin(HomeController.class, anonymousUser.getId(), Permission.READ);
 			
@@ -232,10 +226,8 @@ public class WebAppDatabasePopulator extends MolgenisDatabasePopulator
 			permissionService.setPermissionOnEntity(entityClass, groupName.getId(), permission);
 
 		}
-		permissionService.setPermissionOnPlugin(HomePluginPlugin.class.getSimpleName(), groupName.getId(),
-				Permission.READ);
-		permissionService.setPermissionOnPlugin(PilotDashboardPluginPlugin.class.getSimpleName(), groupName.getId(),
-				Permission.READ);	
+
+		permissionService.setPermissionOnPlugin(HomeController.class, groupName.getId(), Permission.READ);
 		permissionService.setPermissionOnPlugin(DataSetsIndexerController.class, groupName.getId(), 
 				Permission.READ);
 		permissionService.setPermissionOnPlugin(PilotDashboardController.class, groupName.getId(),

@@ -1,16 +1,10 @@
 package org.molgenis.compute.db;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Properties;
-
 import org.molgenis.DatabaseConfig;
-import org.molgenis.compute.db.controller.PilotDashboardController;
 import org.molgenis.compute.db.executor.PilotManager;
 import org.molgenis.compute.db.executor.Scheduler;
 import org.molgenis.compute.db.pilot.ScriptBuilder;
 import org.molgenis.compute.db.util.ComputeMolgenisSettings;
-import org.molgenis.compute.db.util.SecurityHandlerInterceptor;
 import org.molgenis.framework.db.Database;
 import org.molgenis.framework.security.Login;
 import org.molgenis.framework.server.MolgenisPermissionService;
@@ -19,7 +13,6 @@ import org.molgenis.framework.ui.MolgenisPlugin;
 import org.molgenis.omx.auth.OmxPermissionService;
 import org.molgenis.ui.MolgenisPluginInterceptor;
 import org.molgenis.ui.MolgenisUi;
-import org.molgenis.ui.PilotDashboardPluginPlugin;
 import org.molgenis.ui.XmlMolgenisUi;
 import org.molgenis.ui.XmlMolgenisUiLoader;
 import org.molgenis.util.ApplicationContextProvider;
@@ -43,14 +36,13 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.servlet.ViewResolver;
-import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
-import org.springframework.web.servlet.handler.MappedInterceptor;
+import org.springframework.web.servlet.config.annotation.*;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Properties;
 
 @Configuration
 @EnableWebMvc
@@ -160,7 +152,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter
 	@Override
 	public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer)
 	{
-		configurer.enable("front-controller");
+		configurer.enable("dispatcher");
 	}
 
 	@Override
@@ -202,19 +194,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter
 		return new ComputeMolgenisSettings();
 	}
 
-	@Bean
-	public MappedInterceptor pilotDashboardMappedInterceptor()
-	{
-		return new MappedInterceptor(new String[]
-		{ PilotDashboardController.URI }, pilotDashboardSecurityHandlerInterceptor());
-	}
-
-	@Bean
-	public SecurityHandlerInterceptor pilotDashboardSecurityHandlerInterceptor()
-	{
-		return new SecurityHandlerInterceptor(PilotDashboardPluginPlugin.class.getName());
-	}
-	
 	@Override
 	public void addInterceptors(InterceptorRegistry registry)
 	{
