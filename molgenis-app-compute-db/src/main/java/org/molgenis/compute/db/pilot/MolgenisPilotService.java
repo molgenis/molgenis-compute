@@ -1,7 +1,5 @@
 package org.molgenis.compute.db.pilot;
 
-import com.google.common.io.CharSource;
-import com.google.common.io.CharStreams;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -13,27 +11,18 @@ import org.molgenis.compute.runtime.Pilot;
 import org.molgenis.framework.db.DatabaseException;
 import org.molgenis.util.ApplicationContextProvider;
 import org.molgenis.util.ApplicationUtil;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.text.ParseException;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
-
-import org.molgenis.util.FileUploadUtils;
 import org.molgenis.util.tuple.HttpServletRequestTuple;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.Part;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.text.ParseException;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA. User: georgebyelas Date:
@@ -201,19 +190,6 @@ public class MolgenisPilotService
 				}
 			}
 
-
-//			File file = null;
-//			Part part = null;
-//			try
-//			{
-//				part = tuple.get("log_file");
-//				file = FileUploadUtils.saveToTempFile(part);
-//			}
-//			catch (ServletException e)
-//			{
-//				e.printStackTrace();
-//			}
-
 			File file = tuple.getFile("log_file");
 			String logFileContent = FileUtils.readFileToString(file);
 			LogFileParser logfile = new LogFileParser(logFileContent);
@@ -257,18 +233,6 @@ public class MolgenisPilotService
 					task.setRunLog(logFileContent);
 					task.setRunInfo(runInfo);
 
-//					File output = null;
-//					try
-//					{
-//						Part partOutput = request.getPart("output_file");
-//						output = FileUploadUtils.saveToTempFile(partOutput);
-//					}
-//					catch (ServletException e)
-//					{
-//						e.printStackTrace();
-//					}
-//					if (output != null)
-
 					File output = tuple.getFile("output_file");
 					if(output != null)
 					{
@@ -306,16 +270,6 @@ public class MolgenisPilotService
 					task.setRunInfo(runInfo);
 					task.setStatusCode("failed");
 
-//					File failedLog = null;
-//					try
-//					{
-//						Part failedPart = request.getPart("failed_log_file");
-//						failedLog = FileUploadUtils.saveToTempFile(failedPart);
-//					}
-//					catch (ServletException e)
-//					{
-//						e.printStackTrace();
-//					}
 					File failedLog = tuple.getFile("failed_log_file");
 					if (failedLog != null)
 					{
@@ -335,10 +289,7 @@ public class MolgenisPilotService
 
 	private List<ComputeTask> findRunTasksReady(String backendName) throws DatabaseException
 	{
-
-//		List<ComputeRun> runs = ApplicationUtil.getDatabase().query(ComputeRun.class)
-//				.equals(ComputeRun.COMPUTEBACKEND_NAME, backendName).find();
-        List<ComputeRun> runs = ApplicationUtil.getDatabase().query(ComputeRun.class)
+       List<ComputeRun> runs = ApplicationUtil.getDatabase().query(ComputeRun.class)
 				.eq(ComputeRun.COMPUTEBACKEND_NAME, backendName)
                 .and().eq(ComputeRun.ISACTIVE, true).find();
 
