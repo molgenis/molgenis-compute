@@ -9,20 +9,20 @@ import org.molgenis.compute.runtime.ComputeRun;
 import org.molgenis.compute.runtime.ComputeTask;
 import org.molgenis.compute.runtime.Pilot;
 import org.molgenis.framework.db.DatabaseException;
-import org.molgenis.framework.server.MolgenisContext;
-import org.molgenis.framework.server.MolgenisRequest;
-import org.molgenis.framework.server.MolgenisResponse;
-import org.molgenis.framework.server.MolgenisService;
 import org.molgenis.util.ApplicationContextProvider;
 import org.molgenis.util.ApplicationUtil;
+import org.molgenis.util.tuple.HttpServletRequestTuple;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.ParseException;
 import java.util.List;
-
 
 /**
  * Created with IntelliJ IDEA. User: georgebyelas Date:
@@ -30,10 +30,12 @@ import java.util.List;
  * 20/07/2012 Time: 16:53 To change this template use File | Settings | File
  * Templates.
  */
-public class PilotService implements MolgenisService
+@Controller
+@RequestMapping("/api/pilot")
+public class MolgenisPilotService
 {
 
-	private static final Logger LOG = Logger.getLogger(PilotService.class);
+	private static final Logger LOG = Logger.getLogger(MolgenisPilotService.class);
 
 	public static final String TASK_GENERATED = "generated";
 	public static final String TASK_READY = "ready";
@@ -50,27 +52,26 @@ public class PilotService implements MolgenisService
     public static final String PILOT_FAILED = "failed";
     public static final String PILOT_DONE = "done";
 
-
-    public PilotService(MolgenisContext mc)
-	{
-	}
-
-	@Override
-	public synchronized void handleRequest(MolgenisRequest request, MolgenisResponse response) throws ParseException,
+	@RequestMapping(method = RequestMethod.POST, headers = "Content-Type=multipart/form-data")
+	public synchronized void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ParseException,
 			DatabaseException, IOException
 	{
 
 		LOG.debug(">> In handleRequest!");
-		LOG.debug(request);
+		HttpServletRequestTuple tuple = new HttpServletRequestTuple(request);
 
-		if ("started".equals(request.getString("status")))
+//		small code to read parameters directly from request
+//		BufferedReader reader = request.getReader();
+//		String test = CharStreams.toString(reader);
+
+		if ("started".equals(tuple.get("status").toString()))
 		{
 			LOG.info("Checking pilot ID");
-			String pilotID = request.getString(PILOT_ID);
+			String pilotID = (String) tuple.get(PILOT_ID);
 			List<Pilot> pilots = ApplicationUtil.getDatabase().query(Pilot.class).eq(Pilot.VALUE, pilotID)
 					.and().eq(Pilot.STATUS, PILOT_SUBMITTED).find();
 
-			System.out.println(">>>>>>>>>>>>>>>>>>>> " + pilotID + " @ " + request.getString("host"));
+			System.out.println(">>>>>>>>>>>>>>>>>>>> " + pilotID + " @ " + tuple.get("host"));
 
 			Pilot pilot = null;
 			if(pilots.size() > 0)
@@ -86,7 +87,7 @@ public class PilotService implements MolgenisService
 				return;
 			}
 
-			String backend = request.getString("backend");
+			String backend = (String) tuple.get("backend");
 
 			List<ComputeRun> computeRuns = ApplicationUtil.getDatabase().query(ComputeRun.class)
 					.equals(ComputeBackend.NAME, pilot.getComputeRun().getName()).find();
@@ -118,20 +119,22 @@ public class PilotService implements MolgenisService
 				// we add task id to the run listing to identify task when
 				// it is done
 				ScriptBuilder sb = ApplicationContextProvider.getApplicationContext().getBean(ScriptBuilder.class);
-				String taskScript = sb.build(task, request.getAppLocation(), request.getServicePath(), pilotID);
+				String serverAddress = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+				String serverPath = request.getServletPath();
+				String taskScript = sb.build(task, serverAddress, serverPath, pilotID);
 
 				LOG.info("Script for task [" + task.getName() + "] of run [ " + task.getComputeRun().getName() + "]:\n"
 						+ taskScript);
 
 				// change status to running
-				task.setStatusCode(PilotService.TASK_RUNNING);
+				task.setStatusCode(MolgenisPilotService.TASK_RUNNING);
 				ApplicationUtil.getDatabase().update(task);
 
 				pilot.setComputeTask(task);
 				ApplicationUtil.getDatabase().update(pilot);
 
 				// send response
-				PrintWriter pw = response.getResponse().getWriter();
+				PrintWriter pw = response.getWriter();
 				try
 				{
 					pw.write(taskScript);
@@ -148,13 +151,13 @@ public class PilotService implements MolgenisService
 		else
 		{
 
-			LOG.info("Checking pilot ID in report");
-			String pilotID = request.getString(PILOT_ID);
+			LOG.info("Checking pilot ID");
+			String pilotID = (String) tuple.get(PILOT_ID);
 
 			List<Pilot> pilots = ApplicationUtil.getDatabase().query(Pilot.class).eq(Pilot.VALUE, pilotID)
 					.and().eq(Pilot.STATUS, PILOT_DONE).find();
 
-			if((pilots.size() > 0) && request.getString("status").equalsIgnoreCase("nopulse"))
+			if((pilots.size() > 0) && tuple.get("status").toString().equalsIgnoreCase("nopulse"))
 			{
 				LOG.info("Job is already reported back");
 			}
@@ -187,7 +190,8 @@ public class PilotService implements MolgenisService
 				}
 			}
 
-			String logFileContent = FileUtils.readFileToString(request.getFile("log_file"));
+			File file = tuple.getFile("log_file");
+			String logFileContent = FileUtils.readFileToString(file);
 			LogFileParser logfile = new LogFileParser(logFileContent);
 			String taskName = logfile.getTaskName();
 			String runName = logfile.getRunName();
@@ -205,7 +209,7 @@ public class PilotService implements MolgenisService
 
 			ComputeTask task = tasks.get(0);
 
-			if ("done".equals(request.getString("status")))
+			if ("done".equals(tuple.get("status").toString()))
 			{
 
 				List<Pilot> pilotList = ApplicationUtil.getDatabase().query(Pilot.class).eq(Pilot.COMPUTETASK, task).find();
@@ -229,8 +233,8 @@ public class PilotService implements MolgenisService
 					task.setRunLog(logFileContent);
 					task.setRunInfo(runInfo);
 
-					File output = request.getFile("output_file");
-					if (output != null)
+					File output = tuple.getFile("output_file");
+					if(output != null)
 					{
 						task.setOutputEnvironment(FileUtils.readFileToString(output));
 					}
@@ -241,7 +245,7 @@ public class PilotService implements MolgenisService
 							+ "] status should be [running] but is [" + task.getStatusCode() + "]");
 				}
 			}
-			else if ("pulse".equals(request.getString("status")))
+			else if ("pulse".equals(tuple.get("status").toString()))
 			{
 				if (task.getStatusCode().equalsIgnoreCase(TASK_RUNNING))
 				{
@@ -250,7 +254,7 @@ public class PilotService implements MolgenisService
 					task.setRunInfo(runInfo);
 				}
 			}
-			else if ("nopulse".equals(request.getString("status")))
+			else if ("nopulse".equals(tuple.get("status").toString()))
 			{
 				//TODO sometimes there is no pulse received, but later job reports back itself
 				//todo improve pulse-task management
@@ -266,7 +270,7 @@ public class PilotService implements MolgenisService
 					task.setRunInfo(runInfo);
 					task.setStatusCode("failed");
 
-					File failedLog = request.getFile("failed_log_file");
+					File failedLog = tuple.getFile("failed_log_file");
 					if (failedLog != null)
 					{
 						task.setFailedLog(FileUtils.readFileToString(failedLog));
@@ -285,14 +289,11 @@ public class PilotService implements MolgenisService
 
 	private List<ComputeTask> findRunTasksReady(String backendName) throws DatabaseException
 	{
-
-//		List<ComputeRun> runs = ApplicationUtil.getDatabase().query(ComputeRun.class)
-//				.equals(ComputeRun.COMPUTEBACKEND_NAME, backendName).find();
-        List<ComputeRun> runs = ApplicationUtil.getDatabase().query(ComputeRun.class)
+       List<ComputeRun> runs = ApplicationUtil.getDatabase().query(ComputeRun.class)
 				.eq(ComputeRun.COMPUTEBACKEND_NAME, backendName)
                 .and().eq(ComputeRun.ISACTIVE, true).find();
 
         return ApplicationUtil.getDatabase().query(ComputeTask.class)
-				.equals(ComputeTask.STATUSCODE, PilotService.TASK_READY).in(ComputeTask.COMPUTERUN, runs).find();
+				.equals(ComputeTask.STATUSCODE, MolgenisPilotService.TASK_READY).in(ComputeTask.COMPUTERUN, runs).find();
 	}
 }

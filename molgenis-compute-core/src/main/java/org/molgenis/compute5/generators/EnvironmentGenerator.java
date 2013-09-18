@@ -3,9 +3,10 @@ package org.molgenis.compute5.generators;
 import java.io.*;
 import java.util.*;
 
-import com.sun.tools.javac.util.Pair;
+
 import org.apache.log4j.Logger;
 import org.molgenis.compute5.model.*;
+import org.molgenis.util.Pair;
 import org.molgenis.util.tuple.WritableTuple;
 
 public class EnvironmentGenerator
@@ -122,8 +123,8 @@ public class EnvironmentGenerator
 
 		for(Pair<String, String> pair : arrayOfParameterSteps)
 		{
-			if(pair.fst.equalsIgnoreCase(parameter))
-				relatedSteps.add(pair.snd);
+			if(pair.getA().equalsIgnoreCase(parameter))
+				relatedSteps.add(pair.getB());
 		}
 
 		return relatedSteps;
