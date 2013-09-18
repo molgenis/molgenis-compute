@@ -1,20 +1,25 @@
 package org.molgenis.compute.db;
 
-import java.util.List;
-import java.util.Properties;
-
 import org.molgenis.DatabaseConfig;
-import org.molgenis.compute.db.controller.PilotDashboardController;
 import org.molgenis.compute.db.executor.PilotManager;
 import org.molgenis.compute.db.executor.Scheduler;
 import org.molgenis.compute.db.pilot.ScriptBuilder;
 import org.molgenis.compute.db.util.ComputeMolgenisSettings;
-import org.molgenis.compute.db.util.SecurityHandlerInterceptor;
+import org.molgenis.framework.db.Database;
+import org.molgenis.framework.security.Login;
+import org.molgenis.framework.server.MolgenisPermissionService;
 import org.molgenis.framework.server.MolgenisSettings;
-import org.molgenis.ui.PilotDashboardPluginPlugin;
+import org.molgenis.framework.ui.MolgenisPlugin;
+import org.molgenis.omx.auth.OmxPermissionService;
+import org.molgenis.ui.MolgenisPluginInterceptor;
+import org.molgenis.ui.MolgenisUi;
+import org.molgenis.ui.XmlMolgenisUi;
+import org.molgenis.ui.XmlMolgenisUiLoader;
 import org.molgenis.util.ApplicationContextProvider;
 import org.molgenis.util.AsyncJavaMailSender;
 import org.molgenis.util.GsonHttpMessageConverter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
@@ -30,17 +35,14 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ViewResolver;
-import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
-import org.springframework.web.servlet.handler.MappedInterceptor;
+import org.springframework.web.servlet.config.annotation.*;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Properties;
 
 @Configuration
 @EnableWebMvc
@@ -49,6 +51,16 @@ import org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver;
 @Import(DatabaseConfig.class)
 public class WebAppConfig extends WebMvcConfigurerAdapter
 {
+	@Autowired
+	@Qualifier("unauthorizedDatabase")
+	private Database unauthorizedDatabase;
+
+	@Autowired
+	private Login login;
+
+	@Autowired
+	private MolgenisSettings molgenisSettings;
+
 	@Bean
 	public static PropertySourcesPlaceholderConfigurer properties()
 	{
@@ -140,7 +152,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter
 	@Override
 	public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer)
 	{
-		configurer.enable("front-controller");
+		configurer.enable("dispatcher");
 	}
 
 	@Override
@@ -182,17 +194,17 @@ public class WebAppConfig extends WebMvcConfigurerAdapter
 		return new ComputeMolgenisSettings();
 	}
 
-	@Bean
-	public MappedInterceptor pilotDashboardMappedInterceptor()
+	@Override
+	public void addInterceptors(InterceptorRegistry registry)
 	{
-		return new MappedInterceptor(new String[]
-		{ PilotDashboardController.URI }, pilotDashboardSecurityHandlerInterceptor());
+		String pluginInterceptPattern = MolgenisPlugin.PLUGIN_URI_PREFIX + "**";
+		registry.addInterceptor(molgenisPluginInterceptor()).addPathPatterns(pluginInterceptPattern);
 	}
 
 	@Bean
-	public SecurityHandlerInterceptor pilotDashboardSecurityHandlerInterceptor()
+	public MolgenisPluginInterceptor molgenisPluginInterceptor()
 	{
-		return new SecurityHandlerInterceptor(PilotDashboardPluginPlugin.class.getName());
+		return new MolgenisPluginInterceptor(login, molgenisPermissionService(), molgenisUi());
 	}
 
 	/**
@@ -221,15 +233,25 @@ public class WebAppConfig extends WebMvcConfigurerAdapter
 		return result;
 	}
 
-	@Controller
-	@RequestMapping("/")
-	public static class RootController
+
+	
+	@Bean
+	public MolgenisUi molgenisUi()
 	{
-		@RequestMapping(method =
-		{ RequestMethod.GET, RequestMethod.POST })
-		public String index()
+		try
 		{
-			return "forward:molgenis.do";
+			return new XmlMolgenisUi(new XmlMolgenisUiLoader(), molgenisSettings, molgenisPermissionService());
+		}
+		catch (IOException e)
+		{
+			throw new RuntimeException(e);
 		}
 	}
+	
+	@Bean
+	public MolgenisPermissionService molgenisPermissionService()
+	{
+		return new OmxPermissionService(unauthorizedDatabase, login);
+	}
+
 }

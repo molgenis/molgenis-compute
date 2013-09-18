@@ -1,7 +1,6 @@
 package org.molgenis.compute.db.executor;
 
-import org.molgenis.compute.db.pilot.PilotService;
-import org.molgenis.compute.runtime.ComputeBackend;
+import org.molgenis.compute.db.pilot.MolgenisPilotService;
 import org.molgenis.compute.runtime.Pilot;
 import org.molgenis.framework.db.Database;
 import org.molgenis.framework.db.DatabaseException;
@@ -25,7 +24,7 @@ public class PilotManager
 		try
 		{
 			List<Pilot> pilots = database.query(Pilot.class)
-					.equals(Pilot.STATUS, PilotService.PILOT_SUBMITTED).find();
+					.equals(Pilot.STATUS, MolgenisPilotService.PILOT_SUBMITTED).find();
 
 			for(Pilot pilot : pilots)
 			{
@@ -38,7 +37,7 @@ public class PilotManager
 
 				if (difference > lifeTerm)
 				{
-					pilot.setStatus(PilotService.PILOT_EXPIRED);
+					pilot.setStatus(MolgenisPilotService.PILOT_EXPIRED);
 					database.update(pilot);
 				}
 			}
