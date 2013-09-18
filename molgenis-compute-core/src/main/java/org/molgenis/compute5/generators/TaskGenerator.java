@@ -154,8 +154,24 @@ public class TaskGenerator
 							else
 								value = EnvironmentGenerator.GLOBAL_PREFIX + value;
 
-							parameterHeader += parameterName + "[" + i + "]=${" + value + "[" + rowIndexString
-									+ "]}\n";
+//								left in code for paper (SGW)
+//								parameterHeader += parameterName + "[" + i + "]=${" + value + "[" + rowIndexString
+//										+ "]}\n";
+
+							String left = parameterName + "[" + i + "]";
+							String right = value + "[" + rowIndexString + "]";
+							if(right.startsWith(EnvironmentGenerator.GLOBAL_PREFIX))
+							{
+								right = right.substring(EnvironmentGenerator.GLOBAL_PREFIX.length());
+								String realValue = environment.get(right);
+								parameterHeader += left + "=" + "\"" + realValue + "\"\n";
+							}
+							else
+							{
+								//leave old style (runtime parameter)
+								parameterHeader += parameterName + "[" + i + "]=${" + value + "[" + rowIndexString
+										+ "]}\n";
+							}
 						}
 						else
 						{
@@ -191,9 +207,25 @@ public class TaskGenerator
 										value = EnvironmentGenerator.GLOBAL_PREFIX + value;
 									}
 								}
+//								left in code for paper (SGW)
+//								parameterHeader += parameterName + "[" + i + "]=${" + value + "[" + rowIndexString
+//										+ "]}\n";
+								String left = parameterName + "[" + i + "]";
+								String right = value + "[" + rowIndexString + "]";
+								if(right.startsWith(EnvironmentGenerator.GLOBAL_PREFIX))
+								{
+									right = right.substring(EnvironmentGenerator.GLOBAL_PREFIX.length());
+									String realValue = environment.get(right);
+									parameterHeader += left + "=" + "\"" + realValue + "\"\n";
+								}
+								else
+								{
+									//leave old style (runtime parameter)
+									parameterHeader += parameterName + "[" + i + "]=${" + value + "[" + rowIndexString
+											+ "]}\n";
+								}
 
-								parameterHeader += parameterName + "[" + i + "]=${" + value + "[" + rowIndexString
-										+ "]}\n";
+
 							}
 						}
 
@@ -229,9 +261,10 @@ public class TaskGenerator
 				String script = step.getProtocol().getTemplate();
 
 				//weave actual values into script here
-				String weavedScript = weaveProtocol(step.getProtocol(), environment, target);
+				//String weavedScript = weaveProtocol(step.getProtocol(), environment, target);
 
-				script = parameterHeader + weavedScript;
+				//script = parameterHeader + weavedScript;
+				script = parameterHeader + script;
 
 				// append footer that appends the task's parameters to
 				// environment of this task

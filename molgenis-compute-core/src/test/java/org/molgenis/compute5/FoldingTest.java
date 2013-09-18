@@ -120,30 +120,56 @@ public class FoldingTest
 
 		//this conditions can be change later, when compute will weave parameters directly
 
-		String test2_0_list1 = "chunk[0]=${global_chunk[0]}\n" +
-				"chunk[1]=${global_chunk[1]}\n" +
-				"chunk[2]=${global_chunk[2]}\n";
-		String test2_0_list2 ="chr[0]=${global_chr[0]}\n" +
-				"chr[1]=${global_chr[1]}\n" +
-				"chr[2]=${global_chr[2]}";
+		String test2_0_list1 = "chunk[0]=\"a\"\n" +
+				"chunk[1]=\"b\"\n" +
+				"chunk[2]=\"c\"\n";
+		String test2_0_list2 ="chr[0]=\"1\"\n" +
+				"chr[1]=\"1\"\n" +
+				"chr[2]=\"1\"";
 
-		String test2_1_list1 = "chunk[0]=${global_chunk[3]}\n" +
-				"chunk[1]=${global_chunk[4]}\n";
-		String test2_1_list2 ="chr[0]=${global_chr[3]}\n" +
-				"chr[1]=${global_chr[4]}";
+		String test2_1_list1 = "chunk[0]=\"a\"\n" +
+				"chunk[1]=\"b\"\n";
+		String test2_1_list2 ="chr[0]=\"2\"\n" +
+				"chr[1]=\"2\"";
 
-		String test3_0_list1 = "chunk[0]=${global_chunk[0]}\n" +
-				"chunk[1]=${global_chunk[3]}\n";
-		String test3_0_list2 ="chr[0]=${global_chr[0]}\n" +
-				"chr[1]=${global_chr[3]}";
+		String test3_0_list1 = "chunk[0]=\"a\"\n" +
+				"chunk[1]=\"a\"\n";
+		String test3_0_list2 ="chr[0]=\"1\"\n" +
+				"chr[1]=\"2\"";
 
-		String test3_1_list1 = "chunk[0]=${global_chunk[1]}\n" +
-				"chunk[1]=${global_chunk[4]}\n";
-		String test3_1_list2 = "chr[0]=${global_chr[1]}\n" +
-				"chr[1]=${global_chr[4]}";
+		String test3_1_list1 = "chunk[0]=\"b\"\n" +
+				"chunk[1]=\"b\"\n";
+		String test3_1_list2 = "chr[0]=\"1\"\n" +
+				"chr[1]=\"2\"";
 
-		String test3_2_list1 = "chunk[0]=${global_chunk[2]}\n";
-		String test3_2_list2 =	"chr[0]=${global_chr[2]}";
+		String test3_2_list1 = "chunk[0]=\"c\"\n";
+		String test3_2_list2 =	"chr[0]=\"1\"";
+
+//		left for old way testing
+//		String test2_0_list1 = "chunk[0]=${global_chunk[0]}\n" +
+//				"chunk[1]=${global_chunk[1]}\n" +
+//				"chunk[2]=${global_chunk[2]}\n";
+//		String test2_0_list2 ="chr[0]=${global_chr[0]}\n" +
+//				"chr[1]=${global_chr[1]}\n" +
+//				"chr[2]=${global_chr[2]}";
+//
+//		String test2_1_list1 = "chunk[0]=${global_chunk[3]}\n" +
+//				"chunk[1]=${global_chunk[4]}\n";
+//		String test2_1_list2 ="chr[0]=${global_chr[3]}\n" +
+//				"chr[1]=${global_chr[4]}";
+//
+//		String test3_0_list1 = "chunk[0]=${global_chunk[0]}\n" +
+//				"chunk[1]=${global_chunk[3]}\n";
+//		String test3_0_list2 ="chr[0]=${global_chr[0]}\n" +
+//				"chr[1]=${global_chr[3]}";
+//
+//		String test3_1_list1 = "chunk[0]=${global_chunk[1]}\n" +
+//				"chunk[1]=${global_chunk[4]}\n";
+//		String test3_1_list2 = "chr[0]=${global_chr[1]}\n" +
+//				"chr[1]=${global_chr[4]}";
+//
+//		String test3_2_list1 = "chunk[0]=${global_chunk[2]}\n";
+//		String test3_2_list2 =	"chr[0]=${global_chr[2]}";
 
 		String test_weaving_2_0 = "for s in \"a\" \"b\" \"c\"";
 		String test_weaving_2_1 = "for s in \"a\" \"b\"";
@@ -180,19 +206,20 @@ public class FoldingTest
 			Assert.fail("folding broken");
 		}
 
-		System.out.println("Test Weaving Correctness");
-
-		t = ComputeCommandLineTest.getFileAsString(outputDir + "/test2_0.sh");
-		if(!t.contains(test_weaving_2_0))
-		{
-			Assert.fail("weaving is broken");
-		}
-
-		t = ComputeCommandLineTest.getFileAsString(outputDir + "/test2_1.sh");
-		if(!t.contains(test_weaving_2_1))
-		{
-			Assert.fail("weaving is broken");
-		}
+//		We do not weave parameters now
+//		System.out.println("Test Weaving Correctness");
+//
+//		t = ComputeCommandLineTest.getFileAsString(outputDir + "/test2_0.sh");
+//		if(!t.contains(test_weaving_2_0))
+//		{
+//			Assert.fail("weaving is broken");
+//		}
+//
+//		t = ComputeCommandLineTest.getFileAsString(outputDir + "/test2_1.sh");
+//		if(!t.contains(test_weaving_2_1))
+//		{
+//			Assert.fail("weaving is broken");
+//		}
 
 		System.out.println("Test concatination with run-time parameters");
 
