@@ -862,44 +862,42 @@ public class ComputeCommandLineTest
 		}
 	}
 
-
-	@Test
-	public void testOverwriteParameters() throws Exception
-	{
-
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
-
-		ComputeCommandLine.main(new String[]{
-				"--generate",
-				"--run",
-				"--workflow",
-				"src/main/resources/workflows/benchmark.5.1/workflow.csv",
-				"--defaults",
-				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv",
-				"--parameters",
-				"src/main/resources/workflows/benchmark.5.1/parameters.csv",
-				"--rundir",
-				"target/test/benchmark/run",
-				"--overwrite", "tool=crazyTool"
-
-		});
-
-		System.out.println("--- Test Overwriting Parameters from CommandLine ---");
-
-		String sh = getFileAsString(outputDir + "/step3_0.sh");
-		if (!sh.contains("I am using crazyTool"))
-		{
-			Assert.fail("Parameter is not overwritten from command line");
-		}
-	}
-
-
+//	we do not weave parameters into script templates
+//	@Test
+//	public void testOverwriteParameters() throws Exception
+//	{
+//
+//		File f = new File(outputDir);
+//		FileUtils.deleteDirectory(f);
+//		Assert.assertFalse(f.exists());
+//
+//		f = new File(".compute.properties");
+//		FileUtils.deleteQuietly(f);
+//		Assert.assertFalse(f.exists());
+//
+//		ComputeCommandLine.main(new String[]{
+//				"--generate",
+//				"--run",
+//				"--workflow",
+//				"src/main/resources/workflows/benchmark.5.1/workflow.csv",
+//				"--defaults",
+//				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv",
+//				"--parameters",
+//				"src/main/resources/workflows/benchmark.5.1/parameters.csv",
+//				"--rundir",
+//				"target/test/benchmark/run",
+//				"--overwrite", "tool=crazyTool"
+//
+//		});
+//
+//		System.out.println("--- Test Overwriting Parameters from CommandLine ---");
+//
+//		String sh = getFileAsString(outputDir + "/step3_0.sh");
+//		if (!sh.contains("I am using crazyTool"))
+//		{
+//			Assert.fail("Parameter is not overwritten from command line");
+//		}
+//	}
 
 	@Test
 	public void testRunLocally5a() throws Exception

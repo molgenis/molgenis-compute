@@ -2,8 +2,9 @@
 ## Header for 'local' backend
 #
 
-set -e # exit if any subcommand or pipeline returns a non-zero status
-set -u # exit if any uninitialised variable is used
+#highly recommended to use
+#set -e # exit if any subcommand or pipeline returns a non-zero status
+#set -u # exit if any uninitialised variable is used
 
 # Set location of *.env and *.log files
 ENVIRONMENT_DIR="."
