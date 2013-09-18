@@ -5,10 +5,9 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.apache.poi.util.IOUtils;
-import org.molgenis.compute.db.pilot.PilotService;
+import org.molgenis.compute.db.pilot.MolgenisPilotService;
 import org.molgenis.compute.runtime.ComputeBackend;
 import org.molgenis.compute.runtime.ComputeRun;
-import org.molgenis.compute.runtime.ComputeTask;
 import org.molgenis.compute.runtime.Pilot;
 import org.molgenis.framework.db.Database;
 import org.molgenis.framework.db.DatabaseException;
@@ -103,7 +102,7 @@ public class ExecutionHost extends Ssh
                     Pilot pilot = new Pilot();
                     pilot.setValue(pilotID);
                     pilot.setBackend(computeBackends.get(0));
-                    pilot.setStatus(PilotService.PILOT_SUBMITTED);
+                    pilot.setStatus(MolgenisPilotService.PILOT_SUBMITTED);
                     pilot.setOwner(owners.get(0));
 					pilot.setComputeRun(run);
 

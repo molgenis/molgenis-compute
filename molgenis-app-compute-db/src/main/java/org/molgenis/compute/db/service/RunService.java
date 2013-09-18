@@ -7,7 +7,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 import org.molgenis.compute.db.ComputeDbException;
 import org.molgenis.compute.db.executor.Scheduler;
-import org.molgenis.compute.db.pilot.PilotService;
+import org.molgenis.compute.db.pilot.MolgenisPilotService;
 import org.molgenis.compute.runtime.ComputeBackend;
 import org.molgenis.compute.runtime.ComputeParameterValue;
 import org.molgenis.compute.runtime.ComputeRun;
@@ -19,6 +19,7 @@ import org.molgenis.framework.db.DatabaseException;
 import org.molgenis.omx.auth.MolgenisUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 
 /**
@@ -27,21 +28,16 @@ import org.springframework.stereotype.Component;
  * @author erwin
  * 
  */
-@Scope("request")
+@Scope(proxyMode = ScopedProxyMode.TARGET_CLASS, value="request")
 @Component
 public class RunService
 {
 	private static final Logger LOG = Logger.getLogger(RunService.class);
 	private static final long DEFAULT_POLL_DELAY = 30000;
-	private final Database database;
-	private final Scheduler scheduler;
-
 	@Autowired
-	public RunService(Database database, Scheduler scheduler)
-	{
-		this.database = database;
-		this.scheduler = scheduler;
-	}
+	private Database database;
+	@Autowired
+	private Scheduler scheduler;
 
 	/**
 	 * Create a new ComputeRun
@@ -93,7 +89,7 @@ public class RunService
 				computeTask.setName(task.getName());
 				computeTask.setComputeRun(run);
 				computeTask.setInterpreter("bash");
-				computeTask.setStatusCode(PilotService.TASK_GENERATED);
+				computeTask.setStatusCode(MolgenisPilotService.TASK_GENERATED);
 				computeTask.setComputeScript(task.getScript());
 				database.add(computeTask);
 
@@ -390,11 +386,11 @@ public class RunService
 				throw new ComputeDbException("Unknown run name [" + runName + "]");
 			}
 
-			int generated = getTaskStatusCount(run.getId(), PilotService.TASK_GENERATED);
-			int ready = getTaskStatusCount(run.getId(), PilotService.TASK_READY);
-			int running = getTaskStatusCount(run.getId(), PilotService.TASK_RUNNING);
-			int failed = getTaskStatusCount(run.getId(), PilotService.TASK_FAILED);
-			int done = getTaskStatusCount(run.getId(), PilotService.TASK_DONE);
+			int generated = getTaskStatusCount(run.getId(), MolgenisPilotService.TASK_GENERATED);
+			int ready = getTaskStatusCount(run.getId(), MolgenisPilotService.TASK_READY);
+			int running = getTaskStatusCount(run.getId(), MolgenisPilotService.TASK_RUNNING);
+			int failed = getTaskStatusCount(run.getId(), MolgenisPilotService.TASK_FAILED);
+			int done = getTaskStatusCount(run.getId(), MolgenisPilotService.TASK_DONE);
 
             int submitted = run.getPilotsSubmitted();
             int started = run.getPilotsStarted();
@@ -429,7 +425,7 @@ public class RunService
 		try
 		{
 			List<ComputeTask> tasks = database.query(ComputeTask.class)
-					.equals(ComputeTask.STATUSCODE, PilotService.TASK_FAILED).and()
+					.equals(ComputeTask.STATUSCODE, MolgenisPilotService.TASK_FAILED).and()
 					.equals(ComputeTask.COMPUTERUN_NAME, runName).find();
 
 			if (tasks.isEmpty())

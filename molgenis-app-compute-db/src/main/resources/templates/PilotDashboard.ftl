@@ -1,6 +1,6 @@
-<!DOCTYPE html>
-<html>
-	<head>
+<#include "molgenis-header.ftl">
+<#include "molgenis-footer.ftl">
+<@header/>
 		<title>Pilot plugin</title>
 		<meta charset="utf-8">
 		<link rel="stylesheet" href="/css/bootstrap.min.css" type="text/css">
@@ -88,13 +88,13 @@
                                     <#if run.owned>
                                         <#if run.running>
                                             <div class="text-info">Active</div>
-                                                 <form action="/plugin/dashboard/inactivate" class="form-inline" method="post">
+                                                 <form action="/menu/Compute/dashboard/inactivate" class="form-inline" method="post">
                                                     <input type="hidden" name="run" value="${run.name}" />
                                                     <button type="submit" class="btn inactivate-btn">Inactivate</button>
                                                  </form>
                                             <#else>
                                                 <div class="text-error">Not active</div>
-                                                <form action="/plugin/dashboard/activate" class="form-inline" method="post">
+                                                <form action="/menu/Compute/dashboard/activate" class="form-inline" method="post">
                                                     <input type="hidden" name="run" value="${run.name}" />
                                                     <button type="submit" class="btn activate-btn">Activate</button>
                                                 </form>
@@ -103,12 +103,12 @@
                                         </div>
                                         <#if run.running>
                                             <#if run.submitting>
-                                                <form action="/plugin/dashboard/stop" class="form-inline" method="post">
+                                                <form action="/menu/Compute/dashboard/stop" class="form-inline" method="post">
                                                     <input type="hidden" name="run" value="${run.name}" />
                                                     <button type="submit" class="btn">Stop Submitting Pilots</button>
                                                 </form>
                                             <#else>
-                                                <form action="/plugin/dashboard/start" class="form-inline" method="post">
+                                                <form action="/menu/Compute/dashboard/start" class="form-inline" method="post">
                                                     <input type="hidden" name="run" value="${run.name}" />
                                                     <input type="text" name="username" id="inputUsername" placeholder="Username"  />
                                                     <input type="password" name="password" id="inputPassword" placeholder="Password"  />
@@ -123,7 +123,7 @@
 
                                 </#if>
                             <#if run.owned>
-                                <form id="resubmitFailedTasksForm_${run.name}" action="/plugin/dashboard/resubmit" class="form-inline" method="post">
+                                <form id="resubmitFailedTasksForm_${run.name}" action="/menu/Compute/dashboard/resubmit" class="form-inline" method="post">
                                     <input type="hidden" name="run" value="${run.name}" />
                                     <button type="submit" class="btn resubmit-btn">Resubmit failed jobs</button>
                                 </form>
@@ -161,13 +161,11 @@
     					</div>
     					<div class="span1">
                             <#if run.owned>
-                                <a href="/plugin/dashboard/close?run=${run.name}" title="Remove from dashboard" class="close" >&times;</a>
+                                <a href="/menu/Compute/dashboard/close?run=${run.name}" title="Remove from dashboard" class="close" >&times;</a>
     					    </#if>
                         </div>
     				</div>
     			</div>
     		</#list>					
 		</div>
-		
-	</body>
-</html>
+<@footer/>

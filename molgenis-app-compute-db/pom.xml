@@ -17,8 +17,7 @@
                     <exclude>**molgenis.properties</exclude>
                     <exclude>**git.properties</exclude>
                     <exclude>**/model/*.xml</exclude>
-                    <exclude>**ui.xml</exclude>
-                </excludes>
+                 </excludes>
             </resource>
         </resources>
 
@@ -57,12 +56,12 @@
         <dependency>
             <groupId>org.molgenis</groupId>
             <artifactId>molgenis-core</artifactId>
-            <version>0.0.1</version>
+            <version>0.0.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.molgenis</groupId>
             <artifactId>molgenis-core-ui</artifactId>
-            <version>0.0.1</version>
+            <version>0.0.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.molgenis</groupId>
@@ -72,13 +71,23 @@
         <dependency>
             <groupId>org.molgenis</groupId>
             <artifactId>molgenis-omx-core</artifactId>
-            <version>0.0.1</version>
+            <version>0.0.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.molgenis</groupId>
             <artifactId>molgenis-omx-auth</artifactId>
-            <version>0.0.1</version>
+            <version>0.0.2-SNAPSHOT</version>
         </dependency>
+        <dependency>
+			<groupId>org.molgenis</groupId>
+			<artifactId>molgenis-search</artifactId>
+			<version>0.0.2-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.molgenis</groupId>
+			<artifactId>molgenis-search-elasticsearch</artifactId>
+			<version>0.0.2-SNAPSHOT</version>
+		</dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-aop</artifactId>
