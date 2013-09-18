@@ -3,6 +3,7 @@ package org.molgenis.compute5.generators;
 import java.io.*;
 import java.util.*;
 
+import com.sun.tools.javac.util.Pair;
 import org.apache.log4j.Logger;
 import org.molgenis.compute5.model.*;
 import org.molgenis.util.tuple.WritableTuple;
@@ -20,6 +21,9 @@ public class EnvironmentGenerator
 	private HashMap<String, String> environment = new HashMap<String, String>();
 	private List<Step> steps = null;
 	private Workflow workflow = null;
+
+	//for error handling
+	private ArrayList<Pair<String, String>> arrayOfParameterSteps = new ArrayList<Pair<String, String>>();
 
 	private static final Logger LOG = Logger.getLogger(EnvironmentGenerator.class);
 
@@ -45,10 +49,9 @@ public class EnvironmentGenerator
 			while (itValue.hasNext())
 			{
 				String value = itValue.next();
-				
-				// if value matches 'user_*' then add * to environment
-//				Integer prefLength = Parameters.USER_PREFIX.length();
-//				if (value.substring(0, prefLength).equals(Parameters.USER_PREFIX))
+
+				arrayOfParameterSteps.add(new Pair(value, step.getName()));
+
 				if(!workflow.parameterHasStepPrefix(value))
 				{
 					userInputParamSet.add(value);
@@ -56,6 +59,12 @@ public class EnvironmentGenerator
 			}
 
 			List<String> autoMappedParameters = step.getAutoMappedParameters();
+
+			for(String s : autoMappedParameters)
+			{
+				arrayOfParameterSteps.add(new Pair(s, step.getName()));
+			}
+
 			userInputParamSet.addAll(autoMappedParameters);
 
 		}
@@ -82,8 +91,12 @@ public class EnvironmentGenerator
 				{
 
 					if(!isFoundAsOutput(parameter, wt))
+					{
+						List<String> relatedSteps = findRelatedSteps(parameter);
 						throw new Exception("Parameter '" + parameter +
-								"' does not value in the parameters (.csv, .properties) files ");
+								"' used in steps " + relatedSteps.toString() +
+								"does not have value in the parameters (.csv, .properties) files ");
+					}
 					else
 					{
 						LOG.warn("Variable [" + index + "] has run time value");
@@ -101,6 +114,19 @@ public class EnvironmentGenerator
 		}
 		
 		return output;
+	}
+
+	private List<String> findRelatedSteps(String parameter)
+	{
+		List<String> relatedSteps = new ArrayList<String>();
+
+		for(Pair<String, String> pair : arrayOfParameterSteps)
+		{
+			if(pair.fst.equalsIgnoreCase(parameter))
+				relatedSteps.add(pair.snd);
+		}
+
+		return relatedSteps;
 	}
 
 	private boolean isFoundAsOutput(String parameter, WritableTuple wt)
