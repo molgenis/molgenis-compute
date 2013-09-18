@@ -24,6 +24,8 @@ import org.molgenis.util.SshResult;
 public class ExecutionHost extends Ssh
 {
 
+    public static final String CREATE_PILOT_DIR = "mkdir maverick";
+
     public static final String CORRECT_GLITE_RESPOND = "glite-wms-job-submit Success";
 	private static final Logger LOG = Logger.getLogger(ExecutionHost.class);
 
@@ -36,6 +38,8 @@ public class ExecutionHost extends Ssh
 	public void submitPilot(ComputeRun computeRun, String command,
                             String pilotID, String sh, String jdl, MolgenisUser owner) throws IOException
 	{
+
+		SshResult mkdir = executeCommand(CREATE_PILOT_DIR);
 
         LOG.info("Transferring file maverick" + pilotID + ".jdl ...");
 
