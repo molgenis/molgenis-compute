@@ -66,7 +66,15 @@ public class PilotDashboardController extends MolgenisPlugin
 	String username, @RequestParam("password")
 	String password, Model model) throws IOException, DatabaseException
 	{
-		runService.start(runName, username, password);
+		try
+		{
+			runService.start(runName, username, password);
+		}
+		catch (ComputeDbException e)
+		{
+			model.addAttribute("errormessage", "Your credentials are not valid for the selected back-end!");
+			model.addAttribute("errortask", runName);
+		}
 		return init(model);
 	}
 

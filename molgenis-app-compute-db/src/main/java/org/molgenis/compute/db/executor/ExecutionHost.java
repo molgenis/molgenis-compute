@@ -29,6 +29,7 @@ public class ExecutionHost extends Ssh
 	private static final Logger LOG = Logger.getLogger(ExecutionHost.class);
 
 	public ExecutionHost(String host, String user, String password, int port) throws IOException
+
 	{
 		super(host, user, password, port);
 		LOG.info("... " + host + " is started");
