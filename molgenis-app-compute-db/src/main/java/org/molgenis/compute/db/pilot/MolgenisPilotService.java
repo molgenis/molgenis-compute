@@ -71,9 +71,6 @@ public class MolgenisPilotService
 			else
 				LOG.info("CANNOT create LOG DIR");
 		}
-
-		String testFile = LOG_DIR + "/" + "test" + LOG_EXTENSION;
-		writeToFile(testFile, "test");
 	}
 
 	@RequestMapping(method = RequestMethod.POST, headers = "Content-Type=multipart/form-data")
