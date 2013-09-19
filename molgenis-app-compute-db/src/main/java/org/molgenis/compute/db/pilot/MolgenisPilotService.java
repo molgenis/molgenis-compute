@@ -18,9 +18,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.text.ParseException;
 import java.util.List;
 
@@ -51,6 +49,32 @@ public class MolgenisPilotService
     public static final String PILOT_EXPIRED = "expired";
     public static final String PILOT_FAILED = "failed";
     public static final String PILOT_DONE = "done";
+
+	public static final String LOG_DIR = "log";
+	private static final String ERR_EXTENSION = ".err";
+	private static final String LOG_EXTENSION = ".log";
+
+	public MolgenisPilotService()
+	{
+		createLogDir();
+	}
+
+	private void createLogDir()
+	{
+		File theDir = new File(LOG_DIR);
+
+		if (!theDir.exists())
+		{
+			boolean result = theDir.mkdir();
+			if (result)
+				LOG.info("LOG DIR created");
+			else
+				LOG.info("CANNOT create LOG DIR");
+		}
+
+		String testFile = LOG_DIR + "/" + "test" + LOG_EXTENSION;
+		writeToFile(testFile, "test");
+	}
 
 	@RequestMapping(method = RequestMethod.POST, headers = "Content-Type=multipart/form-data")
 	public synchronized void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ParseException,
@@ -233,6 +257,9 @@ public class MolgenisPilotService
 					task.setRunLog(logFileContent);
 					task.setRunInfo(runInfo);
 
+					String logFile = LOG_DIR + "/" + taskName + LOG_EXTENSION;
+					writeToFile(logFile, logFileContent);
+
 					File output = tuple.getFile("output_file");
 					if(output != null)
 					{
@@ -274,6 +301,9 @@ public class MolgenisPilotService
 					if (failedLog != null)
 					{
 						task.setFailedLog(FileUtils.readFileToString(failedLog));
+
+						String errFile = LOG_DIR + "/" + taskName + ERR_EXTENSION;
+						writeToFile(errFile, FileUtils.readFileToString(failedLog));
 					}
 				}
 				else if (task != null && task.getStatusCode().equalsIgnoreCase(TASK_DONE))
@@ -284,6 +314,37 @@ public class MolgenisPilotService
 			}
 
 			ApplicationUtil.getDatabase().update(task);
+		}
+	}
+
+	private void writeToFile(String filename, String text)
+	{
+		File file = new File(filename);
+		if (!file.exists())
+		{
+			try
+			{
+				file.createNewFile();
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+		}
+
+		try
+		{
+			FileOutputStream out = new FileOutputStream(file, false);
+			out.write(text.getBytes());
+			out.close();
+		}
+		catch (FileNotFoundException e)
+		{
+			e.printStackTrace();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
 		}
 	}
 
