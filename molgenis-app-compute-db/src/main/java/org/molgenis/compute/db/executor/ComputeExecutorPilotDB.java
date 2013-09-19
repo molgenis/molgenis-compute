@@ -28,8 +28,15 @@ import javax.servlet.ServletContext;
  */
 public class ComputeExecutorPilotDB implements ComputeExecutor
 {
-	private static final int SSH_PORT = 22;
+	public static final int SSH_PORT = 22;
 	private static final Logger LOG = Logger.getLogger(ComputeExecutorPilotDB.class);
+
+	private ExecutionHost executionHost = null;
+
+	ComputeExecutorPilotDB(ExecutionHost executionHost)
+	{
+		this.executionHost = executionHost;
+	}
 
 	@Override
 	public void executeTasks(ComputeRun computeRun, String username, String password)
@@ -38,7 +45,6 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 			throw new IllegalArgumentException("ComputRun is null");
 
 		Database database = null;
-		ExecutionHost executionHost = null;
 
 		try
 		{
@@ -80,9 +86,6 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 						//generate unique pilot and its submission command
 						String pilotID = String.valueOf(UUID.randomUUID());
 
-//						String jdlTemplate = getFileAsString("src/main/resources/templates/maverick.jdl.ftl");
-//						String shTemplate = getFileAsString("src/main/resources/templates/maverick.sh.ftl");
-
 						InputStream inStreamJDL = getClass().getClassLoader().getResourceAsStream("templates/maverick.jdl.ftl");
 						InputStream inStreamSH = getClass().getClassLoader().getResourceAsStream("templates/maverick.sh.ftl");
 
@@ -119,6 +122,7 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 		}
 		catch (IOException e)
 		{
+
 			LOG.error("IOException executing tasks", e);
 			throw new ComputeDbException("DatabaseException executing tasks", e);
 		}
