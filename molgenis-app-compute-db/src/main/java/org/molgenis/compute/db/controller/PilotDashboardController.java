@@ -72,7 +72,7 @@ public class PilotDashboardController extends MolgenisPlugin
 		}
 		catch (ComputeDbException e)
 		{
-			model.addAttribute("errormessage", "Your credential are not valid for the selected back-end!");
+			model.addAttribute("errormessage", "Your credentials are not valid for the selected back-end!");
 			model.addAttribute("errortask", runName);
 		}
 		return init(model);
