@@ -1,5 +1,6 @@
 package org.molgenis.compute.db.executor;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
@@ -36,8 +37,20 @@ public class Scheduler
 			throw new ComputeDbException("Run " + run.getName() + " already running");
 		}
 
-		ComputeJob job = new ComputeJob(new ComputeExecutorPilotDB(), run, username, password);
+		ExecutionHost executionHost = null;
+		try
+	{
+		executionHost = new ExecutionHost(run.getComputeBackend().getBackendUrl(), username,
+				password, ComputeExecutorPilotDB.SSH_PORT);
+	}
+	catch (IOException e)
+	{
+		throw new ComputeDbException(e);
+	}
+
+		ComputeJob job = new ComputeJob(new ComputeExecutorPilotDB(executionHost), run, username, password);
 		ScheduledFuture<?> future = taskScheduler.scheduleWithFixedDelay(job, run.getPollDelay());
+
 		scheduledJobs.put(run.getId(), future);
 	}
 
