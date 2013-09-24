@@ -51,6 +51,7 @@
             <field name="isActive" type="boolean" nillable="false" default="false" label="flag, if the run is active for execution" />
             <field name="isSubmittingPilots" type="boolean" nillable="false" default="false" label="flag, if pilots are submitting for this run"/>
             <field name="isDone" type="boolean" nillable="false" default="false" label="flag, showing that run is completed"/>
+            <field name="isCancelled" type="boolean" nillable="false" default="false" label="flag, showing that run is cancelled"/>
             <field name="owner" type="xref" xref_entity="MolgenisUser" nillable="false" />
             <field name="pilotsSubmitted" type="int" nillable="false" label="number of pilots submitted to backend" default="0"/>
             <field name="pilotsStarted" type="int" nillable="false" label="number of pilots started at backend" default="0"/>

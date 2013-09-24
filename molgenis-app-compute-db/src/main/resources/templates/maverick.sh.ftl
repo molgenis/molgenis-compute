@@ -1,5 +1,7 @@
 #!/bin/bash
 
+SERVER=${SERVER}
+
 #------- data transfer
 
 #<#noparse>
@@ -36,6 +38,16 @@ getFile()
 
 putFile()
 {
+#</#noparse>
+    RESULT=`curl  -s -S -u api:api -F pilotid=${pilotid} -F status=is_cancel http://$SERVER:8080/api/pilot`
+
+    if [ "$RESULT" = "cancelled" ];
+    then
+        echo "${pilotid} is cancelled" 2>&1 | tee -a log.log
+        return 0
+    fi
+#<#noparse>
+
     ARGS=($@)
     NUMBER="${#ARGS[@]}";
     if [ "$NUMBER" -eq "1" ]
@@ -86,7 +98,6 @@ check_process(){
         fi
 }
 #</#noparse>
-SERVER=${SERVER}
 
 curl  -s -S -u api:api -F pilotid=${pilotid} -F host=`hostname` -F status=started -F backend=ui.grid.sara.nl http://$SERVER:8080/api/pilot > script.sh
 bash -l script.sh 2>&1 | tee -a log.log &
