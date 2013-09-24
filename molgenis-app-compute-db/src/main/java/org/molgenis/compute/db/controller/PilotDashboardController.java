@@ -111,7 +111,16 @@ public class PilotDashboardController extends MolgenisPlugin
         return init(model);
     }
 
-    @RequestMapping("/resubmit")
+	@RequestMapping("/cancel")
+	public String cancel(@RequestParam("run")
+	String runName, Model model) throws DatabaseException
+	{
+		runService.cancel(runName);
+		return init(model);
+	}
+
+
+	@RequestMapping("/resubmit")
 	public String resubmitFailedTasks(@RequestParam("run")
 	String runName, Model model) throws DatabaseException
 	{
@@ -159,6 +168,7 @@ public class PilotDashboardController extends MolgenisPlugin
                     runService.isRunning(run.getName()),
                     runService.isSubmitting(run.getName()),
                     runService.isComplete(run.getName()),
+					runService.isCancelled(run.getName()),
 					isSame,
                     run.getComputeBackend().getBackendUrl(),
 					run.getCreationTime(),

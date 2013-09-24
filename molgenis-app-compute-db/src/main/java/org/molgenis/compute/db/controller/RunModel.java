@@ -9,11 +9,12 @@ public class RunModel
     private final boolean submitting;
     private final boolean complete;
 	private final boolean owned;
+	private final boolean cancelled;
 	private final String backendUrl;
 	private final Date creationTime;
 	private final String owner;
 
-    public RunModel(String name, boolean running, boolean submitting, boolean complete, boolean owned,
+    public RunModel(String name, boolean running, boolean submitting, boolean complete, boolean cancelled, boolean owned,
 					String backendUrl, Date creationTime, String owner)
 	{
 		this.name = name;
@@ -24,6 +25,7 @@ public class RunModel
 		this.backendUrl = backendUrl;
 		this.creationTime = creationTime;
 		this.owner = owner;
+		this.cancelled = cancelled;
 	}
 
 	public String getName()
@@ -64,5 +66,10 @@ public class RunModel
 	public String getOwner()
 	{
 		return owner;
+	}
+
+	public boolean isCancelled()
+	{
+		return cancelled;
 	}
 }
