@@ -362,15 +362,41 @@ public class RunService
         }
         catch (DatabaseException e)
         {
-            String msg = "DatabaseException check running for run  [" + runName + "] : " + e.getMessage();
+            String msg = "DatabaseException check completeness for run  [" + runName + "] : " + e.getMessage();
             LOG.error(msg, e);
             throw new ComputeDbException(msg, e);
         }
     }
 
+	/**
+	 * Check is a run is cancelled
+	 *
+	 * @param runName
+	 * @return
+	 */
+	public boolean isCancelled(String runName)
+	{
+		try
+		{
+			ComputeRun run = ComputeRun.findByName(database, runName);
+			if (run == null)
+			{
+				throw new ComputeDbException("Unknown run name [" + runName + "]");
+			}
+
+			return run.getIsCancelled();
+		}
+		catch (DatabaseException e)
+		{
+			String msg = "DatabaseException check cancellation for run  [" + runName + "] : " + e.getMessage();
+			LOG.error(msg, e);
+			throw new ComputeDbException(msg, e);
+		}
+	}
 
 
-    /**
+
+	/**
 	 * Get the status of all tasks of a run
 	 * 
 	 * @param runName
@@ -497,4 +523,30 @@ public class RunService
 				.eq(ComputeTask.STATUSCODE, status).count();
 	}
 
+	/**
+	 * Cancel a run: this action stops saving result files for the whole run; the files created until this action
+	 * are not removed, but they will be overwritten in the next run; if it will take place
+	 *
+	 * @param runName
+	 */
+	public void cancel(String runName)
+	{
+		try
+		{
+			ComputeRun run = ComputeRun.findByName(database, runName);
+			if (run == null)
+			{
+				throw new ComputeDbException("Unknown run name [" + runName + "]");
+			}
+
+			run.setIsCancelled(true);
+			database.update(run);
+		}
+		catch (DatabaseException e)
+		{
+			String msg = "DatabaseException cancelling run with name [" + runName + "] : " + e.getMessage();
+			LOG.error(msg, e);
+			throw new ComputeDbException(msg, e);
+		}
+	}
 }

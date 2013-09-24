@@ -54,6 +54,9 @@ public class MolgenisPilotService
 	private static final String ERR_EXTENSION = ".err";
 	private static final String LOG_EXTENSION = ".log";
 
+	private static final String IS_CANCELLED = "cancelled";
+	private static final String IS_NOT_CANCELLED = "not_cancelled";
+
 	public MolgenisPilotService()
 	{
 		createLogDir();
@@ -165,9 +168,41 @@ public class MolgenisPilotService
 				{
 					IOUtils.closeQuietly(pw);
 				}
+			}
+		}
+		else if("is_cancel".equals(tuple.get("status").toString()))
+		{
+			String pilotID = (String) tuple.get(PILOT_ID);
+			LOG.info("Checking if pilot " + pilotID + " is cancelled");
+			List<Pilot> pilots = ApplicationUtil.getDatabase().query(Pilot.class).eq(Pilot.VALUE, pilotID)
+					.and().eq(Pilot.STATUS, PILOT_SUBMITTED).find();
 
+			String runCancelStatus = IS_NOT_CANCELLED;
+			if(pilots.size() > 0)
+			{
+				LOG.info("Pilot value is correct");
+				Pilot pilot = pilots.get(0);
+				ComputeRun run = pilot.getComputeRun();
+				boolean isCancelled = run.getIsCancelled();
+				if(isCancelled)
+					runCancelStatus = IS_CANCELLED;
+			}
+			else
+			{
+				LOG.warn("MALICIOUS PILOT [ " + pilotID + " ] in cancellation check");
+				return;
 			}
 
+			PrintWriter pw = response.getWriter();
+			try
+			{
+				pw.write(runCancelStatus);
+				pw.flush();
+			}
+			finally
+			{
+				IOUtils.closeQuietly(pw);
+			}
 		}
 		else
 		{
