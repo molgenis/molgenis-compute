@@ -89,7 +89,7 @@
              <#if run.complete>
                 <div class="text-success">Completed</div>
              <#elseif run.cancelled>
-                <div class="text-success">Cancelled</div>
+                <div class="text-error">Cancelled</div>
              <#else>
                 <#if run.owned>
                     <#if run.running>
@@ -120,22 +120,20 @@
                 </form>
                        </#if>
                     </#if>
-                <#else>
-                <div class="text-info">${run.owner}</div>
-                </#if>
-             </#if>
-             <#if run.owned>
                 <form id="resubmitFailedTasksForm_${run.name}" action="/menu/Compute/dashboard/resubmit" class="form-inline"
-                  method="post">
+                          method="post">
                     <input type="hidden" name="run" value="${run.name}"/>
                     <button type="submit" class="btn resubmit-btn">Resubmit failed jobs</button>
                 </form>
                 <form id="cancel_${run.name}" action="/menu/Compute/dashboard/cancel" class="form-inline"
-                  method="post">
+                          method="post">
                     <input type="hidden" name="run" value="${run.name}"/>
                     <button type="submit" class="btn cancel-btn">Cancel Run</button>
                 </form>
-            </#if>
+                <#else>
+                <div class="text-info">${run.owner}</div>
+                </#if>
+             </#if>
             </div>
             <div class="span5 status">
                 <div class="status-table">
