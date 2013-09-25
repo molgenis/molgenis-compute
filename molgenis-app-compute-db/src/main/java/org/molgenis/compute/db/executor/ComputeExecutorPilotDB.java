@@ -38,11 +38,6 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 
 	private ExecutionHost executionHost = null;
 
-	ComputeExecutorPilotDB(ExecutionHost executionHost)
-	{
-		//this.executionHost = executionHost;
-	}
-
 	public ComputeExecutorPilotDB(String backendUrl, String username, String password, int sshPort)
 	{
 		this.backendUrl = backendUrl;
@@ -217,23 +212,6 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 		}
 
 	}
-
-    private final String getFileAsString(String filename) throws IOException
-    {
-        File file = new File(filename);
-
-        if (!file.exists())
-        {
-            LOG.error("File [" + filename + "] does not exist");
-            throw new ComputeDbException("File [" + filename + "] does not exist");
-        }
-        final BufferedInputStream bis = new BufferedInputStream(
-                new FileInputStream(file));
-        final byte[] bytes = new byte[(int) file.length()];
-        bis.read(bytes);
-        bis.close();
-        return new String(bytes);
-    }
 
     public String weaveFreemarker(String strTemplate, Hashtable<String, String> values)
     {

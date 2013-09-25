@@ -32,7 +32,7 @@
       		<field name="computeTask" type="xref" xref_entity="ComputeTask" description="the task for which the history was collected" />
       		<field name="statusTime" type="datetime" auto="true" description="time of state change" />
       		<field name="runLog" nillable="true" type="text" description="field to show the content of the error file (only applicable on fail/done of a task)" />
-            <field name="statusCode" nillable="true" type="enum" enum_options="[generated,ready,running,failed,done]"  description="current status of this task." />
+            <field name="statusCode" nillable="true" type="enum" enum_options="[generated,ready,running,failed,done,cancelled]"  description="current status of this task." />
             <field name="newStatusCode" nillable="false" type="enum" enum_options="[generated,ready,running,failed,done]"  description="current status of this task." />
       	</entity>
 		<entity name="ComputeParameterValue" implements="Nameable">

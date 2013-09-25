@@ -40,34 +40,37 @@ putFile()
 {
 #</#noparse>
     RESULT=`curl  -s -S -u api:api -F pilotid=${pilotid} -F status=is_cancel http://$SERVER:8080/api/pilot`
-
-    if [ "$RESULT" = "cancelled" ];
+#<#noparse>
+    if [ "$RESULT" = "not_cancelled" ];
     then
+        ARGS=($@)
+        NUMBER="${#ARGS[@]}";
+        if [ "$NUMBER" -eq "1" ]
+        then
+            myFile=${ARGS[0]}
+            remoteFile=`getRemoteLocation $myFile`
+            echo "srmrm $remoteFile"
+            srmrm $remoteFile
+            echo "srmcp -server_mode=passive file:///$myFile $remoteFile"
+            srmcp -server_mode=passive file:///$myFile $remoteFile
+            returnCode=$?
+
+            echo "srmcopy: ${returnCode}"
+
+            if [ $returnCode -ne 0 ]
+            then
+                exit 1
+            fi
+        else
+            echo "Example usage: putData \"\$TMPDIR/datadir/myfile.txt\""
+        fi
+
+    else
+#</#noparse>
         echo "${pilotid} is cancelled"
+#<#noparse>
         return 0
     fi
-#<#noparse>
-    ARGS=($@)
-    NUMBER="${#ARGS[@]}";
-    if [ "$NUMBER" -eq "1" ]
-	then
-	myFile=${ARGS[0]}
-	remoteFile=`getRemoteLocation $myFile`
-	echo "srmrm $remoteFile"
-	srmrm $remoteFile
-	echo "srmcp -server_mode=passive file:///$myFile $remoteFile"
-	srmcp -server_mode=passive file:///$myFile $remoteFile
-		returnCode=$?
-
-		echo "srmcopy: ${returnCode}"
-
-		if [ $returnCode -ne 0 ]
-		then
-			exit 1	
-		fi	
-	else
-	echo "Example usage: putData \"\$TMPDIR/datadir/myfile.txt\""
-	fi
 }
 
 export -f getRemoteLocation

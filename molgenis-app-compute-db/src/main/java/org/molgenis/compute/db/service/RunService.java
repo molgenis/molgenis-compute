@@ -16,6 +16,7 @@ import org.molgenis.compute5.db.api.RunStatus;
 import org.molgenis.compute5.model.Task;
 import org.molgenis.framework.db.Database;
 import org.molgenis.framework.db.DatabaseException;
+import org.molgenis.framework.db.Query;
 import org.molgenis.omx.auth.MolgenisUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -417,19 +418,20 @@ public class RunService
 			int running = getTaskStatusCount(run.getId(), MolgenisPilotService.TASK_RUNNING);
 			int failed = getTaskStatusCount(run.getId(), MolgenisPilotService.TASK_FAILED);
 			int done = getTaskStatusCount(run.getId(), MolgenisPilotService.TASK_DONE);
+			int cancelled = getTaskStatusCount(run.getId(), MolgenisPilotService.TASK_CANCELLED);
 
             int submitted = run.getPilotsSubmitted();
             int started = run.getPilotsStarted();
 
             boolean status = false;
 
-            if((generated == 0) && (ready == 0) && (running == 0) && (failed == 0))
+            if((generated == 0) && (ready == 0) && (running == 0) && (failed == 0) && (cancelled == 0))
             {
                 status = true;
                 run.setIsDone(true);
                 database.update(run);
             }
-            return new RunStatus(generated, ready, running, failed, done, submitted, started, status);
+            return new RunStatus(generated, ready, running, failed, done, cancelled, submitted, started, status);
 		}
 		catch (DatabaseException e)
 		{
@@ -541,6 +543,17 @@ public class RunService
 
 			run.setIsCancelled(true);
 			database.update(run);
+
+			List<ComputeTask> listTask = database.query(ComputeTask.class).
+					eq(ComputeTask.COMPUTERUN_NAME, run.getName()).and().
+					eq(ComputeTask.STATUSCODE, MolgenisPilotService.TASK_RUNNING).find();
+
+			for(ComputeTask task: listTask)
+			{
+				task.setStatusCode(MolgenisPilotService.TASK_CANCELLED);
+				database.update(task);
+			}
+
 		}
 		catch (DatabaseException e)
 		{
