@@ -27,6 +27,7 @@
         $('#' + run + ' td.done').html(response.done);
         $('#' + run + ' td.submitted').html(response.submitted);
         $('#' + run + ' td.started').html(response.started);
+        $('#' + run + ' td.cancelled').html(response.cancelled);
 
         if (response.failed > 0) {
             $('#resubmitFailedTasksForm_' + run).show();
@@ -153,8 +154,8 @@
                         <tr>
                             <td class="text-warning">Jobs running</td>
                             <td class="running text-warning"></td>
-                            <td></td>
-                            <td></td>
+                            <td class="text-error">Jobs cancelled</td>
+                            <td class="cancelled text-error"></td>
                         </tr>
                         <tr>
                             <td class="text-info">Pilots submitted</td>

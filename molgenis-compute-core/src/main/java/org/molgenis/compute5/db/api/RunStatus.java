@@ -9,11 +9,12 @@ public class RunStatus
 	private final int running;
 	private final int failed;
 	private final int done;
+	private final int cancelled;
     private final int submitted;
     private final int started;
     private final boolean isComplete;
 
-	public RunStatus(int generated, int ready, int running, int failed, int done,
+	public RunStatus(int generated, int ready, int running, int failed, int done, int cancelled,
                      int submitted, int started, boolean isComplete)
 	{
 		this.generated = generated;
@@ -21,6 +22,7 @@ public class RunStatus
 		this.running = running;
 		this.done = done;
 		this.failed = failed;
+		this.cancelled = cancelled;
         this.submitted = submitted;
         this.started = started;
         this.isComplete = isComplete;
@@ -51,7 +53,12 @@ public class RunStatus
 		return failed;
 	}
 
-    public int getSubmitted()
+	public int getCancelled()
+	{
+		return cancelled;
+	}
+
+	public int getSubmitted()
     {
         return submitted;
     }

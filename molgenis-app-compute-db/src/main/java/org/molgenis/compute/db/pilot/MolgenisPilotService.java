@@ -40,6 +40,7 @@ public class MolgenisPilotService
 	public static final String TASK_RUNNING = "running";
 	public static final String TASK_FAILED = "failed";
 	public static final String TASK_DONE = "done";
+	public static final String TASK_CANCELLED = "cancelled";
 
 
     public static final String PILOT_ID = "pilotid";
@@ -283,9 +284,11 @@ public class MolgenisPilotService
 
 
 				LOG.info(">>> task [" + taskName + "] of run [" + runName + "] is finished");
-				if (task.getStatusCode().equalsIgnoreCase(TASK_RUNNING))
+				if (task.getStatusCode().equalsIgnoreCase(TASK_RUNNING) ||
+						task.getStatusCode().equalsIgnoreCase(TASK_CANCELLED))
 				{
-					task.setStatusCode(TASK_DONE);
+					if (task.getStatusCode().equalsIgnoreCase(TASK_RUNNING))
+						task.setStatusCode(TASK_DONE);
 					task.setRunLog(logFileContent);
 					task.setRunInfo(runInfo);
 
