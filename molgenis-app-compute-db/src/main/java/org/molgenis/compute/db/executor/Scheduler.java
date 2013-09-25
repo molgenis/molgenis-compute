@@ -13,9 +13,8 @@ import org.springframework.scheduling.TaskScheduler;
 
 /**
  * Schedule and unschedule pilot jobs
- * 
+ *
  * @author erwin
- * 
  */
 public class Scheduler
 {
@@ -39,16 +38,17 @@ public class Scheduler
 
 		ExecutionHost executionHost = null;
 		try
-	{
-		executionHost = new ExecutionHost(run.getComputeBackend().getBackendUrl(), username,
-				password, ComputeExecutorPilotDB.SSH_PORT);
-	}
-	catch (IOException e)
-	{
-		throw new ComputeDbException(e);
-	}
+		{
+			executionHost = new ExecutionHost(run.getComputeBackend().getBackendUrl(), username,
+					password, ComputeExecutorPilotDB.SSH_PORT);
+		}
+		catch (IOException e)
+		{
+			throw new ComputeDbException(e);
+		}
 
-		ComputeJob job = new ComputeJob(new ComputeExecutorPilotDB(executionHost), run, username, password);
+		ComputeJob job = new ComputeJob(new ComputeExecutorPilotDB(run.getComputeBackend().getBackendUrl(), username,
+				password, ComputeExecutorPilotDB.SSH_PORT), run);
 		ScheduledFuture<?> future = taskScheduler.scheduleWithFixedDelay(job, run.getPollDelay());
 
 		scheduledJobs.put(run.getId(), future);

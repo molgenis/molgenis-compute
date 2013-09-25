@@ -12,9 +12,7 @@ public interface ComputeExecutor
 	 * Execute tasks for a ComputeRun
 	 * 
 	 * @param computeRun
-	 * @param username
-	 * @param password
 	 */
-	void executeTasks(ComputeRun computeRun, String username, String password);
+	void executeTasks(ComputeRun computeRun);
 
 }

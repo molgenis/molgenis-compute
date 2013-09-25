@@ -31,16 +31,38 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 	public static final int SSH_PORT = 22;
 	private static final Logger LOG = Logger.getLogger(ComputeExecutorPilotDB.class);
 
+	private String backendUrl;
+	private String username;
+	private String password;
+	private int sshPort;
+
 	private ExecutionHost executionHost = null;
 
 	ComputeExecutorPilotDB(ExecutionHost executionHost)
 	{
-		this.executionHost = executionHost;
+		//this.executionHost = executionHost;
+	}
+
+	public ComputeExecutorPilotDB(String backendUrl, String username, String password, int sshPort)
+	{
+		this.backendUrl = backendUrl;
+		this.username = username;
+		this.password = password;
+		this.sshPort = sshPort;
 	}
 
 	@Override
-	public void executeTasks(ComputeRun computeRun, String username, String password)
+	public void executeTasks(ComputeRun computeRun)
 	{
+		try
+		{
+			this.executionHost = new ExecutionHost(backendUrl, username, password, sshPort);
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+
 		if (computeRun == null)
 			throw new IllegalArgumentException("ComputRun is null");
 
