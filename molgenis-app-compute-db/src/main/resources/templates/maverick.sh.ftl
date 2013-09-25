@@ -9,7 +9,7 @@ getRemoteLocation()
 {
     ARGS=($@)
     myFile=${ARGS[0]}
-    remoteFile=srm://srm.grid.sara.nl/pnfs/grid.sara.nl/data/bbmri.nl/RP3${myFile:`expr length $TMPDIR`}
+    remoteFile=srm://srm.grid.sara.nl/pnfs/grid.sara.nl/data/bbmri.nl/RP2${myFile:`expr length $TMPDIR`}
     echo $remoteFile
 }
 
@@ -40,40 +40,43 @@ putFile()
 {
 #</#noparse>
     RESULT=`curl  -s -S -u api:api -F pilotid=${pilotid} -F status=is_cancel http://$SERVER:8080/api/pilot`
-
-    if [ "$RESULT" = "cancelled" ];
+#<#noparse>
+    if [ "$RESULT" = "not_cancelled" ];
     then
-        echo "${pilotid} is cancelled" 2>&1 | tee -a log.log
+        ARGS=($@)
+        NUMBER="${#ARGS[@]}";
+        if [ "$NUMBER" -eq "1" ]
+        then
+            myFile=${ARGS[0]}
+            remoteFile=`getRemoteLocation $myFile`
+            echo "srmrm $remoteFile"
+            srmrm $remoteFile
+            echo "srmcp -server_mode=passive file:///$myFile $remoteFile"
+            srmcp -server_mode=passive file:///$myFile $remoteFile
+            returnCode=$?
+
+            echo "srmcopy: ${returnCode}"
+
+            if [ $returnCode -ne 0 ]
+            then
+                exit 1
+            fi
+        else
+            echo "Example usage: putData \"\$TMPDIR/datadir/myfile.txt\""
+        fi
+
+    else
+#</#noparse>
+        echo "${pilotid} is cancelled"
+#<#noparse>
         return 0
     fi
-#<#noparse>
-
-    ARGS=($@)
-    NUMBER="${#ARGS[@]}";
-    if [ "$NUMBER" -eq "1" ]
-	then
-	myFile=${ARGS[0]}
-	remoteFile=`getRemoteLocation $myFile`
-	echo "srmrm $remoteFile"
-	srmrm $remoteFile
-	echo "srmcp -server_mode=passive file:///$myFile $remoteFile"
-	srmcp -server_mode=passive file:///$myFile $remoteFile
-		returnCode=$?
-
-		echo "srmcopy: ${returnCode}"
-
-		if [ $returnCode -ne 0 ]
-		then
-			exit 1	
-		fi	
-	else
-	echo "Example usage: putData \"\$TMPDIR/datadir/myfile.txt\""
-	fi
 }
 
 export -f getRemoteLocation
 export -f getFile
 export -f putFile
+export SERVER=${SERVER}
 
 #-------end transfer
 
@@ -119,9 +122,9 @@ while [ 1 ] ; do
                 echo "NOT RUNNING $COUNTER"
 
                 #time to make sure that job reported back to db
-                if [ $COUNTER -eq 10 ];
+                if [ $COUNTER -eq 3 ];
                 then
-                	echo 'FAILED 10 TIMES'
+                	echo 'FAILED 3 TIMES'
                 	cp log.log inter.log
                 	curl -s -S -u api:api -F pilotid=${pilotid} -F status=nopulse -F log_file=@inter.log http://$SERVER:8080/api/pilot
                 	#kill the actual analysis, which does not guarantie that the process is killed
@@ -137,5 +140,5 @@ while [ 1 ] ; do
         fi
         #this sleep can be modified depending on how often, you like to receive the job status
         #it also depends on the number of running jobs, more jobs -> bigger interval
-        sleep 15m
+        sleep 10
 done

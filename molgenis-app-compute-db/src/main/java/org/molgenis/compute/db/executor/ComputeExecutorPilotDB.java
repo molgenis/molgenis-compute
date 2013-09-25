@@ -31,16 +31,33 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 	public static final int SSH_PORT = 22;
 	private static final Logger LOG = Logger.getLogger(ComputeExecutorPilotDB.class);
 
+	private String backendUrl;
+	private String username;
+	private String password;
+	private int sshPort;
+
 	private ExecutionHost executionHost = null;
 
-	ComputeExecutorPilotDB(ExecutionHost executionHost)
+	public ComputeExecutorPilotDB(String backendUrl, String username, String password, int sshPort)
 	{
-		this.executionHost = executionHost;
+		this.backendUrl = backendUrl;
+		this.username = username;
+		this.password = password;
+		this.sshPort = sshPort;
 	}
 
 	@Override
-	public void executeTasks(ComputeRun computeRun, String username, String password)
+	public void executeTasks(ComputeRun computeRun)
 	{
+		try
+		{
+			this.executionHost = new ExecutionHost(backendUrl, username, password, sshPort);
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+
 		if (computeRun == null)
 			throw new IllegalArgumentException("ComputRun is null");
 
@@ -195,23 +212,6 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 		}
 
 	}
-
-    private final String getFileAsString(String filename) throws IOException
-    {
-        File file = new File(filename);
-
-        if (!file.exists())
-        {
-            LOG.error("File [" + filename + "] does not exist");
-            throw new ComputeDbException("File [" + filename + "] does not exist");
-        }
-        final BufferedInputStream bis = new BufferedInputStream(
-                new FileInputStream(file));
-        final byte[] bytes = new byte[(int) file.length()];
-        bis.read(bytes);
-        bis.close();
-        return new String(bytes);
-    }
 
     public String weaveFreemarker(String strTemplate, Hashtable<String, String> values)
     {
