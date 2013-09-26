@@ -17,6 +17,7 @@ import org.molgenis.compute5.model.Task;
 import org.molgenis.framework.db.Database;
 import org.molgenis.framework.db.DatabaseException;
 import org.molgenis.framework.db.Query;
+import org.molgenis.framework.db.QueryRule;
 import org.molgenis.omx.auth.MolgenisUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -544,9 +545,17 @@ public class RunService
 			run.setIsCancelled(true);
 			database.update(run);
 
-			List<ComputeTask> listTask = database.query(ComputeTask.class).
-					eq(ComputeTask.COMPUTERUN_NAME, run.getName()).and().
-					eq(ComputeTask.STATUSCODE, MolgenisPilotService.TASK_RUNNING).find();
+			List<QueryRule> listOfQueryRules = new ArrayList<QueryRule>();
+
+			List<String> statuses = new ArrayList<String>();
+			statuses.add(MolgenisPilotService.TASK_RUNNING);
+			statuses.add(MolgenisPilotService.TASK_GENERATED);
+			statuses.add(MolgenisPilotService.TASK_READY);
+
+			listOfQueryRules.add(new QueryRule(ComputeTask.COMPUTERUN_NAME, QueryRule.Operator.EQUALS,run.getName()));
+			listOfQueryRules.add(new QueryRule(ComputeTask.STATUSCODE, QueryRule.Operator.IN, statuses));
+
+			List<ComputeTask> listTask = database.find(ComputeTask.class, new QueryRule(listOfQueryRules));
 
 			for(ComputeTask task: listTask)
 			{
