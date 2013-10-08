@@ -1,14 +1,6 @@
 package org.molgenis.compute5.generators;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.io.Writer;
+import java.io.*;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -16,7 +8,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.poi.util.IOUtils;
 import org.molgenis.compute5.ComputeProperties;
+import org.molgenis.compute5.model.Parameters;
 import org.molgenis.compute5.model.Task;
 
 import freemarker.template.Configuration;
@@ -30,22 +24,36 @@ public class BackendGenerator
 	private String footerTemplate;
 	private String submitTemplate;
 
-	public BackendGenerator(String headerTemplate, String footerTemplate, String submitTemplate) throws IOException
-	{
-
-		this.setHeaderTemplate(readFile(headerTemplate));
-		this.setFooterTemplate(readFile(footerTemplate));
-		this.setSubmitTemplate(readFile(submitTemplate));
-
-	}
-
-	private String readFile(String file) throws IOException
+	private String readInJar(String file) throws IOException
 	{
 		URL header = this.getClass().getResource(file);
 		if (header == null) throw new IOException("file " + file + " is missing for backend "
 				+ this.getClass().getSimpleName());
 
 		BufferedReader stream = new BufferedReader(new InputStreamReader(header.openStream()));
+
+		StringBuilder result = new StringBuilder();
+		try
+		{
+
+			String inputLine;
+
+			while ((inputLine = stream.readLine()) != null)
+				result.append(inputLine + "\n");
+		}
+		finally
+		{
+			stream.close();
+		}
+		return result.toString();
+	}
+
+
+	private String readInClasspath(String file) throws IOException
+	{
+		InputStream in = this.getClass().getClassLoader().getResourceAsStream(file);
+
+		BufferedReader stream = new BufferedReader(new InputStreamReader(in));
 
 		StringBuilder result = new StringBuilder();
 		try
@@ -160,10 +168,20 @@ public class BackendGenerator
 
 	public BackendGenerator(ComputeProperties cp) throws IOException
 	{
-		this.setHeaderTemplate(readFile("header.ftl"));
-		this.setFooterTemplate(readFile("footer.ftl"));
-		this.setSubmitTemplate(readFile("submit.ftl"));
+		String wtf = cp.backend;
 
+		if(cp.backend.equalsIgnoreCase(Parameters.BACKEND_LOCAL))
+		{
+			this.setHeaderTemplate(readInClasspath("templates/local/header.ftl"));
+			this.setFooterTemplate(readInClasspath("templates/local/footer.ftl"));
+			this.setSubmitTemplate(readInClasspath("templates/local/submit.ftl"));
+		}
+		else if(cp.backend.equalsIgnoreCase(Parameters.BACKEND_PBS))
+		{
+			this.setHeaderTemplate(readInClasspath("templates/pbs/header.ftl"));
+			this.setFooterTemplate(readInClasspath("templates/pbs/footer.ftl"));
+			this.setSubmitTemplate(readInClasspath("templates/pbs/submit.ftl"));
+		}
 
 		if (cp.customHeader != null)
 		{

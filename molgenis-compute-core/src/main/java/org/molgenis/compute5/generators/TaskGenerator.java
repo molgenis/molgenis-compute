@@ -237,25 +237,26 @@ public class TaskGenerator
 				parameterHeader = parameterHeader
 						+ "\n# Validate that each 'value' parameter has only identical values in its list\n"
 						+ "# We do that to protect you against parameter values that might not be correctly set at runtime.\n";
-//				for (Input input : step.getProtocol().getInputs())
-//				{
-//					boolean isList = Parameters.LIST_INPUT.equals(input.getType());
-//					if (!isList)
-//					{
-//						String p = input.getName();
-//
-//						parameterHeader += "if [[ ! $(IFS=$'\\n' sort -u <<< \"${"
-//								+ p
-//								+ "[*]}\" | wc -l | sed -e 's/^[[:space:]]*//') = 1 ]]; then echo \"Error in Step '"
-//								+ step.getName()
-//								+ "': input parameter '"
-//								+ p
-//								+ "' is an array with different values. Maybe '"
-//								+ p
-//								+ "' is a runtime parameter with 'more variable' values than what was folded on generation-time?\" >&2; exit 1; fi\n";
-//					}
-//				}
+//-start
+				for (Input input : step.getProtocol().getInputs())
+				{
+					boolean isList = Parameters.LIST_INPUT.equals(input.getType());
+					if (!isList)
+					{
+						String p = input.getName();
 
+						parameterHeader += "if [[ ! $(IFS=$'\\n' sort -u <<< \"${"
+								+ p
+								+ "[*]}\" | wc -l | sed -e 's/^[[:space:]]*//') = 1 ]]; then echo \"Error in Step '"
+								+ step.getName()
+								+ "': input parameter '"
+								+ p
+								+ "' is an array with different values. Maybe '"
+								+ p
+								+ "' is a runtime parameter with 'more variable' values than what was folded on generation-time?\" >&2; exit 1; fi\n";
+					}
+				}
+ //-end
 				parameterHeader += "\n#\n## Start of your protocol template\n#\n\n";
 
 				String script = step.getProtocol().getTemplate();
