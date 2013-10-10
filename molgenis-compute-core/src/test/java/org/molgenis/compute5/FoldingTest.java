@@ -123,26 +123,21 @@ public class FoldingTest
 		String test2_0_list1 = "chunk[0]=\"a\"\n" +
 				"chunk[1]=\"b\"\n" +
 				"chunk[2]=\"c\"\n";
-		String test2_0_list2 ="chr[0]=\"1\"\n" +
-				"chr[1]=\"1\"\n" +
-				"chr[2]=\"1\"";
+		String test2_0_list2 ="chr=\"1\"";
 
 		String test2_1_list1 = "chunk[0]=\"a\"\n" +
 				"chunk[1]=\"b\"\n";
-		String test2_1_list2 ="chr[0]=\"2\"\n" +
-				"chr[1]=\"2\"";
+		String test2_1_list2 ="chr=\"2\"";
 
-		String test3_0_list1 = "chunk[0]=\"a\"\n" +
-				"chunk[1]=\"a\"\n";
+		String test3_0_list1 = "chunk=\"a\"";
 		String test3_0_list2 ="chr[0]=\"1\"\n" +
 				"chr[1]=\"2\"";
 
-		String test3_1_list1 = "chunk[0]=\"b\"\n" +
-				"chunk[1]=\"b\"\n";
+		String test3_1_list1 = "chunk=\"b\"";
 		String test3_1_list2 = "chr[0]=\"1\"\n" +
 				"chr[1]=\"2\"";
 
-		String test3_2_list1 = "chunk[0]=\"c\"\n";
+		String test3_2_list1 = "chunk=\"c\"\n";
 		String test3_2_list2 =	"chr[0]=\"1\"";
 
 		String t = ComputeCommandLineTest.getFileAsString(outputDir + "/test2_0.sh");

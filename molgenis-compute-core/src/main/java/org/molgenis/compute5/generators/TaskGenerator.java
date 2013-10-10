@@ -131,6 +131,7 @@ public class TaskGenerator
 
 				// now couple input parameters to parameters in sourced
 				// environment
+				Vector<String> presentStrings = new Vector<String>();
 				for (Input input : step.getProtocol().getInputs())
 				{
 					String parameterName = input.getName();
@@ -158,7 +159,20 @@ public class TaskGenerator
 //								parameterHeader += parameterName + "[" + i + "]=${" + value + "[" + rowIndexString
 //										+ "]}\n";
 
-							String left = parameterName + "[" + i + "]";
+							String type = input.getType();
+
+							String left = null;
+							if(type.equalsIgnoreCase(Input.TYPE_STRING))
+							{
+								left = parameterName;
+								if(presentStrings.contains(left))
+									continue;
+								else
+									presentStrings.add(left);
+							}
+							else
+								left = parameterName + "[" + i + "]";
+
 							String right = value + "[" + rowIndexString + "]";
 							if(right.startsWith(EnvironmentGenerator.GLOBAL_PREFIX))
 							{
@@ -169,8 +183,8 @@ public class TaskGenerator
 							else
 							{
 								//leave old style (runtime parameter)
-								parameterHeader += parameterName + "[" + i + "]=${" + value + "[" + rowIndexString
-										+ "]}\n";
+								parameterHeader += left + "=${" +
+										value + "[" + rowIndexString + "]}\n";
 							}
 						}
 						else
@@ -210,7 +224,20 @@ public class TaskGenerator
 //								left in code for paper (SGW)
 //								parameterHeader += parameterName + "[" + i + "]=${" + value + "[" + rowIndexString
 //										+ "]}\n";
-								String left = parameterName + "[" + i + "]";
+								String type = input.getType();
+
+								String left = null;
+								if(type.equalsIgnoreCase(Input.TYPE_STRING))
+								{
+									left = parameterName;
+									if(presentStrings.contains(left))
+										continue;
+									else
+										presentStrings.add(left);
+								}
+								else
+									left = parameterName + "[" + i + "]";
+
 								String right = value + "[" + rowIndexString + "]";
 								if(right.startsWith(EnvironmentGenerator.GLOBAL_PREFIX))
 								{
@@ -221,8 +248,8 @@ public class TaskGenerator
 								else
 								{
 									//leave old style (runtime parameter)
-									parameterHeader += parameterName + "[" + i + "]=${" + value + "[" + rowIndexString
-											+ "]}\n";
+									parameterHeader += left + "=${"
+											+ value + "[" + rowIndexString + "]}\n";
 								}
 
 
