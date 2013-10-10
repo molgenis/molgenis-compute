@@ -20,9 +20,9 @@ import freemarker.template.TemplateException;
 /** Parameters of the backend, either PBS, SGE, GRID, etc */
 public class BackendGenerator
 {
-	private String headerTemplate;
-	private String footerTemplate;
-	private String submitTemplate;
+	private String headerTemplate = "";
+	private String footerTemplate = "";
+	private String submitTemplate = "";
 
 	private String readInJar(String file) throws IOException
 	{
