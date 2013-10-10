@@ -5,6 +5,9 @@ import org.molgenis.compute5.Validator;
 /** Input for a protocol.*/
 public class Input
 {
+	public static final String TYPE_STRING = "string";
+	public static final String TYPE_LIST = "list";
+
 	//unique name within a protocol
 	private String name;
 	//description of this parameter

@@ -119,8 +119,10 @@ public class Parameters
 	public static final String PARAMETERS_TO_OVERWRITE_CMDLINE = "overwrite";
 	public static final String PARAMETERS_TO_OVERWRITE_CMDLINE_OPTION = "o";
 
-
 	public static final String CLEAR = "clear";
+
+	public static final String WEAVE = "weave";
+
 
 	//table with all the values
 	List<WritableTuple> values = new ArrayList<WritableTuple>();
