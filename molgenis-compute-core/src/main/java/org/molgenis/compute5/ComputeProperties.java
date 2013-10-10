@@ -61,6 +61,7 @@ public class ComputeProperties
 	public boolean clear = false;
 	public boolean execute = false; // does user want to execute scripts?
 
+	public boolean weave = false;
 
 
 	private Options options = null;
@@ -311,6 +312,7 @@ public class ComputeProperties
 							.hasOption(Parameters.PARAMETERS_CMNDLINE_OPTION));
 
 			this.clear = cmd.hasOption(Parameters.CLEAR);
+			this.weave = cmd.hasOption(Parameters.WEAVE);
 
 			this.runId = cmd.getOptionValue(Parameters.RUNID_CMNDLINE_OPTION, this.runId);
 			// if runId == null then create one
@@ -530,6 +532,8 @@ public class ComputeProperties
 
 		options.addOption(OptionBuilder.withDescription("Clear properties file").withLongOpt(Parameters.CLEAR)
 				.create(Parameters.CLEAR));
+		options.addOption(OptionBuilder.withDescription("Weave parameters to the actual script").withLongOpt(Parameters.WEAVE)
+				.create(Parameters.WEAVE));
 
 		options.addOption(OptionBuilder
 				.withDescription(

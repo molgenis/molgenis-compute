@@ -237,7 +237,7 @@ public class TaskGenerator
 				parameterHeader = parameterHeader
 						+ "\n# Validate that each 'value' parameter has only identical values in its list\n"
 						+ "# We do that to protect you against parameter values that might not be correctly set at runtime.\n";
-//-start
+
 				for (Input input : step.getProtocol().getInputs())
 				{
 					boolean isList = Parameters.LIST_INPUT.equals(input.getType());
@@ -256,16 +256,18 @@ public class TaskGenerator
 								+ "' is a runtime parameter with 'more variable' values than what was folded on generation-time?\" >&2; exit 1; fi\n";
 					}
 				}
- //-end
 				parameterHeader += "\n#\n## Start of your protocol template\n#\n\n";
 
 				String script = step.getProtocol().getTemplate();
 
 				//weave actual values into script here
-				//String weavedScript = weaveProtocol(step.getProtocol(), environment, target);
-
-				//script = parameterHeader + weavedScript;
-				script = parameterHeader + script;
+				if(computeProperties.weave)
+				{
+					String weavedScript = weaveProtocol(step.getProtocol(), environment, target);
+					script = parameterHeader + weavedScript;
+				}
+				else
+					script = parameterHeader + script;
 
 				// append footer that appends the task's parameters to
 				// environment of this task

@@ -18,7 +18,7 @@ public class FoldingTest
 	private String outputDir = "target/test/benchmark/run";
 
 	@Test
-	public void testFolding1() throws Exception
+	public void testFoldingAssign() throws Exception
 	{
 		System.out.println("--- Start Test Folding 1---");
 
@@ -145,35 +145,6 @@ public class FoldingTest
 		String test3_2_list1 = "chunk[0]=\"c\"\n";
 		String test3_2_list2 =	"chr[0]=\"1\"";
 
-//		left for old way testing
-//		String test2_0_list1 = "chunk[0]=${global_chunk[0]}\n" +
-//				"chunk[1]=${global_chunk[1]}\n" +
-//				"chunk[2]=${global_chunk[2]}\n";
-//		String test2_0_list2 ="chr[0]=${global_chr[0]}\n" +
-//				"chr[1]=${global_chr[1]}\n" +
-//				"chr[2]=${global_chr[2]}";
-//
-//		String test2_1_list1 = "chunk[0]=${global_chunk[3]}\n" +
-//				"chunk[1]=${global_chunk[4]}\n";
-//		String test2_1_list2 ="chr[0]=${global_chr[3]}\n" +
-//				"chr[1]=${global_chr[4]}";
-//
-//		String test3_0_list1 = "chunk[0]=${global_chunk[0]}\n" +
-//				"chunk[1]=${global_chunk[3]}\n";
-//		String test3_0_list2 ="chr[0]=${global_chr[0]}\n" +
-//				"chr[1]=${global_chr[3]}";
-//
-//		String test3_1_list1 = "chunk[0]=${global_chunk[1]}\n" +
-//				"chunk[1]=${global_chunk[4]}\n";
-//		String test3_1_list2 = "chr[0]=${global_chr[1]}\n" +
-//				"chr[1]=${global_chr[4]}";
-//
-//		String test3_2_list1 = "chunk[0]=${global_chunk[2]}\n";
-//		String test3_2_list2 =	"chr[0]=${global_chr[2]}";
-
-		String test_weaving_2_0 = "for s in \"a\" \"b\" \"c\"";
-		String test_weaving_2_1 = "for s in \"a\" \"b\"";
-
 		String t = ComputeCommandLineTest.getFileAsString(outputDir + "/test2_0.sh");
 
 		if(!t.contains(test2_0_list1) || !t.contains(test2_0_list2))
@@ -206,20 +177,182 @@ public class FoldingTest
 			Assert.fail("folding broken");
 		}
 
+		System.out.println("Test concatination with run-time parameters");
+
+		String test_6_0_list1 = "runtime_concat[0]=${test1__has__outputLALA[0]}";
+		String test_6_0_list2 = "runtime_concat[1]=${test1__has__outputLALA[1]}";
+		String test_6_0_list3 = "runtime_concat[2]=${test1__has__outputLALA[2]}";
+		String test_6_1_list1 = "runtime_concat[0]=${test1__has__outputLALA[3]}";
+		String test_6_1_list2 = "runtime_concat[1]=${test1__has__outputLALA[4]}";
+		String test_6_list = "for s in \"${runtime_concat[@]}\"";
+
+		t = ComputeCommandLineTest.getFileAsString(outputDir + "/test6_0.sh");
+		if(!t.contains(test_6_0_list1) ||
+				!t.contains(test_6_0_list2) ||
+				!t.contains(test_6_0_list3) ||
+				!t.contains(test_6_list))
+		{
+			Assert.fail("concatination of run-time parameters is broken");
+		}
+
+		t = ComputeCommandLineTest.getFileAsString(outputDir + "/test6_1.sh");
+		if(!t.contains(test_6_1_list1) ||
+				!t.contains(test_6_1_list2) ||
+				!t.contains(test_6_list))
+		{
+			Assert.fail("concatination of run-time parameters is broken");
+		}
+
+
+	}
+
+	@Test
+	public void testFoldingWeaving() throws Exception
+	{
+		System.out.println("--- Start Test Folding 1---");
+
+		File f = new File(outputDir);
+		FileUtils.deleteDirectory(f);
+		Assert.assertFalse(f.exists());
+
+		f = new File(".compute.properties");
+		FileUtils.deleteQuietly(f);
+		Assert.assertFalse(f.exists());
+
+		ComputeCommandLine.main(new String[]{
+				"--generate",
+				"--run",
+				"--workflow",
+				"src/main/resources/workflows/testfolding/workflow.csv",
+				"--parameters",
+				"src/main/resources/workflows/testfolding/parameters.csv",
+				"--weave",
+				"--rundir",
+				outputDir
+		});
+
+		System.out.println("--- Test Created Files ---");
+
+		File file = new File(outputDir + "/test1_0.sh");
+		if (!file.exists())
+		{
+			Assert.fail("test1_0.sh is not generated");
+		}
+
+		file = new File(outputDir + "/test1_4.sh");
+		if (!file.exists())
+		{
+			Assert.fail("test1_5.sh is not generated");
+		}
+
+		file = new File(outputDir + "/test2_1.sh");
+		if (!file.exists())
+		{
+			Assert.fail("test2_1.sh is not generated");
+		}
+
+		file = new File(outputDir + "/test2_2.sh");
+		if (file.exists())
+		{
+			Assert.fail("test2_2.sh should not be generated");
+		}
+
+		file = new File(outputDir + "/test3_2.sh");
+		if (!file.exists())
+		{
+			Assert.fail("test3_2.sh is not generated");
+		}
+
+		file = new File(outputDir + "/test3_3.sh");
+		if (file.exists())
+		{
+			Assert.fail("test3_3.sh should not be generated");
+		}
+
+		file = new File(outputDir + "/test4_1.sh");
+		if (!file.exists())
+		{
+			Assert.fail("test4_1.sh is not generated");
+		}
+
+		file = new File(outputDir + "/test4_2.sh");
+		if (file.exists())
+		{
+			Assert.fail("test4_2.sh should not be generated");
+		}
+
+		file = new File(outputDir + "/test5_1.sh");
+		if (!file.exists())
+		{
+			Assert.fail("test5_1.sh is not generated");
+		}
+
+		file = new File(outputDir + "/test5_2.sh");
+		if (file.exists())
+		{
+			Assert.fail("test5_2.sh should not be generated");
+		}
+
+		file = new File(outputDir + "/test6_1.sh");
+		if (!file.exists())
+		{
+			Assert.fail("test6_1.sh is not generated");
+		}
+
+		file = new File(outputDir + "/test6_2.sh");
+		if (file.exists())
+		{
+			Assert.fail("test6_2.sh should not be generated");
+		}
+
+
+		System.out.println("--- Test Lists Correctness ---");
+
+//		left for old way testing
+//		String test2_0_list1 = "chunk[0]=${global_chunk[0]}\n" +
+//				"chunk[1]=${global_chunk[1]}\n" +
+//				"chunk[2]=${global_chunk[2]}\n";
+//		String test2_0_list2 ="chr[0]=${global_chr[0]}\n" +
+//				"chr[1]=${global_chr[1]}\n" +
+//				"chr[2]=${global_chr[2]}";
+//
+//		String test2_1_list1 = "chunk[0]=${global_chunk[3]}\n" +
+//				"chunk[1]=${global_chunk[4]}\n";
+//		String test2_1_list2 ="chr[0]=${global_chr[3]}\n" +
+//				"chr[1]=${global_chr[4]}";
+//
+//		String test3_0_list1 = "chunk[0]=${global_chunk[0]}\n" +
+//				"chunk[1]=${global_chunk[3]}\n";
+//		String test3_0_list2 ="chr[0]=${global_chr[0]}\n" +
+//				"chr[1]=${global_chr[3]}";
+//
+//		String test3_1_list1 = "chunk[0]=${global_chunk[1]}\n" +
+//				"chunk[1]=${global_chunk[4]}\n";
+//		String test3_1_list2 = "chr[0]=${global_chr[1]}\n" +
+//				"chr[1]=${global_chr[4]}";
+//
+//		String test3_2_list1 = "chunk[0]=${global_chunk[2]}\n";
+//		String test3_2_list2 =	"chr[0]=${global_chr[2]}";
+
+		String test_weaving_2_0 = "for s in \"a\" \"b\" \"c\"";
+		String test_weaving_2_1 = "for s in \"a\" \"b\"";
+
+		String t = ComputeCommandLineTest.getFileAsString(outputDir + "/test2_0.sh");
+
 //		We do not weave parameters now
-//		System.out.println("Test Weaving Correctness");
-//
-//		t = ComputeCommandLineTest.getFileAsString(outputDir + "/test2_0.sh");
-//		if(!t.contains(test_weaving_2_0))
-//		{
-//			Assert.fail("weaving is broken");
-//		}
-//
-//		t = ComputeCommandLineTest.getFileAsString(outputDir + "/test2_1.sh");
-//		if(!t.contains(test_weaving_2_1))
-//		{
-//			Assert.fail("weaving is broken");
-//		}
+		System.out.println("Test Weaving Correctness");
+
+		t = ComputeCommandLineTest.getFileAsString(outputDir + "/test2_0.sh");
+		if(!t.contains(test_weaving_2_0))
+		{
+			Assert.fail("weaving is broken");
+		}
+
+		t = ComputeCommandLineTest.getFileAsString(outputDir + "/test2_1.sh");
+		if(!t.contains(test_weaving_2_1))
+		{
+			Assert.fail("weaving is broken");
+		}
 
 		System.out.println("Test concatination with run-time parameters");
 
@@ -249,5 +382,6 @@ public class FoldingTest
 
 
 	}
+
 
 }
