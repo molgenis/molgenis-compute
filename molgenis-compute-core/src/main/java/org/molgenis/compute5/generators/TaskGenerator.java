@@ -131,6 +131,7 @@ public class TaskGenerator
 
 				// now couple input parameters to parameters in sourced
 				// environment
+				Vector<String> presentStrings = new Vector<String>();
 				for (Input input : step.getProtocol().getInputs())
 				{
 					String parameterName = input.getName();
@@ -158,7 +159,20 @@ public class TaskGenerator
 //								parameterHeader += parameterName + "[" + i + "]=${" + value + "[" + rowIndexString
 //										+ "]}\n";
 
-							String left = parameterName + "[" + i + "]";
+							String type = input.getType();
+
+							String left = null;
+							if(type.equalsIgnoreCase(Input.TYPE_STRING))
+							{
+								left = parameterName;
+								if(presentStrings.contains(left))
+									continue;
+								else
+									presentStrings.add(left);
+							}
+							else
+								left = parameterName + "[" + i + "]";
+
 							String right = value + "[" + rowIndexString + "]";
 							if(right.startsWith(EnvironmentGenerator.GLOBAL_PREFIX))
 							{
@@ -169,8 +183,8 @@ public class TaskGenerator
 							else
 							{
 								//leave old style (runtime parameter)
-								parameterHeader += parameterName + "[" + i + "]=${" + value + "[" + rowIndexString
-										+ "]}\n";
+								parameterHeader += left + "=${" +
+										value + "[" + rowIndexString + "]}\n";
 							}
 						}
 						else
@@ -210,7 +224,20 @@ public class TaskGenerator
 //								left in code for paper (SGW)
 //								parameterHeader += parameterName + "[" + i + "]=${" + value + "[" + rowIndexString
 //										+ "]}\n";
-								String left = parameterName + "[" + i + "]";
+								String type = input.getType();
+
+								String left = null;
+								if(type.equalsIgnoreCase(Input.TYPE_STRING))
+								{
+									left = parameterName;
+									if(presentStrings.contains(left))
+										continue;
+									else
+										presentStrings.add(left);
+								}
+								else
+									left = parameterName + "[" + i + "]";
+
 								String right = value + "[" + rowIndexString + "]";
 								if(right.startsWith(EnvironmentGenerator.GLOBAL_PREFIX))
 								{
@@ -221,8 +248,8 @@ public class TaskGenerator
 								else
 								{
 									//leave old style (runtime parameter)
-									parameterHeader += parameterName + "[" + i + "]=${" + value + "[" + rowIndexString
-											+ "]}\n";
+									parameterHeader += left + "=${"
+											+ value + "[" + rowIndexString + "]}\n";
 								}
 
 
@@ -237,7 +264,7 @@ public class TaskGenerator
 				parameterHeader = parameterHeader
 						+ "\n# Validate that each 'value' parameter has only identical values in its list\n"
 						+ "# We do that to protect you against parameter values that might not be correctly set at runtime.\n";
-//-start
+
 				for (Input input : step.getProtocol().getInputs())
 				{
 					boolean isList = Parameters.LIST_INPUT.equals(input.getType());
@@ -256,16 +283,18 @@ public class TaskGenerator
 								+ "' is a runtime parameter with 'more variable' values than what was folded on generation-time?\" >&2; exit 1; fi\n";
 					}
 				}
- //-end
 				parameterHeader += "\n#\n## Start of your protocol template\n#\n\n";
 
 				String script = step.getProtocol().getTemplate();
 
 				//weave actual values into script here
-				//String weavedScript = weaveProtocol(step.getProtocol(), environment, target);
-
-				//script = parameterHeader + weavedScript;
-				script = parameterHeader + script;
+				if(computeProperties.weave)
+				{
+					String weavedScript = weaveProtocol(step.getProtocol(), environment, target);
+					script = parameterHeader + weavedScript;
+				}
+				else
+					script = parameterHeader + script;
 
 				// append footer that appends the task's parameters to
 				// environment of this task
