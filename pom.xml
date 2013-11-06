@@ -11,7 +11,6 @@
     <artifactId>molgenis-compute</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
-
     <modules>
         <module>molgenis-compute-core</module>
         <module>molgenis-app-compute-db</module>

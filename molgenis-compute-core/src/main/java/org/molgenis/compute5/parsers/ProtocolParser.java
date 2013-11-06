@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FilenameUtils;
 import org.molgenis.compute5.model.Input;
 import org.molgenis.compute5.model.Output;
 import org.molgenis.compute5.model.Parameters;
@@ -16,7 +17,6 @@ import org.molgenis.compute5.model.Protocol;
 
 public class ProtocolParser
 {
-
 	/**
 	 * 
 	 * @param workflowDir
@@ -38,7 +38,11 @@ public class ProtocolParser
 			}
 
 			// start reading
-			Protocol p = new Protocol(protocolFile);
+			Protocol protocol = new Protocol(protocolFile);
+			String ext = FilenameUtils.getExtension(protocolFile);
+
+			protocol.setType(ext);
+
 			String description = "";
 			String template = "";
 
@@ -71,19 +75,19 @@ public class ProtocolParser
 							{
 								for (int i = 1; i < els.size(); i++)
 								{
-									if (els.get(i).startsWith(Parameters.QUEUE)) p.setQueue(els.get(i).substring(
+									if (els.get(i).startsWith(Parameters.QUEUE)) protocol.setQueue(els.get(i).substring(
 											Parameters.QUEUE.length() + 1));
 
-									if (els.get(i).startsWith(Parameters.WALLTIME)) p.setWalltime(els.get(i).substring(
+									if (els.get(i).startsWith(Parameters.WALLTIME)) protocol.setWalltime(els.get(i).substring(
 											Parameters.WALLTIME.length() + 1));
 
-									if (els.get(i).startsWith(Parameters.NODES)) p.setNodes(els.get(i).substring(
+									if (els.get(i).startsWith(Parameters.NODES)) protocol.setNodes(els.get(i).substring(
 											Parameters.NODES.length() + 1));
 
-									if (els.get(i).startsWith(Parameters.PPN)) p.setPpn(els.get(i).substring(
+									if (els.get(i).startsWith(Parameters.PPN)) protocol.setPpn(els.get(i).substring(
 											Parameters.PPN.length() + 1));
 
-									if (els.get(i).startsWith(Parameters.MEMORY)) p.setMemory(els.get(i).substring(
+									if (els.get(i).startsWith(Parameters.MEMORY)) protocol.setMemory(els.get(i).substring(
 											Parameters.MEMORY.length() + 1));
 
 								}
@@ -120,7 +124,7 @@ public class ProtocolParser
 								}
 								if (inputDescription.length() > 0) input.setDescription(inputDescription.trim());
 
-								p.getInputs().add(input);
+								protocol.getInputs().add(input);
 							}
 
 							// output, syntax = "#output outputVarName description"
@@ -146,7 +150,7 @@ public class ProtocolParser
 								}
 								if (inputDescription.length() > 0) o.setDescription(inputDescription.trim());
 
-								p.getOutputs().add(o);
+								protocol.getOutputs().add(o);
 							}
 						}
 					}
@@ -156,9 +160,9 @@ public class ProtocolParser
 			{
 				reader.close();
 			}
-			p.setDescription(description);
-			p.setTemplate(template);
-			return p;
+			protocol.setDescription(description);
+			protocol.setTemplate(template);
+			return protocol;
 		}
 		catch (Exception e)
 		{

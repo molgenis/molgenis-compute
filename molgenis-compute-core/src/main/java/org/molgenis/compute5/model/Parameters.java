@@ -53,15 +53,14 @@ public class Parameters
     public static final String CUSTOM_SUBMIT_DEFAULT = "submit.sh.ftl";
     public static final String ERROR_LOG = "errorlog"; // parameter name of log file
 	public static final String ERROR_LOG_COLUMN = USER_PREFIX + ERROR_LOG;
-	public static String ERROR_FILE_DEFAULT = "error.log"; // can be changed by user parameter
-	public static String SOURCE_COMMAND = "source";
-	public static String ENVIRONMENT_DIR_VARIABLE = "$ENVIRONMENT_DIR"; // Update also header.ftl of ALL backends accordingly!
-	public static String ENVIRONMENT_EXTENSION = ".env";
-	public static String ENVIRONMENT = "user" + ENVIRONMENT_EXTENSION;
-	public static String ENVIRONMENT_FULLPATH = null; // to be set
-	public static String NOTAVAILABLE = "notavailable";
-	public static String LIST_INPUT = "list";
-	public static String STRING = "string";
+	public static final String ERROR_FILE_DEFAULT = "error.log"; // can be changed by user parameter
+	public static final String SOURCE_COMMAND = "source";
+	public static final String ENVIRONMENT_DIR_VARIABLE = "$ENVIRONMENT_DIR"; // Update also header.ftl of ALL backends accordingly!
+	public static final String ENVIRONMENT_EXTENSION = ".env";
+	public static final String ENVIRONMENT = "user" + ENVIRONMENT_EXTENSION;
+	public static final String NOTAVAILABLE = "notavailable";
+	public static final String LIST_INPUT = "list";
+	public static final String STRING = "string";
 	public static final String WALLTIME = "walltime";
 	public static final String QUEUE = "queue";
 	public static final String NODES = "nodes";
@@ -123,6 +122,7 @@ public class Parameters
 
 	public static final String WEAVE = "weave";
 
+	public static String ENVIRONMENT_FULLPATH = null; // to be set
 
 	//table with all the values
 	List<WritableTuple> values = new ArrayList<WritableTuple>();
