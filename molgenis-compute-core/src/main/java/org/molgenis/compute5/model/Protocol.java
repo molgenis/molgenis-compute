@@ -8,8 +8,11 @@ import java.util.Set;
 /** Description of a protocol, inputs, outputs and script template. */
 public class Protocol
 {
+	public static final String TYPE_SHELL = "sh";
+	public static final String TYPE_FREEMARKER = "ftl";
+
 	// reserved parameter names, used form system purposes
-	public static List<String> reservedNames = Arrays.asList(new String[]
+	public static final List<String> reservedNames = Arrays.asList(new String[]
 	{
 			Parameters.PORT_CMNDLINE_OPTION,
 			Parameters.INTERVAL_CMNDLINE_OPTION,
@@ -50,6 +53,8 @@ public class Protocol
 	private String defaultQueue = "default";
 	private String defaultMemory = "1Gb";
 	private String memory = null;
+
+	private String type = null;
 
 	// list of inputs it expects from user_* or previousStep_*
 	private Set<Input> inputs = new HashSet<Input>();
@@ -190,5 +195,15 @@ public class Protocol
 	public String getDefaultMemory()
 	{
 		return defaultMemory;
+	}
+
+	public String getType()
+	{
+		return type;
+	}
+
+	public void setType(String type)
+	{
+		this.type = type;
 	}
 }
