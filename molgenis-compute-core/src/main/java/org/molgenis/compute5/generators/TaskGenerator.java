@@ -288,20 +288,14 @@ public class TaskGenerator
 				String script = step.getProtocol().getTemplate();
 
 				//now we check if protocol is shell or freemarker template
-				if(step.getProtocol().getType().equalsIgnoreCase(Protocol.TYPE_FREEMARKER))
+				if(step.getProtocol().getType().equalsIgnoreCase(Protocol.TYPE_FREEMARKER) ||
+						computeProperties.weave)
 				{
 					String weavedScript = weaveProtocol(step.getProtocol(), environment, target);
 					script = parameterHeader + weavedScript;
 				}
 				else if(step.getProtocol().getType().equalsIgnoreCase(Protocol.TYPE_SHELL))
 					script = parameterHeader + script;
-				else if(computeProperties.weave)
-				{
-					String weavedScript = weaveProtocol(step.getProtocol(), environment, target);
-					script = parameterHeader + weavedScript;
-					LOG.warn("STEP [" + step.getName() + "] has protocol ["+ step.getProtocol().getName() +"]with unknown type");
-
-				}
 				else
 				{
 					script = parameterHeader + script;
