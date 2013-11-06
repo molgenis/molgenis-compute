@@ -14,13 +14,13 @@ public class ParametersParserTest {
 	@Test
 	public void test() throws IOException
 	{
-		File f = new File("src/main/resources/workflows/includeParams/parameters.csv");
-		
-		Parameters parameters = new ParametersCsvParser().parse(f);
-		
-		for(Tuple t: parameters.getValues())
-		{
-			System.out.println(t);
-		}
+//		File f = new File("src/main/resources/workflows/includeParams/parameters.csv");
+//
+//		Parameters parameters = new ParametersCsvParser().parse(f);
+//
+//		for(Tuple t: parameters.getValues())
+//		{
+//			System.out.println(t);
+//		}
 	}
 }

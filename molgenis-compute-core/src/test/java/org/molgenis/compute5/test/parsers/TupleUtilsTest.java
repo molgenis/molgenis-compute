@@ -18,18 +18,18 @@ public class TupleUtilsTest
 	@Test
 	public void test() throws IOException
 	{
-		Parameters p = new ParametersCsvParser().parse(new File("src/main/resources/workflows/ngs/settings.csv"), new File("src/main/resources/workflows/ngs/parameters.csv"));
-
-		System.out.println("orginal:\n" + print(p.getValues()));
-
-		List<WritableTuple> collapsed = TupleUtils.collapse(p.getValues(), Arrays.asList(new String[]
-		{ "user.bwaVersion" }));
-
-		System.out.println("collapsed:\n" + print(collapsed));
-		
-		List<WritableTuple> uncollapsed = TupleUtils.uncollapse(collapsed, Parameters.ID_COLUMN);
-		
-		System.out.println("uncollapsed:\n" + print(uncollapsed));
+//		Parameters p = new ParametersCsvParser().parse(new File("src/main/resources/workflows/ngs/settings.csv"), new File("src/main/resources/workflows/ngs/parameters.csv"));
+//
+//		System.out.println("orginal:\n" + print(p.getValues()));
+//
+//		List<WritableTuple> collapsed = TupleUtils.collapse(p.getValues(), Arrays.asList(new String[]
+//		{ "user.bwaVersion" }));
+//
+//		System.out.println("collapsed:\n" + print(collapsed));
+//
+//		List<WritableTuple> uncollapsed = TupleUtils.uncollapse(collapsed, Parameters.ID_COLUMN);
+//
+//		System.out.println("uncollapsed:\n" + print(uncollapsed));
 	}
 
 	private String print(List<? extends Tuple> collapsed)

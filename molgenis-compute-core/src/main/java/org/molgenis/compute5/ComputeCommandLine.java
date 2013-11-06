@@ -219,7 +219,7 @@ public class ComputeCommandLine
 		if(computeProperties.hasParametersToOverwrite())
 			parser.setParametersToOverwrite(computeProperties.getParametersToOverwrite());
 
-		Parameters parameters = parser.parse(parameterFiles);
+		Parameters parameters = parser.parse(parameterFiles, computeProperties);
 		compute.setParameters(parameters);
 
 		// add command line parameters:

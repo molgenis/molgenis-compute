@@ -121,6 +121,7 @@ public class Parameters
 	public static final String CLEAR = "clear";
 
 	public static final String WEAVE = "weave";
+	public static final String WEB = "web";
 
 	public static String ENVIRONMENT_FULLPATH = null; // to be set
 
