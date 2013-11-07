@@ -83,10 +83,6 @@ public class BackendGenerator
 		Template footer = new Template("footer", new StringReader(this.getFooterTemplate()), conf);
 		Template submit = new Template("submit", new StringReader(this.getSubmitTemplate()), conf);
 
-		System.out.println("---------------------------------------------------");
-		System.out.println(header.toString());
-		System.out.println("---------------------------------------------------");
-
 		// generate the submit script
 		try
 		{
