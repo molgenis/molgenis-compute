@@ -74,8 +74,11 @@ public class TaskGenerator
 			try
 			{
 				Map<String, Object> map = TupleUtils.toMap(target);
-
+				//
+				String valueWORKDIR = globalParameters.get(0).getString("user_WORKDIR");
+				map.put("WORKDIR", valueWORKDIR);
 				// remember parameter values
+
 				task.setParameters(map);
 
 				// for this step: store which target-ids go into which job

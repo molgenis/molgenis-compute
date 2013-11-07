@@ -11,6 +11,8 @@
 ## Header for PBS backend
 #
 
+echo Running on node: `hostname`
+
 #highly recommended to use
 #set -e # exit if any subcommand or pipeline returns a non-zero status
 #set -u # exit if any uninitialised variable is used
@@ -33,7 +35,7 @@ MOLGENIS_START=$(date +%s)
 touch $ENVIRONMENT_DIR/${taskId}.sh.started
 
 # Define the root to all your tools and data
-WORKDIR=/target/gpfs2/gcc/
+WORKDIR=${WORKDIR}
 
 # Source getFile, putFile, inputs, alloutputsexist
 include () {
