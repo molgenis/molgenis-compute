@@ -7,8 +7,10 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.molgenis.compute5.ComputeProperties;
 import org.molgenis.compute5.generators.TupleUtils;
 import org.molgenis.compute5.model.Parameters;
+import org.molgenis.compute5.urlreader.UrlReader;
 import org.molgenis.io.csv.CsvReader;
 import org.molgenis.util.tuple.KeyValueTuple;
 import org.molgenis.util.tuple.Tuple;
@@ -17,29 +19,34 @@ import org.molgenis.util.tuple.WritableTuple;
 /** Parser for parameters csv file(s). Includes the solving of templated values. */
 public class ParametersCsvParser
 {
+	private ComputeProperties properties = null;
 	private String runID;
 	private HashMap parametersToOverwrite = null;
 
-	public Parameters parse(File... filesArray) throws IOException
-	{
-		// convert filesArray and
-		// call the parse below
-		List<File> fileLst = new ArrayList<File>();
-		for (File f : filesArray)
-			fileLst.add(f);
+	private UrlReader urlReader = new UrlReader();
 
-		return parse(fileLst);
-	}
-
-	public Parameters parse(List<File> filesArray) throws IOException
+	public Parameters parse(List<File> filesArray, ComputeProperties computeProperties) throws IOException
 	{
+		properties = computeProperties;
+		Parameters targets = null;
 		Set<String> fileSet = new HashSet<String>();
-		for (File f : filesArray)
+		if(!properties.isWebWorkflow)
 		{
-			fileSet.add(f.getAbsolutePath().toString());
-		}
+			for (File f : filesArray)
+			{
+				fileSet.add(f.getAbsolutePath().toString());
+			}
 
-		Parameters targets = parseParamFiles(null, fileSet);
+			targets = parseParamFiles(null, fileSet);
+		}
+		else
+		{
+			for (File f : filesArray)
+			{
+				fileSet.add(f.toString());
+			}
+			targets = parseParamFiles(null, fileSet);
+		}
 
 		// solve the templates
 		TupleUtils tupleUtils = new TupleUtils();
@@ -95,7 +102,12 @@ public class ParametersCsvParser
 
 		// get a file to parse
 		String fString = paramFileSet.iterator().next();
-		File f = new File(fString);
+
+		File f = null;
+		if(!properties.isWebWorkflow)
+			f = new File(fString);
+		else
+			f = urlReader.createFileFromGithub(properties.webWorkflowLocation, fString);
 
 		// remove file from the set we have to parse
 		paramFileSet.remove(fString);

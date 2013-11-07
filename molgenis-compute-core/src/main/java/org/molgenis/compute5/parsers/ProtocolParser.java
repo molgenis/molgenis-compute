@@ -10,36 +10,53 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FilenameUtils;
+import org.molgenis.compute5.ComputeProperties;
 import org.molgenis.compute5.model.Input;
 import org.molgenis.compute5.model.Output;
 import org.molgenis.compute5.model.Parameters;
 import org.molgenis.compute5.model.Protocol;
+import org.molgenis.compute5.urlreader.UrlReader;
 
 public class ProtocolParser
 {
 	/**
 	 * 
+	 *
 	 * @param workflowDir
 	 *            , used as primary search path. If missing it uses runtime path/absolute path
-	 * @param protocolFile
+	 * @param protocolPath
+	 * @param computeProperties
 	 * @return
 	 * @throws IOException
 	 */
-	public Protocol parse(File workflowDir, String protocolFile) throws IOException
+	private UrlReader urlReader = new UrlReader();
+
+	public Protocol parse(File workflowDir, String protocolPath, ComputeProperties computeProperties) throws IOException
 	{
 		try
 		{
+			File templateFile = null;
 			// first test path within workflowDir
-			File templateFile = new File(workflowDir.getAbsolutePath() + "/" + protocolFile);
-			if (!templateFile.exists())
+
+			if(computeProperties.isWebWorkflow)
 			{
-				templateFile = new File(protocolFile);
-				if (!templateFile.exists()) throw new IOException("protocol '" + protocolFile + "' cannot be found");
+				templateFile = urlReader.createFileFromGithub(computeProperties.webWorkflowLocation,
+						protocolPath);
+			}
+			else
+			{
+				templateFile = new File(workflowDir.getAbsolutePath() + "/" + protocolPath);
+				if (!templateFile.exists())
+				{
+					//what is going on here?
+					templateFile = new File(protocolPath);
+					if (!templateFile.exists()) throw new IOException("protocol '" + protocolPath + "' cannot be found");
+				}
 			}
 
 			// start reading
-			Protocol protocol = new Protocol(protocolFile);
-			String ext = FilenameUtils.getExtension(protocolFile);
+			Protocol protocol = new Protocol(protocolPath);
+			String ext = FilenameUtils.getExtension(protocolPath);
 
 			protocol.setType(ext);
 
@@ -166,7 +183,7 @@ public class ProtocolParser
 		}
 		catch (Exception e)
 		{
-			throw new IOException("Parsing of protocol " + protocolFile + " failed: " + e.getMessage());
+			throw new IOException("Parsing of protocol " + protocolPath + " failed: " + e.getMessage());
 		}
 
 	}
