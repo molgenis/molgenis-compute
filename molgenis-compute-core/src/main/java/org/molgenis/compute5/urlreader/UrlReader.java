@@ -42,7 +42,7 @@ public class UrlReader
 			try
 			{
 				while ((inputLine = in.readLine()) != null)
-					text = text + "\n" + inputLine;
+					text = text + inputLine + "\n";
 				in.close();
 			}
 			catch (IOException e)

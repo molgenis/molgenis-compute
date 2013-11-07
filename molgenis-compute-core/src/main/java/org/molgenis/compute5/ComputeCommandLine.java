@@ -19,6 +19,7 @@ import org.molgenis.compute5.model.Workflow;
 import org.molgenis.compute5.parsers.ParametersCsvParser;
 import org.molgenis.compute5.parsers.WorkflowCsvParser;
 import org.molgenis.compute5.sysexecutor.SysCommandExecutor;
+import org.molgenis.compute5.urlreader.UrlReader;
 import org.molgenis.util.tuple.WritableTuple;
 
 import com.google.common.base.Joiner;
@@ -32,6 +33,7 @@ import com.google.common.base.Joiner;
 public class ComputeCommandLine
 {
 	private static final Logger LOG = Logger.getLogger(ComputeCommandLine.class);
+	private UrlReader urlReader = new UrlReader();
 
 	@SuppressWarnings("static-access")
 	public static void main(String[] args) throws Exception
@@ -195,10 +197,12 @@ public class ComputeCommandLine
 
 		// if exist include defaults.csv in parameterFiles
 		if (null == computeProperties.defaults)
-		{
 			return false;
-		}
-		else return new File(computeProperties.defaults).exists();
+		else
+			if(!computeProperties.isWebWorkflow)
+				return new File(computeProperties.defaults).exists();
+			else
+				return true;
 	}
 
 	private void generate(Compute compute, ComputeProperties computeProperties) throws Exception
@@ -209,7 +213,7 @@ public class ComputeCommandLine
 		for (String f : computeProperties.parameters)
 			parameterFiles.add(new File(f));
 		if (defaultsExists(computeProperties))
-			parameterFiles.add(new File(computeProperties.defaults));
+				parameterFiles.add(new File(computeProperties.defaults));
 
 		// parse param files
 		ParametersCsvParser parser = new ParametersCsvParser();
@@ -246,7 +250,7 @@ public class ComputeCommandLine
 				compute.getParameters());
 
 		// parse workflow
-		Workflow workflow = new WorkflowCsvParser().parse(computeProperties.workFlow);
+		Workflow workflow = new WorkflowCsvParser().parse(computeProperties.workFlow, computeProperties);
 		compute.setWorkflow(workflow);
 
 		// create environment.txt with user parameters that are used in at least

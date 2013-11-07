@@ -6,7 +6,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
+import org.molgenis.compute5.ComputeProperties;
 import org.molgenis.compute5.model.*;
+import org.molgenis.compute5.urlreader.UrlReader;
 import org.molgenis.io.csv.CsvReader;
 import org.molgenis.util.tuple.Tuple;
 
@@ -15,14 +17,24 @@ public class WorkflowCsvParser
 {
 	private Vector<String> stepNames = new Vector();
 	private ProtocolParser parser = new ProtocolParser();
+	private UrlReader urlReader = new UrlReader();
 
 	public static final String WORKFLOW_COMMENT_SIGN = "#";
 
-	public Workflow parse(String workflowFile) throws IOException
+	public Workflow parse(String workflowPath, ComputeProperties computeProperties) throws IOException
 	{
 		try
 		{
-			CsvReader reader = new CsvReader(new BufferedReader(new FileReader(workflowFile)));
+			CsvReader reader = null;
+			if(computeProperties.isWebWorkflow)
+			{
+				File workflowFile = urlReader.createFileFromGithub(computeProperties.webWorkflowLocation,
+						workflowPath);
+				reader = new CsvReader(new BufferedReader(new FileReader(workflowFile)));
+
+			}
+			else
+				reader = new CsvReader(new BufferedReader(new FileReader(workflowPath)));
 
 			Workflow wf = new Workflow();
 
@@ -43,7 +55,7 @@ public class WorkflowCsvParser
 
 				Step step = new Step(stepName);
 				stepNames.add(stepName);
-				File workflowDir = new File(workflowFile).getParentFile();
+				File workflowDir = new File(workflowPath).getParentFile();
 				String fileName = row.getString(Parameters.PROTOCOL_HEADING_IN_WORKFLOW);
 
 				Protocol protocol = parser.parse(workflowDir,fileName);

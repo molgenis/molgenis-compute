@@ -106,8 +106,7 @@ public class ComputeProperties
 			parseCommandLine(args);
 
 			// look for defaults in same folder as workflow
-			if(!this.isWebWorkflow)
-				updateWorkflowParameterDefaultsCSV();
+			updateWorkflowParameterDefaultsCSV();
 
 			// save new config
 			saveProperties();
@@ -129,7 +128,7 @@ public class ComputeProperties
 		{
 			// validate file exists
 
-			if (!new File(defaultsCommandLine).exists())
+			if (!new File(defaultsCommandLine).exists() && !this.isWebWorkflow)
 			{
 				System.err.println(">> ERROR >> '-defaults " + defaultsCommandLine + "' does not exist!");
 				System.err.println("Exit with code 1");
@@ -294,7 +293,6 @@ public class ComputeProperties
 			this.createDirName = cmd.getOptionValue(Parameters.CREATE, this.createDirName);
 			this.webWorkflowLocation = cmd.getOptionValue(Parameters.WEB, this.webWorkflowLocation);
 
-			webWorkflowLocation = changeWebLocationToRaw(webWorkflowLocation);
 
 			this.parametersToOverwrite = cmd.getOptionValue(Parameters.PARAMETERS_TO_OVERWRITE_CMDLINE_OPTION);
 
@@ -321,6 +319,9 @@ public class ComputeProperties
 			this.clear = cmd.hasOption(Parameters.CLEAR);
 			this.weave = cmd.hasOption(Parameters.WEAVE);
 			this.isWebWorkflow = cmd.hasOption(Parameters.WEB);
+
+			if(isWebWorkflow)
+				webWorkflowLocation = changeWebLocationToRaw(webWorkflowLocation);
 
 			this.runId = cmd.getOptionValue(Parameters.RUNID_CMNDLINE_OPTION, this.runId);
 			// if runId == null then create one
