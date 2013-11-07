@@ -733,6 +733,52 @@ public class ComputeCommandLineTest
 	}
 
 	@Test
+	public void testReadSpecificHeadersFooters() throws Exception
+	{
+		System.out.println("--- Start TestRunLocally ---");
+
+		File f = new File(outputDir);
+		FileUtils.deleteDirectory(f);
+		Assert.assertFalse(f.exists());
+
+		f = new File(".compute.properties");
+		FileUtils.deleteQuietly(f);
+		Assert.assertFalse(f.exists());
+
+		String footer = "# My own custom footer";
+		String header = "# My own custom header";
+
+		ComputeCommandLine.main(new String[]{
+				"--generate",
+				"--workflow",
+				"src/main/resources/workflows/benchmark.5.1/workflow.csv",
+				"--defaults",
+				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv",
+				"--parameters",
+				"src/main/resources/workflows/benchmark.5.1/parameters.csv",
+				"--rundir",
+				"target/test/benchmark/run",
+				"--database",
+				"none",
+				"-header",
+				"src/main/resources/workflows/benchmark.5.1/header.ftl",
+				"-footer",
+				"src/main/resources/workflows/benchmark.5.1/footer.ftl"
+		});
+
+		System.out.println("--- Test header is added ---");
+
+		String text =getFileAsString(outputDir + "/step1_0.sh");
+
+		if(!text.contains(footer) || !text.contains(header))
+		{
+			Assert.fail("header/footer insertion fails");
+		}
+
+	}
+
+
+	@Test
 	public void testRunLocally5TemplatesOut() throws Exception
 	{
 		System.out.println("--- Start TestRunLocally ---");

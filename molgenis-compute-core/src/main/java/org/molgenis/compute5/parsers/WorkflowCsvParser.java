@@ -58,7 +58,7 @@ public class WorkflowCsvParser
 				File workflowDir = new File(workflowPath).getParentFile();
 				String fileName = row.getString(Parameters.PROTOCOL_HEADING_IN_WORKFLOW);
 
-				Protocol protocol = parser.parse(workflowDir,fileName);
+				Protocol protocol = parser.parse(workflowDir, fileName, computeProperties);
 
 				step.setProtocol(protocol);
 				String strParameters = row.getString(Parameters.PARAMETER_MAPPING_HEADING_IN_WORKFLOW);

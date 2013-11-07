@@ -16,6 +16,7 @@ import org.molgenis.compute5.model.Task;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import org.molgenis.compute5.urlreader.UrlReader;
 
 /** Parameters of the backend, either PBS, SGE, GRID, etc */
 public class BackendGenerator
@@ -23,6 +24,8 @@ public class BackendGenerator
 	private String headerTemplate = "";
 	private String footerTemplate = "";
 	private String submitTemplate = "";
+
+	private UrlReader urlReader = new UrlReader();
 
 	private String readInJar(String file) throws IOException
 	{
@@ -185,41 +188,74 @@ public class BackendGenerator
 
 		if (cp.customHeader != null)
 		{
-			File h = new File(cp.customHeader);
-			if (h.exists())
+			File h = null;
+			if(cp.isWebWorkflow)
 			{
-				System.out.println(">> Custom header: " + h);
-				this.appendCustomHeader(FileUtils.readFileToString(h));
+				h = urlReader.createFileFromGithub(cp.webWorkflowLocation, cp.customHeader);
+				if(h != null)
+					this.appendCustomHeader(FileUtils.readFileToString(h));
+				else
+					System.out.println(">> Custom header not found (" + h + ")");
 			}
 			else
-				System.out.println(">> Custom header not found (" + h + ")");
-
+			{
+				h = new File(cp.customHeader);
+				if (h.exists())
+				{
+					System.out.println(">> Custom header: " + h);
+					this.appendCustomHeader(FileUtils.readFileToString(h));
+				}
+				else
+					System.out.println(">> Custom header not found (" + h + ")");
+			}
 		}
 
 		if(cp.customFooter != null)
 		{
-			File f = new File(cp.customFooter);
-			if (f.exists())
+			File f = null;
+			if(cp.isWebWorkflow)
 			{
-				System.out.println(">> Custom footer: " + f);
-				this.appendCustomFooter(FileUtils.readFileToString(f));
+				f = urlReader.createFileFromGithub(cp.webWorkflowLocation, cp.customFooter);
+				if(f != null)
+					this.appendCustomFooter(FileUtils.readFileToString(f));
+				else
+					System.out.println(">> Custom footer not found (" + f + ")");
 			}
 			else
-				System.out.println(">> Custom footer not found (" + f + ")");
-
+			{
+				f = new File(cp.customFooter);
+				if (f.exists())
+				{
+					System.out.println(">> Custom footer: " + f);
+					this.appendCustomFooter(FileUtils.readFileToString(f));
+				}
+				else
+					System.out.println(">> Custom footer not found (" + f + ")");
+			}
 		}
 
 		if(cp.customSubmit != null)
 		{
-			File s = new File(cp.customSubmit);
-			if (s.exists())
+			File s = null;
+			if(cp.isWebWorkflow)
 			{
-				System.out.println(">> Custom submit script: " + s);
-				this.setSubmitTemplate(FileUtils.readFileToString(s));
+				s = urlReader.createFileFromGithub(cp.webWorkflowLocation, cp.customSubmit);
+				if(s != null)
+					this.setSubmitTemplate(FileUtils.readFileToString(s));
+				else
+					System.out.println(">> Custom footer not found (" + s + ")");
 			}
 			else
-				System.out.println(">> Custom submit script not found (" + s + ")");
-
+			{
+				s = new File(cp.customSubmit);
+				if (s.exists())
+				{
+					System.out.println(">> Custom submit script: " + s);
+					this.setSubmitTemplate(FileUtils.readFileToString(s));
+				}
+				else
+					System.out.println(">> Custom submit script not found (" + s + ")");
+			}
 		}
 
 	}
