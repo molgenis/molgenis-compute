@@ -733,6 +733,35 @@ public class ComputeCommandLineTest
 	}
 
 	@Test
+	public void testExtraVariable() throws Exception
+	{
+		System.out.println("--- Start TestRunLocally ---");
+
+		File f = new File(outputDir);
+		FileUtils.deleteDirectory(f);
+		Assert.assertFalse(f.exists());
+
+		f = new File(".compute.properties");
+		FileUtils.deleteQuietly(f);
+		Assert.assertFalse(f.exists());
+
+		ComputeCommandLine.main(new String[]{
+				"--generate",
+				"--workflow",
+				"src/main/resources/workflows/benchmark.5.1/workflow.extra.variable.csv",
+				"--defaults",
+				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv",
+				"--parameters",
+				"src/main/resources/workflows/benchmark.5.1/parameters.csv",
+				"--rundir",
+				"target/test/benchmark/run",
+				"--database",
+				"none"
+		});
+	}
+
+
+	@Test
 	public void testReadSpecificHeadersFooters() throws Exception
 	{
 		System.out.println("--- Start TestRunLocally ---");
