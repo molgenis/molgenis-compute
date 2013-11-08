@@ -18,7 +18,7 @@ public class WorkflowCsvParser
 	private Vector<String> stepNames = new Vector();
 	private ProtocolParser parser = new ProtocolParser();
 	private UrlReader urlReader = new UrlReader();
-
+	private ProtocolAnalyser protocolAnalyser = new ProtocolAnalyser();
 	public static final String WORKFLOW_COMMENT_SIGN = "#";
 
 	public Workflow parse(String workflowPath, ComputeProperties computeProperties) throws IOException
@@ -59,6 +59,7 @@ public class WorkflowCsvParser
 				String fileName = row.getString(Parameters.PROTOCOL_HEADING_IN_WORKFLOW);
 
 				Protocol protocol = parser.parse(workflowDir, fileName, computeProperties);
+				protocolAnalyser.analysesProtocolVariables(protocol);
 
 				step.setProtocol(protocol);
 				String strParameters = row.getString(Parameters.PARAMETER_MAPPING_HEADING_IN_WORKFLOW);
