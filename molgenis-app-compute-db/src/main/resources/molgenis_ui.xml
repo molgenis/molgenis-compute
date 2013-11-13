@@ -2,6 +2,7 @@
 <molgenis name="compute" label="Compute Testing">
     <menu name="mainmenu" label="Main">
         <plugin id="home" label="Home" name="HomeController" type="org.molgenis.compute.db.plugin.HomePlugin"/>
+        <plugin id="extra" label="Extra" name="ExtraController" type="org.molgenis.compute.db.plugin.ExtraPlugin"/>
         <menu name="Compute" label="Compute">
             <plugin id="dashboard" name="PilotDashboardController" label="Pilot dashboard"
                     type="org.molgenis.compute.db.plugin.PilotDashboardPlugin"/>
@@ -9,7 +10,7 @@
                     type="org.molgenis.ui.form.MolgenisEntityFormPlugin"/>
             <plugin id="form.ComputeTask" label="Tasks" name="MolgenisEntityFormPluginController"
                     type="org.molgenis.ui.form.MolgenisEntityFormPlugin"/>
-            <menu name="ComputeTaskValueMenu" label="Parameters">
+           <menu name="ComputeTaskValueMenu" label="Parameters">
                 <plugin id="form.ComputeParameterValue" label="Parameters" name="MolgenisEntityFormPluginController"
                         type="org.molgenis.ui.form.MolgenisEntityFormPlugin"/>
                 <plugin id="form.ComputeTaskHistory" label="History" name="MolgenisEntityFormPluginController"
