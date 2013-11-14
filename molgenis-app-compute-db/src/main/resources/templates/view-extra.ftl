@@ -1,7 +1,7 @@
 <#include "molgenis-header.ftl">
 <#include "molgenis-footer.ftl">
 <#assign css=["base.css",  "Spacetree.css"]> <!-- "ForceDirected.css", -->
-<#assign js=["molgenis_jit.js", "worklows.js"]>
+<#assign js=["molgenis_jit.js", "workflow.js"]>
 <@header css js/>
 <body onload="init_new();">
 <div class="row-fluid" align="center">
