@@ -48,6 +48,30 @@ function init(){
         });
 }
 
+function init_new()
+{
+    var infovis = document.getElementById('infovis');
+    var w = infovis.offsetWidth, h = infovis.offsetHeight;
+
+    $.ajax({
+        type : 'GET',
+        dataType : 'json',
+        url : '/plugin/extra/tree',
+        //data : JSON.stringify(data),
+        contentType : 'application/json',
+        success : function(data)
+        {
+            console.log(data);
+            tree(data);
+        },
+        error : function(data)
+        {
+        }
+
+    });
+
+}
+
 function process(data)
 {
     //json = JSON.stringify(data);
@@ -313,7 +337,7 @@ function change()
     });
 }
 
-function tree()
+function tree_old()
 {
     var infovis = document.getElementById('infovis');
     var w = infovis.offsetWidth, h = infovis.offsetHeight;
@@ -355,4 +379,179 @@ function tree()
     st.geom.translate(new $jit.Complex(-200, 0), "current");
     //Emulate a click on the root node.
     st.onClick(st.root);
+}
+
+function tree(data)
+{
+    var infovis = document.getElementById('infovis');
+    var w = infovis.offsetWidth, h = infovis.offsetHeight;
+
+    json = JSON.parse(data);
+    console.log(json);
+
+    //Create a new ST instance
+    st = new $jit.ST({
+        'injectInto': 'infovis',
+        offsetY: 100,
+        'width': w,
+        'height': h,
+
+        orientation: "top",
+        levelDistance: 50,
+        Node: {
+            overridable: true,
+            align: "center",
+            height: 20,
+            CanvasStyles: {
+                strokeStyle: '#333',
+                lineWidth: 2
+            }
+        },
+
+        Edge: {
+            overridable: true,
+            'type': 'bezier',
+            dim: 15,
+            lineWidth: 2,
+            color: '#333'
+        },
+        Label: {
+            type: labelType,
+            style: 'bold',
+            size: 10,
+            color: '#333'
+        },
+
+        Tips: {
+            enable: true,
+            onShow: function(tip, node) {
+                //count connections
+                var count = 0;
+                node.eachAdjacency(function() { count++; });
+                //display node info in tooltip
+                tip.innerHTML = "<div class=\"tip-title\">" + node.name + "</div>"
+                    + "<div class=\"tip-text\"><b>connections:</b> " + count + "</div>";
+            }
+        },
+
+        Events: {
+            enable: true,
+            onClick: function(node) {
+                if(node) st.enter(node);
+            },
+            onRightClick: function() {
+                st.out();
+            },
+            //change node styles and canvas styles
+            //when hovering a node
+            onMouseEnter: function(node, eventInfo) {
+                if(node) {
+                    //add node selected styles and replot node
+                    node.setCanvasStyle('shadowBlur', 7);
+                    c1 = node.getData('color');
+                    node.setData('color', '#888');
+                    st.fx.plotNode(node, st.canvas);
+                    st.labels.plotLabel(st.canvas, node);
+                }
+            },
+            onMouseLeave: function(node) {
+                if(node) {
+                    node.setData('color', c1);
+                    //node.removeData('color');
+                    node.removeCanvasStyle('shadowBlur');
+                    st.plot();
+                }
+            },
+            onDragMove: function(node, eventInfo, e) {
+                var pos = eventInfo.getPos();
+                node.pos.setc(pos.x, pos.y);
+                st.plot();
+            }
+        },
+        onBeforeCompute: function(node){
+            //Log.write("loading " + node.name);
+        },
+
+        onAfterCompute: function(node){
+            //Log.write("done");
+        },
+
+        onCreateLabel: function(label, node){
+            label.id = node.id;
+            label.style.cursor = 'pointer';
+            label.color = "ff1425";
+            label.innerHTML = node.name;
+            // label.onclick = function() {
+//               st.onClick(node.id);
+//             };
+        },
+
+        onBeforePlotNode: function(node){
+            if (node.selected) {
+                //node.data.$color = "#ff7";
+            }
+            else {
+                //delete node.data.$color;
+            }
+        },
+
+        onBeforePlotLine: function(adj){
+            if (adj.nodeFrom.selected && adj.nodeTo.selected) {
+                //adj.data.$color = "#eed";
+                adj.data.$lineWidth = 3;
+            }
+            else {
+                //delete adj.data.$color;
+                delete adj.data.$lineWidth;
+            }
+        }
+    });
+    //load json data
+    st.loadJSON(json);
+    /*
+     $jit.Graph.Util.eachNode(st.graph, function(node){
+     node.data.$width = 30 + Math.random() * 30;
+     node.data.$height = 30 + Math.random() * 30;
+     });
+     */
+    //compute node positions and layout
+    st.compute();
+    //optional: make a translation of the tree
+    st.geom.translate(new $jit.Complex(0, 0), "current");
+    //Emulate a click on the root node.
+    //Tree.Plot.plot(st.tree, st.canvas);
+    st.onClick(st.root);
+
+    //Add input handler to switch spacetree orientation.
+    var select = document.getElementById('switch');
+    select.onchange = function(){
+        var index = select.selectedIndex;
+        var or = select.options[index].text;
+        select.disabled = true;
+        st.switchPosition(or, "animate", {
+            onComplete: function(){
+                select.disabled = false;
+            }
+        });
+    };
+
+    var align = document.getElementById('align');
+    align.onchange = function() {
+        var index = align.selectedIndex;
+        var or = align.options[index].text;
+        st.config.Node.align = or;
+        st.refresh();
+    };
+
+    //make node list
+    var elemUl = document.createElement('ul');
+    $jit.Graph.Util.eachNode(st.graph, function(elem){
+        var elemLi = document.createElement('li');
+        elemLi.onclick = function() {
+            st.select(elem.id);
+        };
+        elemLi.innerHTML = elem.name;
+        elemUl.appendChild(elemLi);
+    });
+    document.getElementById('id-list').appendChild(elemUl);
 }

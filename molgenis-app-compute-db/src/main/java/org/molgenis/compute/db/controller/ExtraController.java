@@ -35,27 +35,27 @@ public class ExtraController extends MolgenisPlugin
 			"}" +
 			"]";
 
-	String tree = "{id: \"Start\",\n" +
-			"        name: \"Start\",\n" +
-			"        data: {\"$color\": \"#23A4FF\"},\n" +
-			"        children: [\n" +
+	String tree = "{\"id\": \"Start\",\n" +
+			"        \"name\": \"Start\",\n" +
+			"        \"data\": {\"$color\": \"#23A4FF\"},\n" +
+			"        \"children\": [\n" +
 			"        {\n" +
-			"            id: \"o1\",\n" +
-			"            name: \"operation1\",\n" +
-			"            data: {\"$color\": \"#23A4FF\", \"$weight\" : 60, \"$height\" : 50 },\n" +
-			"            children: [{\n" +
-			"                id: \"o3\",\n" +
-			"                name: \"operation3\",\n" +
-			"                data: {\"$color\": \"#ff1425\"}}]\n" +
+			"            \"id\": \"o1\",\n" +
+			"            \"name\": \"operation1\",\n" +
+			"            \"data\": {\"$color\": \"#0cff14\", \"$weight\" : 60, \"$height\" : 50 },\n" +
+			"            \"children\": [{\n" +
+			"                \"id\": \"o3\",\n" +
+			"                \"name\": \"operation3\",\n" +
+			"                \"data\": {\"$color\": \"#ff1425\"}}]\n" +
 			"        },\n" +
 			"        {\n" +
-			"        id: \"o2\",\n" +
-			"        name: \"operation2\",\n" +
-			"        data: {\"$color\": \"#feff43\"},\n" +
-			"        children: [{\n" +
-			"        id: \"o3\",\n" +
-			"        name: \"operation3\",\n" +
-			"        data: {\"$color\": \"#ff1425\"}}]\n" +
+			"        \"id\": \"o2\",\n" +
+			"        \"name\": \"operation2\",\n" +
+			"        \"data\": {\"$color\": \"#feff43\"},\n" +
+			"        \"children\": [{\n" +
+			"        \"id\": \"o3\",\n" +
+			"        \"name\": \"operation3\",\n" +
+			"        \"data\": {\"$color\": \"#ff1425\"}}]\n" +
 			"        }" +
 			"        ]" +
 			"}";
@@ -97,6 +97,6 @@ public class ExtraController extends MolgenisPlugin
 	@ResponseBody
 	public String tree()
 	{
-		return json;
+		return tree;
 	}
 }

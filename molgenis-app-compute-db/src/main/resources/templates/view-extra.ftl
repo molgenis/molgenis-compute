@@ -1,9 +1,9 @@
 <#include "molgenis-header.ftl">
 <#include "molgenis-footer.ftl">
-<#assign css=["base.css", "ForceDirected.css"]>
+<#assign css=["base.css",  "Spacetree.css"]> <!-- "ForceDirected.css", -->
 <#assign js=["molgenis_jit.js", "example5.js"]>
 <@header css js/>
-<body onload="init();">
+<body onload="init_new();">
 <div class="row-fluid" align="center">
     <!--${app_extra_html}-->
     <h2>
@@ -29,7 +29,7 @@
                 </tr>
                 <tr>
                     <td>
-                        <input type="button" id="operation1" value="Operation" onclick="change();"/>
+                        <input type="button" id="operation1" value="Tree" onclick="window.location = window.location"/>
                     </td>
                     <td>
                         <input type="button" value="Refresh" onclick="window.location = window.location"/>
