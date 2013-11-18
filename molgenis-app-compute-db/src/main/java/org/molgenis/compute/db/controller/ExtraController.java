@@ -37,25 +37,25 @@ public class ExtraController extends MolgenisPlugin
 
 	String tree = "{\"id\": \"Start\",\n" +
 			"        \"name\": \"Start\",\n" +
-			"        \"data\": {\"$color\": \"#23A4FF\"},\n" +
+			"        \"data\": {\"$color\": \"#23A4FF\", \"$weight\" : 30, \"$height\" : 50, \"$superdata\": \"superdata of node start\"},\n" +
 			"        \"children\": [\n" +
 			"        {\n" +
 			"            \"id\": \"o1\",\n" +
 			"            \"name\": \"operation1\",\n" +
-			"            \"data\": {\"$color\": \"#0cff14\", \"$weight\" : 60, \"$height\" : 50 },\n" +
+			"            \"data\": {\"$color\": \"#0cff14\", \"$weight\" : 60, \"$height\" : 50, \"$superdata\": \"superdata of node operation1\" },\n" +
 			"            \"children\": [{\n" +
 			"                \"id\": \"o3\",\n" +
 			"                \"name\": \"operation3\",\n" +
-			"                \"data\": {\"$color\": \"#ff1425\"}}]\n" +
+			"                \"data\": {\"$color\": \"#ff1425\", \"$superdata\": \"superdata of node operation3\"}}]\n" +
 			"        },\n" +
 			"        {\n" +
 			"        \"id\": \"o2\",\n" +
 			"        \"name\": \"operation2\",\n" +
-			"        \"data\": {\"$color\": \"#feff43\"},\n" +
+			"        \"data\": {\"$color\": \"#feff43\", \"$weight\" : 30, \"$height\" : 80,\"$superdata\": \"superdata of node operation2\"},\n" +
 			"        \"children\": [{\n" +
 			"        \"id\": \"o3\",\n" +
 			"        \"name\": \"operation3\",\n" +
-			"        \"data\": {\"$color\": \"#ff1425\"}}]\n" +
+			"        \"data\": {\"$color\": \"#ff1425\", \"$weight\" : 60, \"$height\" : 60, \"$superdata\": \"superdata of node operation3\"}}]\n" +
 			"        }" +
 			"        ]" +
 			"}";
