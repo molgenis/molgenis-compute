@@ -243,22 +243,24 @@ public class EnvironmentGenerator
 			env.createNewFile();
 
 			//start global prefix fix
-			String prefixedEnvironment = "";
+			StringBuilder prefixedEnvironment = new StringBuilder();
 			String[] lines = strUserEnvironment.split(System.getProperty("line.separator"));
 			for(int i = 0; i < lines.length; i++)
 			{
 				String line = lines[i];
 				if(line.startsWith("#"))
-					prefixedEnvironment += line + "\n";
+					prefixedEnvironment.append(line).append('\n');
 				else
-					prefixedEnvironment += GLOBAL_PREFIX + line + "\n";
+					prefixedEnvironment.append(GLOBAL_PREFIX).append(line).append('\n');
 			}
 
-			compute.setUserEnvironment(prefixedEnvironment);
+			String strPrefixed = prefixedEnvironment.toString();
+
+			compute.setUserEnvironment(strPrefixed);
 			//end fix
 
 			BufferedWriter output = new BufferedWriter(new FileWriter(env, true));
-			output.write(prefixedEnvironment);
+			output.write(strPrefixed);
 			output.close();
 
 		return environment;
