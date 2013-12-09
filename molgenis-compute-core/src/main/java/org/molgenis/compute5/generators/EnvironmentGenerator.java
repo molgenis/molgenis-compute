@@ -34,7 +34,8 @@ public class EnvironmentGenerator
 		workflow = compute.getWorkflow();
 
 		// put header 'adding user params' in environment
-		String output = "#\n## User parameters\n#\n";
+		StringBuilder output = new StringBuilder(1024);
+		output.append("#\n## User parameters\n#\n");
 
 		// user parameters that we want to put in environment
 		HashSet<String> userInputParamSet = new HashSet<String>();
@@ -106,15 +107,17 @@ public class EnvironmentGenerator
 				}
 				else
 				{
-					String assignment = parameter + "[" + index + "]=\"" + value + "\"\n";
+					StringBuilder assignment = new StringBuilder();
+					assignment.append(parameter).append("[").append(index).append("]=\"")
+							.append(value).append("\"\n");
 
 					environment.put(parameter + "[" + index + "]", value);
-					output += assignment;
+					output.append(assignment.toString());
 				}
 			}
 		}
 		
-		return output;
+		return output.toString();
 	}
 
 	private List<String> findRelatedSteps(String parameter)
