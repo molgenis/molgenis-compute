@@ -13,7 +13,7 @@ import java.io.File;
  * Time: 1:43 PM
  * To change this template use File | Settings | File Templates.
  */
-public class TestWorkflowGithub
+public class GithubWorkflowTest
 {
 	private String outputDir = "target/test/benchmark/run";
 

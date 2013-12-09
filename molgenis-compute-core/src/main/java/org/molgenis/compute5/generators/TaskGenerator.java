@@ -90,28 +90,31 @@ public class TaskGenerator
 					step.setJobName(id, task.getName());
 				}
 
-				String parameterHeader = "\n#\n## Generated header\n#\n";
+				StringBuilder parameterHeader = new StringBuilder();
+				parameterHeader.append("\n#\n## Generated header\n#\n");
 				
 				// now source the task's parameters from each prevStep.env on
 				// which this task depends
 
-				parameterHeader += "\n# Assign values to the parameters in this script\n";
-				parameterHeader += "\n# Set taskId, which is the job name of this task";
-				parameterHeader += "\ntaskId=\"" + task.getName() + "\"\n";
+				parameterHeader.append("\n# Assign values to the parameters in this script\n");
+				parameterHeader.append("\n# Set taskId, which is the job name of this task");
+				parameterHeader.append("\ntaskId=\"").append(task.getName()).append("\"\n");
 				
-				parameterHeader += "\n# Make compute.properties available";
-				parameterHeader += "\nrundir=\"" + computeProperties.runDir + "\"";
-				parameterHeader += "\nrunid=\"" + computeProperties.runId + "\"";
-				parameterHeader += "\nworkflow=\"" + computeProperties.workFlow + "\"";
-				parameterHeader += "\nparameters=\"" + computeProperties.parametersString() + "\"";
-				parameterHeader += "\nuser=\"" + computeProperties.molgenisuser + "\"";
-				parameterHeader += "\ndatabase=\"" + computeProperties.database + "\"";
-				parameterHeader += "\nbackend=\"" + computeProperties.backend + "\"";
-				parameterHeader += "\nport=\"" + computeProperties.port + "\"";
-				parameterHeader += "\ninterval=\"" + computeProperties.interval + "\"";
-				parameterHeader += "\npath=\"" + computeProperties.path + "\"";
+				parameterHeader.append("\n# Make compute.properties available");
+				parameterHeader.append("\nrundir=\"").append(computeProperties.runDir).append("\"");
+				parameterHeader.append("\nrunid=\"").append(computeProperties.runId).append("\"");
+				parameterHeader.append("\nworkflow=\"").append(computeProperties.workFlow).append("\"");
+				parameterHeader.append("\nparameters=\"").append(computeProperties.parametersString()).append("\"");
+				parameterHeader.append("\nuser=\"").append(computeProperties.molgenisuser).append("\"");
+				parameterHeader.append("\ndatabase=\"").append(computeProperties.database).append("\"");
+				parameterHeader.append("\nbackend=\"").append(computeProperties.backend).append("\"");
+				parameterHeader.append("\nport=\"").append(computeProperties.port).append("\"");
+				parameterHeader.append("\ninterval=\"").append(computeProperties.interval).append("\"");
+				parameterHeader.append("\npath=\"").append(computeProperties.path).append("\"");
 
-				parameterHeader += "\n# Load parameters from previous steps\n" + Parameters.SOURCE_COMMAND + " " + Parameters.ENVIRONMENT_DIR_VARIABLE + File.separator + Parameters.ENVIRONMENT + "\n\n";
+				parameterHeader.append("\n# Load parameters from previous steps\n").append(Parameters.SOURCE_COMMAND).append(" ")
+						.append(Parameters.ENVIRONMENT_DIR_VARIABLE).append(File.separator).append(Parameters.ENVIRONMENT)
+						.append("\n\n");
 
 				for (String previousStepName : step.getPreviousSteps())
 				{ // we have jobs on which we depend in this prev step
@@ -127,13 +130,16 @@ public class TaskGenerator
 							task.getPreviousTasks().add(prevJobName);
 
 							// source its environment
-							parameterHeader += Parameters.SOURCE_COMMAND + " " + Parameters.ENVIRONMENT_DIR_VARIABLE + File.separator + prevJobName + Parameters.ENVIRONMENT_EXTENSION + "\n";
+							parameterHeader.append(Parameters.SOURCE_COMMAND).append(" ")
+									.append(Parameters.ENVIRONMENT_DIR_VARIABLE).append(File.separator)
+									.append(prevJobName).append(Parameters.ENVIRONMENT_EXTENSION)
+									.append("\n");
 						}
 					}
 				}
 
 
-				parameterHeader += "\n\n# Connect parameters to environment\n";
+				parameterHeader.append("\n\n# Connect parameters to environment\n");
 
 				// now couple input parameters to parameters in sourced
 				// environment
@@ -184,13 +190,13 @@ public class TaskGenerator
 							{
 								right = right.substring(EnvironmentGenerator.GLOBAL_PREFIX.length());
 								String realValue = environment.get(right);
-								parameterHeader += left + "=" + "\"" + realValue + "\"\n";
+								parameterHeader.append(left).append("=").append("\"").append(realValue).append("\"\n");
 							}
 							else
 							{
 								//leave old style (runtime parameter)
-								parameterHeader += left + "=${" +
-										value + "[" + rowIndexString + "]}\n";
+								parameterHeader.append(left).append("=${").append(value).append("[").append(rowIndexString)
+										.append("]}\n");
 							}
 						}
 						else
@@ -249,27 +255,21 @@ public class TaskGenerator
 								{
 									right = right.substring(EnvironmentGenerator.GLOBAL_PREFIX.length());
 									String realValue = environment.get(right);
-									parameterHeader += left + "=" + "\"" + realValue + "\"\n";
+									parameterHeader.append(left).append("=").append("\"").append(realValue).append("\"\n");
 								}
 								else
 								{
 									//leave old style (runtime parameter)
-									parameterHeader += left + "=${"
-											+ value + "[" + rowIndexString + "]}\n";
+									parameterHeader.append(left).append("=${")
+											.append(value).append("[").append(rowIndexString).append("]}\n");
 								}
-
-
 							}
 						}
-
-
 					}
-
 				}
 
-				parameterHeader = parameterHeader
-						+ "\n# Validate that each 'value' parameter has only identical values in its list\n"
-						+ "# We do that to protect you against parameter values that might not be correctly set at runtime.\n";
+				parameterHeader.append("\n# Validate that each 'value' parameter has only identical values in its list\n")
+						.append("# We do that to protect you against parameter values that might not be correctly set at runtime.\n");
 
 				for (Input input : step.getProtocol().getInputs())
 				{
@@ -278,18 +278,19 @@ public class TaskGenerator
 					{
 						String p = input.getName();
 
-						parameterHeader += "if [[ ! $(IFS=$'\\n' sort -u <<< \"${"
-								+ p
-								+ "[*]}\" | wc -l | sed -e 's/^[[:space:]]*//') = 1 ]]; then echo \"Error in Step '"
-								+ step.getName()
-								+ "': input parameter '"
-								+ p
-								+ "' is an array with different values. Maybe '"
-								+ p
-								+ "' is a runtime parameter with 'more variable' values than what was folded on generation-time?\" >&2; exit 1; fi\n";
+						parameterHeader.append("if [[ ! $(IFS=$'\\n' sort -u <<< \"${")
+								.append(p)
+								.append("[*]}\" | wc -l | sed -e 's/^[[:space:]]*//') = 1 ]]; then echo \"Error in Step '")
+								.append(step.getName())
+								.append("': input parameter '")
+								.append(p)
+								.append("' is an array with different values. Maybe '")
+								.append(p)
+								.append("' is a runtime parameter with 'more variable' values than what was folded on generation-time?\" >&2; exit 1; fi\n");
 					}
 				}
-				parameterHeader += "\n#\n## Start of your protocol template\n#\n\n";
+				parameterHeader.append("\n#\n## Start of your protocol template\n#\n\n");
+
 
 				String script = step.getProtocol().getTemplate();
 
@@ -298,13 +299,13 @@ public class TaskGenerator
 						computeProperties.weave)
 				{
 					String weavedScript = weaveProtocol(step.getProtocol(), environment, target);
-					script = parameterHeader + weavedScript;
+					script = parameterHeader.toString() + weavedScript;
 				}
 				else if(step.getProtocol().getType().equalsIgnoreCase(Protocol.TYPE_SHELL))
-					script = parameterHeader + script;
+					script = parameterHeader.toString() + script;
 				else
 				{
-					script = parameterHeader + script;
+					script = parameterHeader.toString() + script;
 					LOG.warn("STEP [" + step.getName() + "] has protocol ["+ step.getProtocol().getName() +"]with unknown type");
 				}
 

@@ -29,13 +29,16 @@
                 </tr>
                 <tr>
                     <td>
-                        <input type="button" id="operation1" value="Tree" onclick="window.location = window.location"/>
+                        <input type="button" id="operation1" value="Clear" onclick="canvas_clean();"/>
                     </td>
                     <td>
                         <input type="button" value="Refresh" onclick="window.location = window.location"/>
                     </td>
                 </tr>
             </table>
+            <div id="inner-details">
+
+            </div>
         </div>
     </div>
 </div>
