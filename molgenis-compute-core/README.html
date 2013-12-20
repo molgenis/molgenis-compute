@@ -8893,7 +8893,8 @@ parameters.csv          #parameters you want to run analysis on
 header.ftl              #user extra script header (optinal)
 footer.ftl              #user extra script footer (optinal)</pre>
 </div></div>
-<p>A similar structure should be created for every workflow. In the easiest scenario, the
+<p>A similar structure should be created for every workflow. Additionally, a workflow can be read from the github repository, if the github root is specified.
+In the easiest scenario, the
 <code>workflow.csv</code> file has the following structure:</p>
 <div class="literalblock">
 <div class="content monospaced">
@@ -8967,9 +8968,9 @@ echo "(FOR TESTING PURPOSES: your runid is ${runid})"</pre>
 <p>are mapped using</p>
 <div class="literalblock">
 <div class="content monospaced">
-<pre>strings=step1_out</pre>
+<pre>strings=step1.out</pre>
 </div></div>
-<p>Here, prefix <em>step1_</em> says that <em>out</em> is coming from <em>step1</em>.</p>
+<p>Here, prefix <em>step1.</em> says that <em>out</em> is coming from <em>step1</em>.</p>
 <p>The example protocols has the following listings:</p>
 <p>In our example variables <em>date</em> and <em>wf</em> are defined in
 an additional parameters file <code>workflow.defaults.csv</code>.</p>
@@ -8978,8 +8979,8 @@ an additional parameters file <code>workflow.defaults.csv</code>.</p>
 <pre>workflowName,creationDate
 myFirstWorkflow,today</pre>
 </div></div>
-<p>In this way, the parameters can be divided in several groups and re-used in different workflows. If user does not like to map
-parameters, he/she should use the same names in protocols and parameters files. This makes parameters a kind of global.</p>
+<p>In this way, the parameters can be divided in several groups and re-used in different workflows. If users do not like to map
+parameters, they should use the same names in protocols and parameters files. This makes parameters a kind of global.</p>
 </section>
 <section id="generate_workflow">
   <div class="page-header">
@@ -9024,8 +9025,8 @@ input[1]="bye"
 workflowName[0]="myFirstWorkflow"
 workflowName[1]="myFirstWorkflow"</pre>
 </div></div>
-<p>Parameters, which are known before hand are directly weaved in the protocols. In our example, two shell scripts are generated for
-the <em>step1</em></p>
+<p>Parameters, which are known before hand can be connected to the environment file or weaved directly in the protocols (if <em>weave</em> flag is set in command-line options). In our example, two shell scripts are generated for
+the <em>step1</em>. The weaved version of generated files are shown below.</p>
 <p><code>step1_0.sh</code></p>
 <div class="literalblock">
 <div class="content monospaced">
@@ -9076,7 +9077,18 @@ do
     echo ${s}
 done</pre>
 </div></div>
-<p>In the currect implementation, values are first taken from parameter files. If they are not present, then compute looks,
+<p>If <em>weaved</em> flag is not set, <code>step1_0.sh</code> file, for example looks as follows:</p>
+<div class="literalblock">
+<div class="content monospaced">
+<pre># Connect parameters to environment
+input="bye"
+#string input
+# Let's do something with string 'in'
+echo "${input}_hasBeenInStep1"
+out=${input}_hasBeenInStep1</pre>
+</div></div>
+<p>In this way, users can choose how generated files look like.
+In the current implementation, values are first taken from parameter files. If they are not present, then compute looks,
 if these values can be known at run-time, by analysing all previous steps of the protocol, where values are unknown.
 If values cannot be known at run-time, compute will give a generation error.</p>
 </section>
@@ -9172,7 +9184,12 @@ usage: sh molgenis-compute.sh -p parameters.csv
 -submit &lt;arg&gt;                      Set a custom submit.sh template.
                                    Default: submit.sh.ftl
 -w,--workflow &lt;workflow.csv&gt;       Path to your workflow file. Default:
-                                   workflow.csv</pre>
+                                   workflow.csv
+-weave,--weave                     Weave parameters to the actual script
+-web,--web &lt;arg&gt;                   Location of the workflow in the public
+                                   github repository. The other
+                                   parameters should be specified
+                                   relatively to specified github root.</pre>
 </div></div>
 </section>
 <section id="reserved_words">
@@ -9312,10 +9329,11 @@ ppn - number of cores needed</pre>
 out=${in}_hasBeenInStep1</pre>
 </div></div>
 <p>The specification in protocols has priority over specification in parameter files.</p>
+<p>In the command-line distribution, users can add a new back-end by adding a new directory, that contains header/footer and submit templates for that backend.</p>
 </section>
-<section id="starting_with_a_new_workflow">
+<section id="switching_to_a_different_workflow">
   <div class="page-header">
-    <h1>10. Starting with a new workflow</h1>
+    <h1>10. Switching to a different workflow</h1>
   </div>
 <p>It is very advisable to start working with a new workflow with running</p>
 <p>sh molgenis_compute.sh --clear</p>
@@ -9338,22 +9356,9 @@ step1,protocols/step1.sh,
   <div class="page-header">
     <h1>12. Database usage</h1>
   </div>
-<p>Molgenis web server should be available for database usage. The <code>molgenis-app-compute-db-0.0.1-SNAPSHOT.war</code> can be build by
- <a id="X12"></a><a href="http://github.com/molgenis/molgenis/tree/master/molgenis-app-compute-db">Molgenis application: molgenis-app-compute-db</a>.</p>
-<p>After installing the application in the maven project, the libraries from</p>
-<div class="literalblock">
-<div class="content monospaced">
-<pre>target/molgenis-app-compute-db-0.0.1-SNAPSHOT/WEB-INF/lib/</pre>
-</div></div>
-<p>should be placed into</p>
-<div class="literalblock">
-<div class="content monospaced">
-<pre>lib</pre>
-</div></div>
-<p>directory of your compute distribution. The script to run the database version can be found
- <a id="X13"></a><a href="http://github.com/molgenis/molgenis/blob/master/molgenis-app-compute-db/src/main/resources/scripts/molgenis_compute.sh">here</a></p>
-<p>Use this scripts instead of standard <code>molgenis_compute.sh</code> It contains more library dependencies to the work with web-server (database)
-from the command-line.</p>
+<p>The detailed user gid for <a id="X12"></a><a href="https://github.com/molgenis/molgenis-compute/tree/master/molgenis-app-compute-db">molgenis-compute database version</a> will be added soon.
+The application can be build as a maven project. During the first start of compute-db, the <em>admin</em> with password <em>admin</em> will be created.
+So, the users can login into the system for the first time.</p>
 <p>To insert new compute runs into database, use the command-line like</p>
 <div class="literalblock">
 <div class="content monospaced">
@@ -9369,26 +9374,19 @@ from the command-line.</p>
 -b &lt;back-end&gt; \
 -bu &lt;back-end-username&gt; -bp &lt;back-end-password&gt;</pre>
 </div></div>
-<p>After this your compute run will appear at the <em>Jobs Dashboard</em>. It will look like in the image below:</p>
-<img src="images/dashboard1.png">
-<p><br></p><p>User can submit jobs entering the user name and password for computational backend.</p>
-<img src="images/dashboard2.png">
-<p><br></p><p>Jobs will be submitted for execution.</p>
-<img src="images/dashboard3.png">
-<p><br></p><p>When all jobs are finished, compute run will get status <em>complete</em>.</p>
-<img src="images/dashboard4.png">
-<p><br></p><p>Jobs also can be submitted and monitored from the command-line using <em>--run</em> flag.
+<p>After this your compute run will appear at the <em>Jobs Dashboard</em>. It will look like in the image below:
+User can submit jobs entering the user name and password for computational backend.</p>
+<p><img src="images/dashboard.png"></p>
+<p>The jobs details can be expected in Tasks/History generated forms
+Jobs also can be submitted and monitored from the command-line using <em>--run</em> flag.
 However, this functionality is not fully tested yet and submission via web-user interface is more stable.</p>
 </section>
-<section id="advanced_a_imputation_workflow_example">
+<section id="available_workflows">
   <div class="page-header">
-    <h1>13. Advanced A: Imputation workflow example</h1>
+    <h1>13. Available workflows</h1>
   </div>
-</section>
-<section id="advanced_b_ngs_alignment_workflow_example">
-  <div class="page-header">
-    <h1>14. Advanced B: NGS Alignment workflow example</h1>
-  </div>
+<p>The available (NGS alignment, imputation) workflows are available in the
+<a id="X13"></a><a href="https://github.com/georgebyelas/molgenis-pipelines">workflow github repository</a>.</p>
 </section>
         </div>
       </div>

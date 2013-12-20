@@ -551,7 +551,8 @@ public class ComputeProperties
 				.create(Parameters.CLEAR));
 		options.addOption(OptionBuilder.withDescription("Weave parameters to the actual script").withLongOpt(Parameters.WEAVE)
 				.create(Parameters.WEAVE));
-		options.addOption(OptionBuilder.hasArg().withDescription("Location of the workflow in the public github repository")
+		options.addOption(OptionBuilder.hasArg().withDescription("Location of the workflow in the public github repository. The other" +
+				"parameters should be specified relatively to specified github root.")
 				.withLongOpt(Parameters.WEB).create(Parameters.WEB));
 
 		options.addOption(OptionBuilder
