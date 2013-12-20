@@ -3,6 +3,7 @@
     <menu name="mainmenu" label="Main">
         <plugin id="home" label="Home" name="HomeController" type="org.molgenis.compute.db.plugin.HomePlugin"/>
         <plugin id="extra" label="Extra" name="ExtraController" type="org.molgenis.compute.db.plugin.ExtraPlugin"/>
+        <plugin id="editor" label="Editor" name="EditorController" type="org.molgenis.compute.db.plugin.EditorPlugin"/>
         <menu name="Compute" label="Compute">
             <plugin id="dashboard" name="PilotDashboardController" label="Pilot dashboard"
                     type="org.molgenis.compute.db.plugin.PilotDashboardPlugin"/>

@@ -1292,7 +1292,6 @@ public class ComputeCommandLineTest
 
 
 
-	@Test
 	public void testGenerate5PBS() throws Exception
 	{
 		System.out.println("--- Start TestRunLocally ---");
@@ -1354,6 +1353,33 @@ public class ComputeCommandLineTest
 			Assert.fail("PBS dependencies is not generated correctly");
 		}
 
+	}
+
+	@Test(expectedExceptions = Exception.class)
+	public void testGenerateUnknownBackend() throws Exception
+	{
+		System.out.println("--- Start TestRunLocally ---");
+
+		File f = new File(outputDir);
+		FileUtils.deleteDirectory(f);
+		Assert.assertFalse(f.exists());
+
+		f = new File(".compute.properties");
+		FileUtils.deleteQuietly(f);
+		Assert.assertFalse(f.exists());
+
+		ComputeCommandLine.main(new String[]{
+				"--generate",
+				"--workflow",
+				"src/main/resources/workflows/benchmark.5.1/workflow.csv",
+				"--defaults",
+				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv",
+				"--parameters",
+				"src/main/resources/workflows/benchmark.5.1/parameters.csv",
+				"--rundir",
+				"target/test/benchmark/run",
+				"--backend","pbs2"
+		});
 	}
 
 	@Test

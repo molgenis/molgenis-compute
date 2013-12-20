@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 import org.apache.poi.util.IOUtils;
 import org.molgenis.compute5.ComputeProperties;
 import org.molgenis.compute5.model.Parameters;
@@ -21,6 +22,10 @@ import org.molgenis.compute5.urlreader.UrlReader;
 /** Parameters of the backend, either PBS, SGE, GRID, etc */
 public class BackendGenerator
 {
+
+	private static final Logger LOG = Logger.getLogger(BackendGenerator.class);
+
+
 	private String headerTemplate = "";
 	private String footerTemplate = "";
 	private String submitTemplate = "";
@@ -52,16 +57,20 @@ public class BackendGenerator
 	}
 
 
-	private String readInClasspath(String file) throws IOException
+	private String readInClasspath(String file, String backend) throws IOException
 	{
 		InputStream in = this.getClass().getClassLoader().getResourceAsStream(file);
 
+		if(in == null)
+		{
+			LOG.error("Specified [" + backend + "] is unknown or unavailable");
+			throw new IOException("Specified [" + backend + "] is unknown or unavailable. Create a file " + file);
+		}
 		BufferedReader stream = new BufferedReader(new InputStreamReader(in));
 
 		StringBuilder result = new StringBuilder();
 		try
 		{
-
 			String inputLine;
 
 			while ((inputLine = stream.readLine()) != null)
@@ -171,19 +180,19 @@ public class BackendGenerator
 
 	public BackendGenerator(ComputeProperties cp) throws IOException
 	{
-		String wtf = cp.backend;
+		String dir = cp.backend;
 
-		if(cp.backend.equalsIgnoreCase(Parameters.BACKEND_LOCAL))
+		//if(cp.backend.equalsIgnoreCase(Parameters.BACKEND_LOCAL))
+		//{
+//			this.setHeaderTemplate(readInClasspath("templates/local/header.ftl"));
+//			this.setFooterTemplate(readInClasspath("templates/local/footer.ftl"));
+//			this.setSubmitTemplate(readInClasspath("templates/local/submit.ftl"));
+//		//}
+		//else if(cp.backend.equalsIgnoreCase(Parameters.BACKEND_PBS))
 		{
-			this.setHeaderTemplate(readInClasspath("templates/local/header.ftl"));
-			this.setFooterTemplate(readInClasspath("templates/local/footer.ftl"));
-			this.setSubmitTemplate(readInClasspath("templates/local/submit.ftl"));
-		}
-		else if(cp.backend.equalsIgnoreCase(Parameters.BACKEND_PBS))
-		{
-			this.setHeaderTemplate(readInClasspath("templates/pbs/header.ftl"));
-			this.setFooterTemplate(readInClasspath("templates/pbs/footer.ftl"));
-			this.setSubmitTemplate(readInClasspath("templates/pbs/submit.ftl"));
+			this.setHeaderTemplate(readInClasspath("templates/"+ dir +"/header.ftl", dir));
+			this.setFooterTemplate(readInClasspath("templates/"+ dir +"/footer.ftl", dir));
+			this.setSubmitTemplate(readInClasspath("templates/"+ dir +"/submit.ftl", dir));
 		}
 
 		if (cp.customHeader != null)

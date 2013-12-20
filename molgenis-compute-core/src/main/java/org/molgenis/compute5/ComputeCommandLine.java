@@ -10,8 +10,6 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.molgenis.compute5.db.api.*;
 import org.molgenis.compute5.generators.*;
-import org.molgenis.compute5.generators.local.LocalBackend;
-import org.molgenis.compute5.generators.pbs.PbsBackend;
 import org.molgenis.compute5.model.Compute;
 import org.molgenis.compute5.model.Parameters;
 import org.molgenis.compute5.model.Task;
@@ -262,15 +260,7 @@ public class ComputeCommandLine
 		List<Task> tasks = new TaskGenerator().generate(compute);
 		compute.setTasks(tasks);
 
-		// write the task for the backend
-		if (Parameters.BACKEND_PBS.equals(computeProperties.backend))
-		{
-			new PbsBackend(computeProperties).generate(compute.getTasks(), dir);
-		}
-		else
-		{
-			new LocalBackend(computeProperties).generate(compute.getTasks(), dir);
-		}
+		new BackendGenerator(computeProperties).generate(compute.getTasks(), dir);
 
 //TODO:	FIX	generate documentation
 //		new DocTotalParametersCsvGenerator().generate(new File(computeProperties.runDir + "/doc/outputs.csv"),
