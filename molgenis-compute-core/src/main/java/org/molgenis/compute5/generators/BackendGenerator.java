@@ -182,13 +182,7 @@ public class BackendGenerator
 	{
 		String dir = cp.backend;
 
-		//if(cp.backend.equalsIgnoreCase(Parameters.BACKEND_LOCAL))
-		//{
-//			this.setHeaderTemplate(readInClasspath("templates/local/header.ftl"));
-//			this.setFooterTemplate(readInClasspath("templates/local/footer.ftl"));
-//			this.setSubmitTemplate(readInClasspath("templates/local/submit.ftl"));
-//		//}
-		//else if(cp.backend.equalsIgnoreCase(Parameters.BACKEND_PBS))
+		if(cp.database == Parameters.DATABASE_DEFAULT)
 		{
 			this.setHeaderTemplate(readInClasspath("templates/"+ dir +"/header.ftl", dir));
 			this.setFooterTemplate(readInClasspath("templates/"+ dir +"/footer.ftl", dir));
