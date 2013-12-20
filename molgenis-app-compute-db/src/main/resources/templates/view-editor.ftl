@@ -31,7 +31,7 @@
             <table>
                 <tr>
                     <td>
-                        <input type="button" id="save" value="Save" onclick="test_post();"/>
+                        <input type="button" id="save" value="Save It!" onclick="test_post();"/>
                     </td>
                 </tr>
             </table>

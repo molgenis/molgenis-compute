@@ -1,7 +1,7 @@
 Molgenis Compute 5 User Guide
 ===============================
 George Byelas <h.v.byelas@gmail.com>
-v0.1, July 2013:
+v0.2, December 2013:
 Rewritten for version 1.0 release.
 :toc:
 :icons:
@@ -50,7 +50,8 @@ You see the typical Molgenis Compute workflow structure
   header.ftl              #user extra script header (optinal)
   footer.ftl              #user extra script footer (optinal)
 
-A similar structure should be created for every workflow. In the easiest scenario, the 
+A similar structure should be created for every workflow. Additionally, a workflow can be read from the github repository, if the github root is specified.
+In the easiest scenario, the 
 +workflow.csv+ file has the following structure:
 
   step,protocol,dependencies
@@ -119,9 +120,9 @@ which has protocol
 
 are mapped using
 
-  strings=step1_out
+  strings=step1.out
 
-Here, prefix 'step1_' says that 'out' is coming from 'step1'.
+Here, prefix 'step1.' says that 'out' is coming from 'step1'.
 
 The example protocols has the following listings:
 
@@ -131,8 +132,8 @@ an additional parameters file +workflow.defaults.csv+.
   workflowName,creationDate
   myFirstWorkflow,today
 
-In this way, the parameters can be divided in several groups and re-used in different workflows. If user does not like to map 
-parameters, he/she should use the same names in protocols and parameters files. This makes parameters a kind of global.
+In this way, the parameters can be divided in several groups and re-used in different workflows. If users do not like to map 
+parameters, they should use the same names in protocols and parameters files. This makes parameters a kind of global.
 
 
 Generate workflow
@@ -172,8 +173,8 @@ outputs from scripts of the 'step1' as a list, which is specified in +step2.sh+ 
   workflowName[0]="myFirstWorkflow"
   workflowName[1]="myFirstWorkflow"
 
-Parameters, which are known before hand are directly weaved in the protocols. In our example, two shell scripts are generated for 
-the 'step1'
+Parameters, which are known before hand can be connected to the environment file or weaved directly in the protocols (if 'weave' flag is set in command-line options). In our example, two shell scripts are generated for 
+the 'step1'. The weaved version of generated files are shown below.
 
 +step1_0.sh+
 
@@ -224,7 +225,18 @@ If values can be known, the script will have the following content
       echo ${s}
   done
 
-In the currect implementation, values are first taken from parameter files. If they are not present, then compute looks,
+If 'weaved' flag is not set, +step1_0.sh+ file, for example looks as follows:
+
+  # Connect parameters to environment
+  input="bye"
+  #string input
+  # Let's do something with string 'in'
+  echo "${input}_hasBeenInStep1"
+  out=${input}_hasBeenInStep1
+
+
+In this way, users can choose how generated files look like.
+In the current implementation, values are first taken from parameter files. If they are not present, then compute looks,
 if these values can be known at run-time, by analysing all previous steps of the protocol, where values are unknown.
 If values cannot be known at run-time, compute will give a generation error.
 
@@ -317,6 +329,12 @@ Molgenis Compute has the following command-line options:
                                      Default: submit.sh.ftl
   -w,--workflow <workflow.csv>       Path to your workflow file. Default:
                                      workflow.csv
+  -weave,--weave                     Weave parameters to the actual script
+  -web,--web <arg>                   Location of the workflow in the public
+                                     github repository. The other
+                                     parameters should be specified
+                                     relatively to specified github root.
+
 
 Reserved words
 --------------
@@ -441,8 +459,10 @@ Or also it can be specified in the molgenis header in protocols
 
 The specification in protocols has priority over specification in parameter files.
 
-Starting with a new workflow
-----------------------------
+In the command-line distribution, users can add a new back-end by adding a new directory, that contains header/footer and submit templates for that backend.
+
+Switching to a different workflow
+---------------------------------
 
 It is very advisable to start working with a new workflow with running 
 
@@ -463,22 +483,9 @@ User can want to run only one or several steps of the workflow, when the rest of
 Database usage
 --------------
 
-Molgenis web server should be available for database usage. The +molgenis-app-compute-db-0.0.1-SNAPSHOT.war+ can be build by 
- [[X12]]http://github.com/molgenis/molgenis/tree/master/molgenis-app-compute-db[Molgenis application: molgenis-app-compute-db].
-
-After installing the application in the maven project, the libraries from 
-
-  target/molgenis-app-compute-db-0.0.1-SNAPSHOT/WEB-INF/lib/
-
-should be placed into
-
-  lib
-
-directory of your compute distribution. The script to run the database version can be found 
- [[X13]]http://github.com/molgenis/molgenis/blob/master/molgenis-app-compute-db/src/main/resources/scripts/molgenis_compute.sh[here]
-
-Use this scripts instead of standard +molgenis_compute.sh+ It contains more library dependencies to the work with web-server (database)
-from the command-line.
+The detailed user gid for [[X12]]https://github.com/molgenis/molgenis-compute/tree/master/molgenis-app-compute-db[molgenis-compute database version] will be added soon.
+The application can be build as a maven project. During the first start of compute-db, the 'admin' with password 'admin' will be created. 
+So, the users can login into the system for the first time. 
 
 To insert new compute runs into database, use the command-line like
 
@@ -495,33 +502,17 @@ To insert new compute runs into database, use the command-line like
   -bu <back-end-username> -bp <back-end-password>
 
 After this your compute run will appear at the 'Jobs Dashboard'. It will look like in the image below: 
-
-
-LALA1
-
-
 User can submit jobs entering the user name and password for computational backend.
-
-
-LALA2
-
-
-Jobs will be submitted for execution.
 
 
 LALA3
 
-When all jobs are finished, compute run will get status 'complete'.
 
-
-LALA4
-
+The jobs details can be expected in Tasks/History generated forms
 Jobs also can be submitted and monitored from the command-line using '--run' flag. 
 However, this functionality is not fully tested yet and submission via web-user interface is more stable.
 
-Advanced A: Imputation workflow example
----------------------------------------
-
-Advanced B: NGS Alignment workflow example
-------------------------------------------
-
+Available workflows
+-------------------
+The available (NGS alignment, imputation) workflows are available in the  
+[[X13]]https://github.com/georgebyelas/molgenis-pipelines[workflow github repository].
