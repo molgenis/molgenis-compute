@@ -6,13 +6,13 @@ import java.io.StringWriter;
 import java.util.*;
 
 import org.molgenis.compute5.model.Parameters;
-import org.molgenis.util.tuple.KeyValueTuple;
-import org.molgenis.util.tuple.Tuple;
-import org.molgenis.util.tuple.WritableTuple;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import org.molgenis.data.Entity;
+import org.molgenis.data.support.MapEntity;
+
 
 public class TupleUtils
 {
@@ -26,11 +26,11 @@ public class TupleUtils
 	private String runID = null;
 	private HashMap<String, String> parametersToOverwrite = null;
 
-	public static List<WritableTuple> collapse(List<? extends Tuple> parameters, List<String> targets)
+	public static List<MapEntity> collapse(List<? extends Entity> parameters, List<String> targets)
 	{
-		Map<String, WritableTuple> result = new LinkedHashMap<String, WritableTuple>();
+		Map<String, MapEntity> result = new LinkedHashMap<String, MapEntity>();
 
-		for (Tuple row : parameters)
+		for (Entity row : parameters)
 		{
 			// generate key
 			String key = "";
@@ -40,8 +40,8 @@ public class TupleUtils
 			// if first, create tuple, create lists for non-targets
 			if (result.get(key) == null)
 			{
-				KeyValueTuple collapsedRow = new KeyValueTuple();
-				for (String col : row.getColNames())
+				MapEntity collapsedRow = new MapEntity();
+				for (String col : row.getAttributeNames())
 				{
 					if (targets.contains(col))
 					{
@@ -58,7 +58,7 @@ public class TupleUtils
 			}
 			else
 			{
-				for (String col : row.getColNames())
+				for (String col : row.getAttributeNames())
 				{
 					if (!targets.contains(col))
 					{
@@ -71,7 +71,7 @@ public class TupleUtils
 			}
 		}
 
-		return new ArrayList<WritableTuple>(result.values());
+		return new ArrayList<MapEntity>(result.values());
 	}
 
 	/**
@@ -81,7 +81,7 @@ public class TupleUtils
 	 * @throws IOException
 	 * @throws TemplateException
 	 */
-	public void solve(List<WritableTuple> values) throws IOException
+	public void solve(List<MapEntity> values) throws IOException
 	{
 		// Freemarker configuration
 		Configuration conf = new Configuration();
@@ -98,11 +98,12 @@ public class TupleUtils
 			StringWriter out;
 			String unsolved = "";
 
-			for (WritableTuple t : values)
+			for (MapEntity t : values)
 			{
-				for (String col : t.getColNames())
+				for (String col : t.getAttributeNames())
 				{
 					original = t.getString(col);
+
 					if (original.contains("${"))
 					{
 						// check for self reference (??)
@@ -144,7 +145,7 @@ public class TupleUtils
 		}
 	}
 
-	private void replaceParameters(List<WritableTuple> map)
+	private void replaceParameters(List<MapEntity> map)
 	{
 		if(parametersToOverwrite != null)
 		{
@@ -152,7 +153,7 @@ public class TupleUtils
 			{
 				String key = entry.getKey();
 				String value = entry.getValue();
-				for(WritableTuple tuple: map)
+				for(MapEntity tuple: map)
 				{
 					tuple.set(key, value);
 				}
@@ -162,10 +163,10 @@ public class TupleUtils
 
 	@SuppressWarnings("unchecked")
 	/** Convert a tuple into a map. Columns with a '_' in them will be nested submaps. */
-	public static Map<String, Object> toMap(Tuple t)
+	public static Map<String, Object> toMap(Entity t)
 	{
 		Map<String, Object> result = new LinkedHashMap<String, Object>();
-		for (String key : t.getColNames())
+		for (String key : t.getAttributeNames())
 		{
 				result.put(key, t.get(key));
 		}
@@ -180,7 +181,7 @@ public class TupleUtils
 	 * @param idColumn
 	 * @return
 	 */
-	public static <E extends Tuple> List<E> uncollapse(List<E> values, String idColumn)
+	public static <E extends Entity> List<E> uncollapse(List<E> values, String idColumn)
 	{
 		List<E> result = new ArrayList<E>();
 
@@ -194,8 +195,8 @@ public class TupleUtils
 			{
 				for (int i = 0; i < original.getList(idColumn).size(); i++)
 				{
-					KeyValueTuple copy = new KeyValueTuple();
-					for (String col : original.getColNames())
+					MapEntity copy = new MapEntity();
+					for (String col : original.getAttributeNames())
 					{
 						if (original.get(col) instanceof List)
 						{

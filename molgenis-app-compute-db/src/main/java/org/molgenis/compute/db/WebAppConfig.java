@@ -5,16 +5,19 @@ import org.molgenis.compute.db.executor.PilotManager;
 import org.molgenis.compute.db.executor.Scheduler;
 import org.molgenis.compute.db.pilot.ScriptBuilder;
 import org.molgenis.compute.db.util.ComputeMolgenisSettings;
+import org.molgenis.data.DataService;
+import org.molgenis.elasticsearch.config.EmbeddedElasticSearchConfig;
 import org.molgenis.framework.db.Database;
 import org.molgenis.framework.security.Login;
 import org.molgenis.framework.server.MolgenisPermissionService;
 import org.molgenis.framework.server.MolgenisSettings;
 import org.molgenis.framework.ui.MolgenisPlugin;
+import org.molgenis.omx.OmxConfig;
 import org.molgenis.omx.auth.OmxPermissionService;
-import org.molgenis.ui.MolgenisPluginInterceptor;
-import org.molgenis.ui.MolgenisUi;
-import org.molgenis.ui.XmlMolgenisUi;
-import org.molgenis.ui.XmlMolgenisUiLoader;
+import org.molgenis.omx.config.DataExplorerConfig;
+import org.molgenis.search.SearchSecurityConfig;
+import org.molgenis.security.user.MolgenisUserService;
+import org.molgenis.ui.*;
 import org.molgenis.util.ApplicationContextProvider;
 import org.molgenis.util.AsyncJavaMailSender;
 import org.molgenis.util.GsonHttpMessageConverter;
@@ -35,6 +38,7 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.*;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
@@ -45,18 +49,19 @@ import java.util.List;
 import java.util.Properties;
 
 @Configuration
+@EnableTransactionManagement
 @EnableWebMvc
 @EnableScheduling
 @ComponentScan("org.molgenis")
-@Import(DatabaseConfig.class)
-public class WebAppConfig extends WebMvcConfigurerAdapter
+@Import(
+		{ WebAppSecurityConfig.class, DatabaseConfig.class, OmxConfig.class, EmbeddedElasticSearchConfig.class,
+				DataExplorerConfig.class, SearchSecurityConfig.class })
+public class WebAppConfig extends MolgenisWebAppConfig
 {
 	@Autowired
-	@Qualifier("unauthorizedDatabase")
-	private Database unauthorizedDatabase;
-
+	private DataService dataService;
 	@Autowired
-	private Login login;
+	private MolgenisUserService molgenisUserService;
 
 	@Autowired
 	private MolgenisSettings molgenisSettings;

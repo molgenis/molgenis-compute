@@ -18,7 +18,7 @@ import org.molgenis.compute5.parsers.ParametersCsvParser;
 import org.molgenis.compute5.parsers.WorkflowCsvParser;
 import org.molgenis.compute5.sysexecutor.SysCommandExecutor;
 import org.molgenis.compute5.urlreader.UrlReader;
-import org.molgenis.util.tuple.WritableTuple;
+import org.molgenis.data.support.MapEntity;
 
 import com.google.common.base.Joiner;
 
@@ -225,7 +225,7 @@ public class ComputeCommandLine
 		compute.setParameters(parameters);
 
 		// add command line parameters:
-		for (WritableTuple t : compute.getParameters().getValues())
+		for (MapEntity t : compute.getParameters().getValues())
 		{
 			t.set(Parameters.PATH_COLUMN, computeProperties.path);
 			t.set(Parameters.WORKFLOW_COLUMN, computeProperties.workFlow);
@@ -243,9 +243,10 @@ public class ComputeCommandLine
 		computeProperties.runDir = dir.getCanonicalPath();
 		dir.mkdirs();
 
+		//uncomment when fixed
 		// document inputs
-		new DocTotalParametersCsvGenerator().generate(new File(computeProperties.runDir + "/doc/inputs.csv"),
-				compute.getParameters());
+//		new DocTotalParametersCsvGenerator().generate(new File(computeProperties.runDir + "/doc/inputs.csv"),
+//				compute.getParameters());
 
 		// parse workflow
 		Workflow workflow = new WorkflowCsvParser().parse(computeProperties.workFlow, computeProperties);

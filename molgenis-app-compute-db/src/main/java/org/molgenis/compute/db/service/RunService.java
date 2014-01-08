@@ -14,6 +14,7 @@ import org.molgenis.compute.runtime.ComputeRun;
 import org.molgenis.compute.runtime.ComputeTask;
 import org.molgenis.compute5.db.api.RunStatus;
 import org.molgenis.compute5.model.Task;
+import org.molgenis.data.DataService;
 import org.molgenis.framework.db.Database;
 import org.molgenis.framework.db.DatabaseException;
 import org.molgenis.framework.db.Query;
@@ -37,7 +38,7 @@ public class RunService
 	private static final Logger LOG = Logger.getLogger(RunService.class);
 	private static final long DEFAULT_POLL_DELAY = 30000;
 	@Autowired
-	private Database database;
+	private DataService database;
 	@Autowired
 	private Scheduler scheduler;
 

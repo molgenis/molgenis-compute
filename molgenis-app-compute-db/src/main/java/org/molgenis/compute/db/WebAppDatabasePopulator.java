@@ -14,6 +14,7 @@ import org.molgenis.compute.runtime.ComputeParameterValue;
 import org.molgenis.compute.runtime.ComputeRun;
 import org.molgenis.compute.runtime.ComputeTask;
 import org.molgenis.compute.runtime.ComputeTaskHistory;
+import org.molgenis.data.DataService;
 import org.molgenis.framework.db.Database;
 import org.molgenis.framework.db.DatabaseException;
 import org.molgenis.framework.db.QueryRule;
@@ -50,7 +51,7 @@ public class WebAppDatabasePopulator extends MolgenisDatabasePopulator
 	private String adminPassword;
 	
 	@Override
-	protected void initializeApplicationDatabase(Database database) throws Exception
+	protected void initializeApplicationDatabase(DataService database) throws Exception
 	{
 		Login login = database.getLogin();
 		database.setLogin(null);

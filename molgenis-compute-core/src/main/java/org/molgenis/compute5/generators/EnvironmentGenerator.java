@@ -6,8 +6,8 @@ import java.util.*;
 
 import org.apache.log4j.Logger;
 import org.molgenis.compute5.model.*;
+import org.molgenis.data.support.MapEntity;
 import org.molgenis.util.Pair;
-import org.molgenis.util.tuple.WritableTuple;
 
 public class EnvironmentGenerator
 {
@@ -76,12 +76,12 @@ public class EnvironmentGenerator
 		{
 			String userParameter = Parameters.USER_PREFIX + parameter;
 
-			for (WritableTuple wt : compute.getParameters().getValues())
+			for (MapEntity wt : compute.getParameters().getValues())
 			{
 				// retrieve index and value for that index
 				Integer index = null;
 				String value = null;
-				for (String col : wt.getColNames())
+				for (String col : wt.getAttributeNames())
 				{
 					if (col.equals(userParameter))
 						value = wt.getString(col);
@@ -133,7 +133,7 @@ public class EnvironmentGenerator
 		return relatedSteps;
 	}
 
-	private boolean isFoundAsOutput(String parameter, WritableTuple wt)
+	private boolean isFoundAsOutput(String parameter, MapEntity wt)
 	{
 		boolean isRunTime = false;
 

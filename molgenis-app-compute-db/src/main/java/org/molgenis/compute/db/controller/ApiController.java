@@ -3,6 +3,7 @@ package org.molgenis.compute.db.controller;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -19,7 +20,7 @@ import org.molgenis.compute5.db.api.RunStatusRequest;
 import org.molgenis.compute5.db.api.RunStatusResponse;
 import org.molgenis.compute5.db.api.StartRunRequest;
 import org.molgenis.compute5.db.api.StopRunRequest;
-import org.molgenis.framework.db.Database;
+import org.molgenis.data.DataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
@@ -45,10 +46,10 @@ public class ApiController
 {
 	private static final Logger LOG = Logger.getLogger(ApiController.class);
 	private final RunService runService;
-	private final Database database;
+	private final DataService database;
 
 	@Autowired
-	public ApiController(RunService runService, Database database)
+	public ApiController(RunService runService, DataService database)
 	{
 		this.runService = runService;
 		this.database = database;
@@ -173,7 +174,15 @@ public class ApiController
 		GetBackendsResponse response = new GetBackendsResponse();
 		try
 		{
-			List<ComputeBackend> computeBackends = database.find(ComputeBackend.class);
+			Iterable<ComputeBackend> itComputeBackends = database.findAll(ComputeBackend.ENTITY_NAME);
+
+
+			List<ComputeBackend> computeBackends = new ArrayList<ComputeBackend>();
+			while(itComputeBackends.iterator().hasNext())
+			{
+				computeBackends.add(itComputeBackends.iterator().next());
+			}
+
 			List<Backend> backends = Lists.transform(computeBackends, new Function<ComputeBackend, Backend>()
 			{
 				@Override

@@ -8,6 +8,7 @@ import java.util.concurrent.ScheduledFuture;
 import org.apache.log4j.Logger;
 import org.molgenis.compute.db.ComputeDbException;
 import org.molgenis.compute.runtime.ComputeRun;
+import org.molgenis.data.DataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.TaskScheduler;
 
@@ -20,13 +21,14 @@ public class Scheduler
 {
 	private final TaskScheduler taskScheduler;
 	private final Map<Integer, ScheduledFuture<?>> scheduledJobs = new HashMap<Integer, ScheduledFuture<?>>();
-
+	private DataService dataService = null;
 	private static final Logger LOG = Logger.getLogger(Scheduler.class);
 
 	@Autowired
-	public Scheduler(TaskScheduler taskScheduler)
+	public Scheduler(DataService dataService, TaskScheduler taskScheduler)
 	{
 		this.taskScheduler = taskScheduler;
+		this.dataService = dataService;
 	}
 
 	public synchronized void schedule(ComputeRun run, String username, String password)
@@ -39,7 +41,7 @@ public class Scheduler
 		ExecutionHost executionHost = null;
 		try
 		{
-			executionHost = new ExecutionHost(run.getComputeBackend().getBackendUrl(), username,
+			executionHost = new ExecutionHost(dataService, run.getComputeBackend().getBackendUrl(), username,
 					password, ComputeExecutorPilotDB.SSH_PORT);
 		}
 		catch (IOException e)
@@ -47,7 +49,7 @@ public class Scheduler
 			throw new ComputeDbException(e);
 		}
 
-		ComputeJob job = new ComputeJob(new ComputeExecutorPilotDB(run.getComputeBackend().getBackendUrl(), username,
+		ComputeJob job = new ComputeJob(new ComputeExecutorPilotDB(dataService, run.getComputeBackend().getBackendUrl(), username,
 				password, ComputeExecutorPilotDB.SSH_PORT), run);
 		ScheduledFuture<?> future = taskScheduler.scheduleWithFixedDelay(job, run.getPollDelay());
 

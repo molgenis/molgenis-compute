@@ -1,16 +1,10 @@
 package org.molgenis.compute5.model;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+
 import java.util.*;
 
 import org.molgenis.compute5.ComputeProperties;
 import org.molgenis.compute5.generators.BackendGenerator;
-import org.molgenis.compute5.generators.TaskGenerator;
-import org.molgenis.util.tuple.Tuple;
-import org.molgenis.util.tuple.WritableTuple;
 
 public class Compute
 {

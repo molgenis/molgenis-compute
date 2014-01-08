@@ -15,10 +15,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.molgenis.compute.db.util.BasicAuthentication;
-import org.molgenis.compute.runtime.ComputeRun;
-import org.molgenis.compute.runtime.Pilot;
-import org.molgenis.framework.db.Database;
-import org.molgenis.util.ApplicationUtil;
+
+import org.molgenis.security.SecurityUtils;
 
 /**
  * Login filter for api classes.
@@ -43,10 +41,7 @@ public class AuthenticationFilter implements Filter
 
 		if (auth != null)
 		{
-			Database db = ApplicationUtil.getDatabase();
-			try
-			{
-				boolean login = db.getLogin().login(db, auth.getUsername(), auth.getPassword());
+				boolean login = SecurityUtils.currentUserIsAuthenticated();
 				if (!login)
 				{
 					((HttpServletResponse) response).sendError(HttpServletResponse.SC_UNAUTHORIZED);
@@ -56,11 +51,6 @@ public class AuthenticationFilter implements Filter
 				{
 
 				}
-			}
-			catch (Exception e)
-			{
-				throw new ServletException(e);
-			}
 		}
 
 		chain.doFilter(request, response);

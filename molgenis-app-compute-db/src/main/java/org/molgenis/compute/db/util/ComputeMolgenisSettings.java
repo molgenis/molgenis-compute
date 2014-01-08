@@ -3,7 +3,7 @@ package org.molgenis.compute.db.util;
 import java.util.List;
 
 import org.apache.log4j.Logger;
-import org.molgenis.framework.db.Database;
+import org.molgenis.data.DataService;
 import org.molgenis.framework.db.DatabaseException;
 import org.molgenis.framework.db.QueryRule;
 import org.molgenis.framework.db.QueryRule.Operator;
@@ -28,7 +28,7 @@ public class ComputeMolgenisSettings implements MolgenisSettings
 
 	@Autowired
 	@Qualifier("unauthorizedDatabase")
-	private Database database;
+	private DataService database;
 
 	@Override
 	public String getProperty(String key)

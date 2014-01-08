@@ -7,13 +7,13 @@ import java.util.*;
 import org.apache.log4j.Logger;
 import org.molgenis.compute5.ComputeProperties;
 import org.molgenis.compute5.model.*;
-import org.molgenis.util.tuple.KeyValueTuple;
-import org.molgenis.util.tuple.Tuple;
-import org.molgenis.util.tuple.WritableTuple;
+import org.molgenis.data.Entity;
+import org.molgenis.data.support.MapEntity;
+
 
 public class TaskGenerator
 {
-	private List<WritableTuple> globalParameters = null;
+	private List<MapEntity> globalParameters = null;
 	private HashMap<String, String> environment = null;
 	private Workflow workflow = null;
 
@@ -34,7 +34,7 @@ public class TaskGenerator
 		{
 
 			// map global to local parameters
-			List<WritableTuple> localParameters = mapGlobalToLocalParameters(globalParameters, step);
+			List<MapEntity> localParameters = mapGlobalToLocalParameters(globalParameters, step);
 
 			// collapse parameter values
 			localParameters = collapseOnTargets(localParameters, step);
@@ -62,12 +62,12 @@ public class TaskGenerator
 
 	}
 
-	private Collection<? extends Task> generateTasks(Step step, List<WritableTuple> localParameters,
+	private Collection<? extends Task> generateTasks(Step step, List<MapEntity> localParameters,
 			Workflow workflow, ComputeProperties computeProperties) throws IOException
 	{
 		List<Task> tasks = new ArrayList<Task>();
 
-		for (WritableTuple target : localParameters)
+		for (MapEntity target : localParameters)
 		{
 			Task task = new Task(target.getString(Task.TASKID_COLUMN));
 
@@ -373,7 +373,7 @@ public class TaskGenerator
 		return tasks;
 	}
 
-	private String weaveProtocol(Protocol protocol, HashMap<String, String> environment, WritableTuple target)
+	private String weaveProtocol(Protocol protocol, HashMap<String, String> environment, MapEntity target)
 	{
 		String template = protocol.getTemplate();
 		Hashtable<String, String> values = new Hashtable<String, String>();
@@ -456,10 +456,10 @@ public class TaskGenerator
 		return script + "\n" + appendString;
 	}
 
-	private List<WritableTuple> addStepIds(List<WritableTuple> localParameters, Step step)
+	private List<MapEntity> addStepIds(List<MapEntity> localParameters, Step step)
 	{
 		int stepId = 0;
-		for (WritableTuple target : localParameters)
+		for (MapEntity target : localParameters)
 		{
 			String name = step.getName() + "_" + stepId;
 			target.set(Task.TASKID_COLUMN, name);
@@ -468,31 +468,31 @@ public class TaskGenerator
 		return localParameters;
 	}
 
-	private void addLocalToGlobalParameters(Step step, List<WritableTuple> localParameters)
+	private void addLocalToGlobalParameters(Step step, List<MapEntity> localParameters)
 	{
 		for (int i = 0; i < localParameters.size(); i++)
 		{
-			WritableTuple local = localParameters.get(i);
+			MapEntity local = localParameters.get(i);
 
-			for (String localName : local.getColNames())
+			for (String localName : local.getAttributeNames())
 			{
 				if (!localName.contains(Parameters.UNDERSCORE))
 				{
-					WritableTuple tuple = globalParameters.get(i);
+					MapEntity tuple = globalParameters.get(i);
 					tuple.set(step.getName() + Parameters.UNDERSCORE + localName, local.get(localName));
 				}
 			}
 		}
 	}
 
-	private List<WritableTuple> addResourceValues(Step step, List<WritableTuple> localParameters)
+	private List<MapEntity> addResourceValues(Step step, List<MapEntity> localParameters)
 	{
 		// try
 		// {
-		for (WritableTuple target : localParameters)
+		for (MapEntity target : localParameters)
 		{
 			// add parameters for resource management:
-			Tuple defaultResousesMap = globalParameters.get(0);
+			Entity defaultResousesMap = globalParameters.get(0);
 
 			//choices to get value for resources
 			//1. get from protocol
@@ -564,7 +564,7 @@ public class TaskGenerator
 		return localParameters;
 	}
 
-	private List<WritableTuple> collapseOnTargets(List<WritableTuple> localParameters, Step step)
+	private List<MapEntity> collapseOnTargets(List<MapEntity> localParameters, Step step)
 	{
 
 		List<String> targets = new ArrayList<String>();
@@ -586,19 +586,19 @@ public class TaskGenerator
 		}
 		else
 		{
-			List<WritableTuple> collapsed = TupleUtils.collapse(localParameters, targets);
+			List<MapEntity> collapsed = TupleUtils.collapse(localParameters, targets);
 			return collapsed;
 		}
 	}
 
-	private List<WritableTuple> mapGlobalToLocalParameters(List<WritableTuple> globalParameters, Step step)
+	private List<MapEntity> mapGlobalToLocalParameters(List<MapEntity> globalParameters, Step step)
 			throws IOException
 	{
-		List<WritableTuple> localParameters = new ArrayList<WritableTuple>();
+		List<MapEntity> localParameters = new ArrayList<MapEntity>();
 
-		for (Tuple global : globalParameters)
+		for (Entity global : globalParameters)
 		{
-			WritableTuple local = new KeyValueTuple();
+			MapEntity local = new MapEntity();
 
 			// include row number for later to enable uncollapse
 			local.set(Parameters.ID_COLUMN, global.get(Parameters.ID_COLUMN));
@@ -619,7 +619,7 @@ public class TaskGenerator
 				}
 
 				boolean found = false;
-				for (String col : global.getColNames())
+				for (String col : global.getAttributeNames())
 				{
 					if(!workflow.parameterHasStepPrefix(globalName))
 						parameterNameWithPrefix = Parameters.USER_PREFIX + globalName;

@@ -3,6 +3,7 @@ package org.molgenis.compute.db.executor;
 import java.io.*;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
+import java.util.Collection;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.UUID;
@@ -16,7 +17,8 @@ import org.molgenis.compute.db.ComputeDbException;
 import org.molgenis.compute5.sysexecutor.SysCommandExecutor;
 import org.molgenis.compute.runtime.ComputeRun;
 import org.molgenis.compute.runtime.ComputeTask;
-import org.molgenis.framework.db.Database;
+import org.molgenis.data.DataService;
+import org.molgenis.data.support.QueryImpl;
 import org.molgenis.framework.db.DatabaseException;
 import org.molgenis.util.ApplicationUtil;
 
@@ -35,15 +37,17 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 	private String username;
 	private String password;
 	private int sshPort;
+	private DataService dataService;
 
 	private ExecutionHost executionHost = null;
 
-	public ComputeExecutorPilotDB(String backendUrl, String username, String password, int sshPort)
+	public ComputeExecutorPilotDB(DataService dataService, String backendUrl, String username, String password, int sshPort)
 	{
 		this.backendUrl = backendUrl;
 		this.username = username;
 		this.password = password;
 		this.sshPort = sshPort;
+		this.dataService = dataService;
 	}
 
 	@Override
@@ -51,7 +55,7 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 	{
 		try
 		{
-			this.executionHost = new ExecutionHost(backendUrl, username, password, sshPort);
+			this.executionHost = new ExecutionHost(dataService, backendUrl, username, password, sshPort);
 		}
 		catch (IOException e)
 		{
@@ -61,29 +65,32 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 		if (computeRun == null)
 			throw new IllegalArgumentException("ComputRun is null");
 
-		Database database = null;
-
 		try
 		{
-			database = ApplicationUtil.getUnauthorizedPrototypeDatabase();
+			ComputeRun computeRunDB = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
+					.eq(ComputeRun.NAME, computeRun.getName()));
+			Iterable<ComputeTask> generatedTasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
+					.eq(ComputeTask.COMPUTERUN, computeRunDB).and()
+					.eq(ComputeTask.STATUSCODE, "generated"));
 
-			List<ComputeTask> generatedTasks = database.query(ComputeTask.class)
-					.equals(ComputeTask.STATUSCODE, "generated").equals(ComputeTask.COMPUTERUN, computeRun).find();
+			int size =  ((Collection<?>)generatedTasks).size();
 
-			LOG.info("Nr of tasks with status [generated]: [" + generatedTasks.size() + "]");
+			LOG.info("Nr of tasks with status [generated]: [" + size + "]");
 
-			evaluateTasks(database, generatedTasks);
+			evaluateTasks(generatedTasks);
 
-			List<ComputeTask> readyTasks = database.query(ComputeTask.class).equals(ComputeTask.STATUSCODE, "ready")
-					.equals(ComputeTask.COMPUTERUN, computeRun).find();
+			Iterable<ComputeTask> readyTasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
+					.eq(ComputeTask.COMPUTERUN, computeRunDB).and()
+					.eq(ComputeTask.STATUSCODE, "generated"));
 
-			for (ComputeTask task : readyTasks)
+			while (readyTasks.iterator().hasNext())
 			{
+				ComputeTask task = readyTasks.iterator().next();
 				LOG.info("Task ready: [" + task.getName() + "]");
 			}
 
 			if(computeRun.getIsSubmittingPilots())
-				for (int i = 0; i < readyTasks.size(); i++)
+				while(readyTasks.iterator().hasNext())
 				{
 					if (computeRun.getComputeBackend().getHostType().equalsIgnoreCase("localhost"))
 					{
@@ -96,7 +103,7 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 
 						if (executionHost == null)
 						{
-							executionHost = new ExecutionHost(computeRun.getComputeBackend().getBackendUrl(), username,
+							executionHost = new ExecutionHost(dataService, computeRun.getComputeBackend().getBackendUrl(), username,
 									password, SSH_PORT);
 						}
 
@@ -132,11 +139,6 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 					}
 				}
 		}
-		catch (DatabaseException e)
-		{
-			LOG.error("DatabaseException executing tasks", e);
-			throw new ComputeDbException("DatabaseException executing tasks", e);
-		}
 		catch (IOException e)
 		{
 
@@ -150,7 +152,6 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 				executionHost.close();
 			}
 
-			IOUtils.closeQuietly(database);
 		}
 	}
 
@@ -190,11 +191,12 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 		LOG.info("Command output:\n" + cmdOutput);
 	}
 
-	private void evaluateTasks(Database database, List<ComputeTask> generatedTasks) throws DatabaseException
+	private void evaluateTasks(Iterable<ComputeTask> generatedTasks)
 	{
 
-		for (ComputeTask task : generatedTasks)
+		while(generatedTasks.iterator().hasNext())
 		{
+			ComputeTask task = generatedTasks.iterator().next();
 			boolean isReady = true;
 			List<ComputeTask> prevSteps = task.getPrevSteps();
 			for (ComputeTask prev : prevSteps)
@@ -207,7 +209,7 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 				LOG.info(">>> TASK [" + task.getName() + "] is ready for execution");
 
 				task.setStatusCode("ready");
-				database.update(task);
+				dataService.update(ComputeTask.ENTITY_NAME, task);
 			}
 		}
 

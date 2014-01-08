@@ -11,7 +11,6 @@ import org.molgenis.compute.runtime.Pilot;
 import org.molgenis.framework.db.DatabaseException;
 import org.molgenis.util.ApplicationContextProvider;
 import org.molgenis.util.ApplicationUtil;
-import org.molgenis.util.tuple.HttpServletRequestTuple;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -79,7 +78,7 @@ public class MolgenisPilotService
 
 	@RequestMapping(method = RequestMethod.POST, headers = "Content-Type=multipart/form-data")
 	public synchronized void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ParseException,
-			DatabaseException, IOException
+			IOException
 	{
 
 		LOG.debug(">> In handleRequest!");

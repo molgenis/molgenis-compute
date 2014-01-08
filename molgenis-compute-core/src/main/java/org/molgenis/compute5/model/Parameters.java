@@ -3,9 +3,7 @@ package org.molgenis.compute5.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.molgenis.util.tuple.KeyValueTuple;
-import org.molgenis.util.tuple.Tuple;
-import org.molgenis.util.tuple.WritableTuple;
+import org.molgenis.data.support.MapEntity;
 
 /** Container for all parameters */
 public class Parameters
@@ -126,14 +124,14 @@ public class Parameters
 	public static String ENVIRONMENT_FULLPATH = null; // to be set
 
 	//table with all the values
-	List<WritableTuple> values = new ArrayList<WritableTuple>();
+	List<MapEntity> values = new ArrayList<MapEntity>();
 
-	public List<WritableTuple> getValues()
+	public List<MapEntity> getValues()
 	{
 		return values;
 	}
 
-	public void setValues(List<WritableTuple> values)
+	public void setValues(List<MapEntity> values)
 	{
 		this.values = values;
 	}
@@ -141,7 +139,7 @@ public class Parameters
 	public String toString()
 	{
 		String result = "";
-		for (Tuple t : values)
+		for (MapEntity t : values)
 			result += t;
 		return result;
 	}

@@ -3,6 +3,7 @@ package org.molgenis.compute.db.util;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.molgenis.data.DataService;
 import org.molgenis.framework.db.Database;
 import org.molgenis.omx.core.MolgenisEntity;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +18,10 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 public class SecurityHandlerInterceptor extends HandlerInterceptorAdapter
 {
 	@Autowired
-	private Database database;
+	private DataService database;
 
 	@Autowired
-	private Database unauthorizedDatabase;
+	private DataService unauthorizedDatabase;
 
 	private final String className;
 
