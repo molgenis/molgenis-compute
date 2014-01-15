@@ -1,6 +1,7 @@
 package org.molgenis.compute.db.executor;
 
 import org.molgenis.compute.runtime.ComputeRun;
+import org.molgenis.security.runas.RunAsSystem;
 
 /**
  * Created with IntelliJ IDEA. User: georgebyelas Date: 22/08/2012 Time: 14:21
@@ -13,6 +14,6 @@ public interface ComputeExecutor
 	 * 
 	 * @param computeRun
 	 */
-	void executeTasks(ComputeRun computeRun);
+	void executeTasks(ComputeRun computeRun, String username, String password);
 
 }

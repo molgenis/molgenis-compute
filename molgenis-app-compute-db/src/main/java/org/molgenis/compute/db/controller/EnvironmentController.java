@@ -42,7 +42,7 @@ public class EnvironmentController
 
 	@RequestMapping(value = "/{runName}/user.env", method = RequestMethod.GET)
 	public void getUserEnv(@PathVariable("runName")
-	String runName, HttpServletResponse response) throws DatabaseException, IOException
+	String runName, HttpServletResponse response) throws IOException
 	{
 
 
@@ -60,7 +60,7 @@ public class EnvironmentController
 	@RequestMapping(value = "/{runName}/{taskName}.env", method = RequestMethod.GET)
 	public void getOutputEnv(@PathVariable("runName")
 	String runName, @PathVariable("taskName")
-	String taskName, HttpServletResponse response) throws DatabaseException, IOException
+	String taskName, HttpServletResponse response) throws IOException
 	{
 		ComputeRun computeRun = database.findOne(ComputeRun.ENTITY_NAME, new QueryImpl().eq(ComputeRun.NAME, runName));
 		Iterable<ComputeTask> tasks = database.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()

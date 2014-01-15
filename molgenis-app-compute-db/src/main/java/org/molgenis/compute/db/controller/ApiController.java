@@ -4,6 +4,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -178,9 +179,11 @@ public class ApiController
 
 
 			List<ComputeBackend> computeBackends = new ArrayList<ComputeBackend>();
-			while(itComputeBackends.iterator().hasNext())
+
+			Iterator it = itComputeBackends.iterator();
+			while(it.hasNext())
 			{
-				computeBackends.add(itComputeBackends.iterator().next());
+				computeBackends.add((ComputeBackend) it.next());
 			}
 
 			List<Backend> backends = Lists.transform(computeBackends, new Function<ComputeBackend, Backend>()

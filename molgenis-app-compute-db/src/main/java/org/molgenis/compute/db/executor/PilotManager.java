@@ -4,6 +4,7 @@ import org.molgenis.compute.db.pilot.MolgenisPilotService;
 import org.molgenis.compute.runtime.Pilot;
 import org.molgenis.data.DataService;
 import org.molgenis.data.support.QueryImpl;
+import org.molgenis.security.runas.RunAsSystem;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Calendar;
@@ -17,14 +18,10 @@ import java.util.Calendar;
  */
 public class PilotManager
 {
+	@Autowired
 	private DataService dataService;
 
-	@Autowired
-	public PilotManager(DataService dataService)
-	{
-		this.dataService = dataService;
-	}
-
+	@RunAsSystem
 	public void checkExperiredPilots()
 	{
 		Iterable<Pilot> pilots = dataService.findAll(Pilot.ENTITY_NAME,

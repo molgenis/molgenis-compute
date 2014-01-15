@@ -4,6 +4,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -69,22 +70,27 @@ public class PilotDashboardController extends MolgenisPluginController
 	String username, @RequestParam("password")
 	String password, Model model) throws IOException
 	{
+		System.out.println(SecurityUtils.getCurrentUsername());
+		System.out.println(SecurityUtils.currentUserIsSu());
+		LOG.info(">> In PilotDashboardController:start");
 		runService.start(runName, username, password);
 		return init(model);
 	}
 
 	@RequestMapping("/stop")
 	public String stop(@RequestParam("run")
-	String runName, Model model) throws DatabaseException
+	String runName, Model model)
 	{
 		LOG.debug(">> In PilotDashboardController:stop");
+		System.out.println(SecurityUtils.getCurrentUsername());
+		System.out.println(SecurityUtils.currentUserIsSu());
 		runService.stop(runName);
 		return init(model);
 	}
 
 	@RequestMapping("/close")
 	public String close(@RequestParam("run")
-	String runName, Model model) throws DatabaseException
+	String runName, Model model)
 	{
 		runService.removeFromDashboard(runName);
 		return init(model);
@@ -92,7 +98,7 @@ public class PilotDashboardController extends MolgenisPluginController
 
     @RequestMapping("/activate")
     public String activate(@RequestParam("run")
-    String runName, Model model) throws DatabaseException
+    String runName, Model model)
     {
         runService.activate(runName);
         return init(model);
@@ -100,7 +106,7 @@ public class PilotDashboardController extends MolgenisPluginController
 
     @RequestMapping("/inactivate")
     public String inactivate(@RequestParam("run")
-    String runName, Model model) throws DatabaseException
+    String runName, Model model)
     {
         runService.inactivate(runName);
         return init(model);
@@ -108,7 +114,7 @@ public class PilotDashboardController extends MolgenisPluginController
 
 	@RequestMapping("/cancel")
 	public String cancel(@RequestParam("run")
-	String runName, Model model) throws DatabaseException
+	String runName, Model model)
 	{
 		runService.cancel(runName);
 		return init(model);
@@ -117,7 +123,7 @@ public class PilotDashboardController extends MolgenisPluginController
 
 	@RequestMapping("/resubmit")
 	public String resubmitFailedTasks(@RequestParam("run")
-	String runName, Model model) throws DatabaseException
+	String runName, Model model)
 	{
 		int count = runService.resubmitFailedTasks(runName);
 		model.addAttribute("message", "Resubmitted " + count + " failed tasks for '" + runName + "'");
@@ -134,7 +140,7 @@ public class PilotDashboardController extends MolgenisPluginController
 	}
 
 	@ExceptionHandler(ComputeDbException.class)
-	public String showComputeDbException(ComputeDbException e, HttpServletRequest request) throws DatabaseException
+	public String showComputeDbException(ComputeDbException e, HttpServletRequest request)
 	{
 		request.setAttribute("runs", getRunModels());
 		request.setAttribute("error", e.getMessage());
@@ -151,9 +157,10 @@ public class PilotDashboardController extends MolgenisPluginController
 
 		String userLogin = SecurityUtils.getCurrentUsername();
 
-		while (runs.iterator().hasNext())
+		Iterator it = runs.iterator();
+		while (it.hasNext())
 		{
-			ComputeRun run = runs.iterator().next();
+			ComputeRun run = (ComputeRun) it.next();
 			String runOwner = run.getOwner().getUsername();
 			boolean isSame = false;
 			if(userLogin.equalsIgnoreCase(runOwner))

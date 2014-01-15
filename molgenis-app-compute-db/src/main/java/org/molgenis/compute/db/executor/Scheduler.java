@@ -9,6 +9,8 @@ import org.apache.log4j.Logger;
 import org.molgenis.compute.db.ComputeDbException;
 import org.molgenis.compute.runtime.ComputeRun;
 import org.molgenis.data.DataService;
+import org.molgenis.security.SecurityUtils;
+import org.molgenis.security.runas.RunAsSystem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.TaskScheduler;
 
@@ -21,14 +23,16 @@ public class Scheduler
 {
 	private final TaskScheduler taskScheduler;
 	private final Map<Integer, ScheduledFuture<?>> scheduledJobs = new HashMap<Integer, ScheduledFuture<?>>();
+	private final ComputeExecutor computeExecutor;
 	private DataService dataService = null;
 	private static final Logger LOG = Logger.getLogger(Scheduler.class);
 
 	@Autowired
-	public Scheduler(DataService dataService, TaskScheduler taskScheduler)
+	public Scheduler(DataService dataService, TaskScheduler taskScheduler, ComputeExecutor computeExecutor)
 	{
 		this.taskScheduler = taskScheduler;
 		this.dataService = dataService;
+		this.computeExecutor = computeExecutor;
 	}
 
 	public synchronized void schedule(ComputeRun run, String username, String password)
@@ -49,9 +53,16 @@ public class Scheduler
 			throw new ComputeDbException(e);
 		}
 
-		ComputeJob job = new ComputeJob(new ComputeExecutorPilotDB(dataService, run.getComputeBackend().getBackendUrl(), username,
-				password, ComputeExecutorPilotDB.SSH_PORT), run);
+//
+//		ComputeExecutor executor = new ComputeExecutorPilotDB(dataService, run.getComputeBackend().getBackendUrl(), username,
+//				password, ComputeExecutorPilotDB.SSH_PORT);
+
+		ComputeJob job = new ComputeJob(computeExecutor, run, username, password);
+
 		ScheduledFuture<?> future = taskScheduler.scheduleWithFixedDelay(job, run.getPollDelay());
+
+		System.out.println(SecurityUtils.getCurrentUsername());
+		System.out.println(SecurityUtils.currentUserIsSu());
 
 		scheduledJobs.put(run.getId(), future);
 	}
@@ -63,6 +74,8 @@ public class Scheduler
 
 	public synchronized void unschedule(Integer computeRunId)
 	{
+		System.out.println(SecurityUtils.getCurrentUsername());
+		System.out.println(SecurityUtils.currentUserIsSu());
 		LOG.debug(">> In scheduler:unschedule");
 
 		if (!isRunning(computeRunId))

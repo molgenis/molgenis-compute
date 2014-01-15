@@ -3,10 +3,7 @@ package org.molgenis.compute.db.executor;
 import java.io.*;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
-import java.util.Collection;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -20,7 +17,12 @@ import org.molgenis.compute.runtime.ComputeTask;
 import org.molgenis.data.DataService;
 import org.molgenis.data.support.QueryImpl;
 import org.molgenis.framework.db.DatabaseException;
+import org.molgenis.security.SecurityUtils;
+import org.molgenis.security.runas.RunAsSystem;
 import org.molgenis.util.ApplicationUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import javax.servlet.ServletContext;
 
@@ -28,34 +30,31 @@ import javax.servlet.ServletContext;
  * Created with IntelliJ IDEA. User: georgebyelas Date: 22/08/2012 Time: 14:26
  * To change this template use File | Settings | File Templates.
  */
+@Component
 public class ComputeExecutorPilotDB implements ComputeExecutor
 {
 	public static final int SSH_PORT = 22;
 	private static final Logger LOG = Logger.getLogger(ComputeExecutorPilotDB.class);
 
-	private String backendUrl;
-	private String username;
-	private String password;
-	private int sshPort;
 	private DataService dataService;
 
 	private ExecutionHost executionHost = null;
 
-	public ComputeExecutorPilotDB(DataService dataService, String backendUrl, String username, String password, int sshPort)
+	@Autowired
+	public ComputeExecutorPilotDB(DataService dataService)
 	{
-		this.backendUrl = backendUrl;
-		this.username = username;
-		this.password = password;
-		this.sshPort = sshPort;
 		this.dataService = dataService;
 	}
 
 	@Override
-	public void executeTasks(ComputeRun computeRun)
+	@RunAsSystem
+	public void executeTasks(ComputeRun computeRun, String username, String password)
 	{
 		try
 		{
-			this.executionHost = new ExecutionHost(dataService, backendUrl, username, password, sshPort);
+			this.executionHost = new ExecutionHost(dataService,
+					computeRun.getComputeBackend().getBackendUrl(),
+					username, password, SSH_PORT);
 		}
 		catch (IOException e)
 		{
@@ -67,6 +66,9 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 
 		try
 		{
+			System.out.println(SecurityUtils.getCurrentUsername());
+			System.out.println(SecurityUtils.currentUserIsSu());
+
 			ComputeRun computeRunDB = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
 					.eq(ComputeRun.NAME, computeRun.getName()));
 			Iterable<ComputeTask> generatedTasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
@@ -81,16 +83,18 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 
 			Iterable<ComputeTask> readyTasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
 					.eq(ComputeTask.COMPUTERUN, computeRunDB).and()
-					.eq(ComputeTask.STATUSCODE, "generated"));
+					.eq(ComputeTask.STATUSCODE, "ready"));
 
-			while (readyTasks.iterator().hasNext())
+			Iterator it = readyTasks.iterator();
+			while (it.hasNext())
 			{
-				ComputeTask task = readyTasks.iterator().next();
+				ComputeTask task = (ComputeTask) it.next();
 				LOG.info("Task ready: [" + task.getName() + "]");
 			}
 
 			if(computeRun.getIsSubmittingPilots())
-				while(readyTasks.iterator().hasNext())
+			{
+				for(int i = 0; i < ((Collection<?>) readyTasks).size(); i++)
 				{
 					if (computeRun.getComputeBackend().getHostType().equalsIgnoreCase("localhost"))
 					{
@@ -103,8 +107,9 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 
 						if (executionHost == null)
 						{
-							executionHost = new ExecutionHost(dataService, computeRun.getComputeBackend().getBackendUrl(), username,
-									password, SSH_PORT);
+							executionHost = new ExecutionHost(dataService,
+									computeRun.getComputeBackend().getBackendUrl(),
+									username, password, SSH_PORT);
 						}
 
 						//generate unique pilot and its submission command
@@ -137,7 +142,9 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 						executionHost.submitPilot(computeRun,
 													command, pilotID, sh, jdl, computeRun.getOwner());
 					}
+
 				}
+			}
 		}
 		catch (IOException e)
 		{
@@ -149,7 +156,7 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 		{
 			if (executionHost != null)
 			{
-				executionHost.close();
+//				executionHost.close();
 			}
 
 		}
@@ -193,10 +200,10 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 
 	private void evaluateTasks(Iterable<ComputeTask> generatedTasks)
 	{
-
-		while(generatedTasks.iterator().hasNext())
+		Iterator it = generatedTasks.iterator();
+		while(it.hasNext())
 		{
-			ComputeTask task = generatedTasks.iterator().next();
+			ComputeTask task = (ComputeTask) it.next();
 			boolean isReady = true;
 			List<ComputeTask> prevSteps = task.getPrevSteps();
 			for (ComputeTask prev : prevSteps)

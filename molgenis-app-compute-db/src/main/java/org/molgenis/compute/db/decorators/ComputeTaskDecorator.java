@@ -12,6 +12,7 @@ import org.molgenis.data.CrudRepositoryDecorator;
 import org.molgenis.data.DataService;
 import org.molgenis.data.support.QueryImpl;
 import org.molgenis.framework.db.DatabaseException;
+import org.molgenis.util.ApplicationContextProvider;
 import org.molgenis.util.ApplicationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -23,19 +24,18 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class ComputeTaskDecorator<E extends ComputeTask> extends CrudRepositoryDecorator<E>
 {
-	private DataService dataService = null;
 
-	@Autowired
-	public ComputeTaskDecorator(DataService dataService, CrudRepository<E> generatedMapper)
+	public ComputeTaskDecorator(CrudRepository<E> generatedMapper)
 	{
 		super(generatedMapper);
-		this.dataService = dataService;
 	}
 
 	@Override
-	public void add(List<E> entities)
+	public void add(Iterable<E> entities)
 	{
 		super.add(entities);
+
+		DataService dataService = ApplicationContextProvider.getApplicationContext().getBean(DataService.class);
 
 		for (ComputeTask task : entities)
 		{
@@ -49,9 +49,11 @@ public class ComputeTaskDecorator<E extends ComputeTask> extends CrudRepositoryD
 	}
 
 	@Override
-	public void update(List<E> entities)
+	public void update(Iterable<E> entities)
 	{
-			for (ComputeTask task : entities)
+		DataService dataService = ApplicationContextProvider.getApplicationContext().getBean(DataService.class);
+
+		for (ComputeTask task : entities)
 			{
 				ComputeTask old = dataService.findOne(ComputeTask.ENTITY_NAME,
 						new QueryImpl().eq(ComputeTask.NAME, task.getName()));
