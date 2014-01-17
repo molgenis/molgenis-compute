@@ -9,7 +9,7 @@ getRemoteLocation()
 {
     ARGS=($@)
     myFile=${ARGS[0]}
-    remoteFile=srm://srm.grid.sara.nl/pnfs/grid.sara.nl/data/bbmri.nl/RP3${myFile:`expr length $TMPDIR`}
+    remoteFile=srm://srm.grid.sara.nl/pnfs/grid.sara.nl/data/bbmri.nl/RP2${myFile:`expr length $TMPDIR`}
     echo $remoteFile
 }
 

@@ -12,18 +12,22 @@ import org.molgenis.compute.runtime.Pilot;
 import org.molgenis.data.DataService;
 import org.molgenis.data.support.QueryImpl;
 import org.molgenis.framework.db.DatabaseException;
+import org.molgenis.security.runas.RunAsSystem;
 import org.molgenis.util.ApplicationContextProvider;
 import org.molgenis.util.ApplicationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import javax.servlet.http.Part;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -62,13 +66,12 @@ public class MolgenisPilotService
 	private static final String IS_CANCELLED = "cancelled";
 	private static final String IS_NOT_CANCELLED = "not_cancelled";
 
-	private DataService dataService = null;
-
 	@Autowired
-	public MolgenisPilotService(DataService dataService)
+	private DataService dataService;
+
+	public MolgenisPilotService()
 	{
 		createLogDir();
-		this.dataService = dataService;
 	}
 
 	private void createLogDir()
@@ -85,37 +88,37 @@ public class MolgenisPilotService
 		}
 	}
 
+	@RunAsSystem
 	@RequestMapping(method = RequestMethod.POST, headers = "Content-Type=multipart/form-data")
-	public synchronized void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ParseException,
-			IOException
+	public synchronized void analysePilotCall(HttpServletRequest request,
+											  @RequestParam String pilotid,
+											  @RequestParam(required = false) String host,
+											  @RequestParam String status,
+											  @RequestParam(required = false) String backend,
+											  @RequestParam(required = false) Part log_file,
+											  @RequestParam(required = false) Part output_file,
+											  HttpServletResponse response
+											 ) throws IOException
 	{
 
 		LOG.debug(">> In handleRequest!");
 
-		HttpServletRequestWrapper wrapper = new HttpServletRequestWrapper(request);
 
-		//small code to read parameters directly from request
-//		BufferedReader reader = request.getReader();
-//		String test = CharStreams.toString(reader);
-//		System.out.println("simple request: " + test);
-
-		RequestHandle tuple = new RequestHandle(request);
-
-		if ("started".equals(tuple.get("status").toString()))
+		if (status.equalsIgnoreCase("started"))
 		{
-			LOG.info("Checking pilot ID");
-			String pilotID = (String) tuple.get(PILOT_ID);
+			LOG.info("Checking pilot ID in start");
+			String pilotID = pilotid;
 
 			Iterable<Pilot> pilots = dataService.findAll(Pilot.ENTITY_NAME, new QueryImpl()
 					.eq(Pilot.VALUE, pilotID)
 					.and().eq(Pilot.STATUS, PILOT_SUBMITTED));
 
-			System.out.println(">>>>>>>>>>>>>>>>>>>> " + pilotID + " @ " + tuple.get("host"));
+			System.out.println(">>>>>>>>>>>>>>>>>>>> " + pilotID + " @ " + host + " @ " + backend);
 
 			Pilot pilot = null;
 			if(pilots.iterator().hasNext())
 			{
-				LOG.info("Pilot value is correct");
+				LOG.info("Pilot value is correct [" + pilotID + "] in start");
 				pilot = pilots.iterator().next();
 				pilot.setStatus(PILOT_USED);
 				dataService.update(Pilot.ENTITY_NAME, pilot);
@@ -125,8 +128,6 @@ public class MolgenisPilotService
 				LOG.warn("MALICIOUS PILOT [ " + pilotID + " ] in start");
 				return;
 			}
-
-			String backend = (String) tuple.get("backend");
 
 			Iterable<ComputeRun> computeRuns = dataService.findAll(ComputeRun.ENTITY_NAME, new QueryImpl()
 					.eq(ComputeBackend.NAME, pilot.getComputeRun().getName()));
@@ -145,7 +146,15 @@ public class MolgenisPilotService
 
             LOG.info("Looking for task to execute for host [" + backend + "]");
 
-			Iterable<ComputeTask> tasks = findRunTasksReady(backend);
+
+			//first we look for tasks, that from the run of the pilot
+			Iterable<ComputeTask> tasks = findRunTasksReadyForRun(pilot);
+
+			if((!tasks.iterator().hasNext()))
+			{
+				LOG.info("No tasks to start for compute run [" + pilot.getComputeRun().getName() + "]");
+				tasks = findRunTasksReadyForBackend(backend);
+			}
 
 			if (!tasks.iterator().hasNext())
 			{
@@ -158,7 +167,9 @@ public class MolgenisPilotService
 				// we add task id to the run listing to identify task when
 				// it is done
 				ScriptBuilder sb = ApplicationContextProvider.getApplicationContext().getBean(ScriptBuilder.class);
-				String serverAddress = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+				String serverAddress = request.getScheme() +
+								"://" + request.getServerName() +
+								":" + request.getServerPort();
 				String serverPath = request.getServletPath();
 				String taskScript = sb.build(task, serverAddress, serverPath, pilotID);
 
@@ -185,9 +196,9 @@ public class MolgenisPilotService
 				}
 			}
 		}
-		else if("is_cancel".equals(tuple.get("status").toString()))
+		else if(status.equalsIgnoreCase("is_cancel"))
 		{
-			String pilotID = (String) tuple.get(PILOT_ID);
+			String pilotID = pilotid;
 			LOG.info("Checking if pilot " + pilotID + " is cancelled");
 
 			Iterable<Pilot> pilots = dataService.findAll(Pilot.ENTITY_NAME, new QueryImpl()
@@ -224,14 +235,14 @@ public class MolgenisPilotService
 		else
 		{
 
-			LOG.info("Checking pilot ID");
-			String pilotID = (String) tuple.get(PILOT_ID);
+			LOG.info("Checking pilot ID in report");
+			String pilotID = pilotid;
 
 			Iterable<Pilot> pilots = dataService.findAll(Pilot.ENTITY_NAME, new QueryImpl()
 					.eq(Pilot.VALUE, pilotID)
 					.and().eq(Pilot.STATUS, PILOT_DONE));
 
-			if((pilots.iterator().hasNext()) && tuple.get("status").toString().equalsIgnoreCase("nopulse"))
+			if((pilots.iterator().hasNext()) && status.equalsIgnoreCase("nopulse"))
 			{
 				LOG.info("Job is already reported back");
 			}
@@ -267,17 +278,23 @@ public class MolgenisPilotService
 				}
 			}
 
-			File file = tuple.getFile("log_file");
-			String logFileContent = FileUtils.readFileToString(file);
+			InputStream inputStream = log_file.getInputStream();
+
+			StringWriter writer = new StringWriter();
+			IOUtils.copy(inputStream, writer, "UTF-8");
+			String logFileContent = writer.toString();
 			LogFileParser logfile = new LogFileParser(logFileContent);
 			String taskName = logfile.getTaskName();
 			String runName = logfile.getRunName();
 			List<String> logBlocks = logfile.getLogBlocks();
 			String runInfo = StringUtils.join(logBlocks, "\n");
 
+			ComputeRun computeRun = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
+					.eq(ComputeRun.NAME, runName));
+
 			Iterable<ComputeTask> tasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
 					.eq(ComputeTask.NAME, taskName)
-					.and().eq(ComputeTask.COMPUTERUN, runName));
+					.and().eq(ComputeTask.COMPUTERUN, computeRun));
 
 			if (!tasks.iterator().hasNext())
 			{
@@ -287,7 +304,7 @@ public class MolgenisPilotService
 
 			ComputeTask task = tasks.iterator().next();
 
-			if ("done".equals(tuple.get("status").toString()))
+			if (status.equalsIgnoreCase("done"))
 			{
 
 				Iterable<Pilot> pilotList = dataService.findAll(Pilot.ENTITY_NAME, new QueryImpl()
@@ -317,10 +334,14 @@ public class MolgenisPilotService
 					String logFile = LOG_DIR + "/" + taskName + LOG_EXTENSION;
 					writeToFile(logFile, logFileContent);
 
-					File output = tuple.getFile("output_file");
-					if(output != null)
+					if(output_file != null)
 					{
-						task.setOutputEnvironment(FileUtils.readFileToString(output));
+						inputStream = log_file.getInputStream();
+						writer = new StringWriter();
+						IOUtils.copy(inputStream, writer, "UTF-8");
+						String output = writer.toString();
+
+						task.setOutputEnvironment(output);
 					}
 				}
 				else
@@ -329,7 +350,7 @@ public class MolgenisPilotService
 							+ "] status should be [running] but is [" + task.getStatusCode() + "]");
 				}
 			}
-			else if ("pulse".equals(tuple.get("status").toString()))
+			else if (status.equalsIgnoreCase("pulse"))
 			{
 				if (task.getStatusCode().equalsIgnoreCase(TASK_RUNNING))
 				{
@@ -338,7 +359,7 @@ public class MolgenisPilotService
 					task.setRunInfo(runInfo);
 				}
 			}
-			else if ("nopulse".equals(tuple.get("status").toString()))
+			else if (status.equalsIgnoreCase("nopulse"))
 			{
 				//TODO sometimes there is no pulse received, but later job reports back itself
 				//todo improve pulse-task management
@@ -354,14 +375,16 @@ public class MolgenisPilotService
 					task.setRunInfo(runInfo);
 					task.setStatusCode("failed");
 
-					File failedLog = tuple.getFile("failed_log_file");
-					if (failedLog != null)
-					{
-						task.setFailedLog(FileUtils.readFileToString(failedLog));
+					inputStream = log_file.getInputStream();
 
-						String errFile = LOG_DIR + "/" + taskName + ERR_EXTENSION;
-						writeToFile(errFile, FileUtils.readFileToString(failedLog));
-					}
+					writer = new StringWriter();
+					IOUtils.copy(inputStream, writer, "UTF-8");
+					logFileContent = writer.toString();
+					task.setFailedLog(logFileContent);
+
+					String errFile = LOG_DIR + "/" + taskName + ERR_EXTENSION;
+					writeToFile(errFile, logFileContent);
+
 				}
 				else if (task != null && task.getStatusCode().equalsIgnoreCase(TASK_DONE))
 				{
@@ -405,10 +428,27 @@ public class MolgenisPilotService
 		}
 	}
 
-	private Iterable<ComputeTask> findRunTasksReady(String backendName)
+	private Iterable<ComputeTask> findRunTasksReadyForRun(Pilot pilot)
 	{
+		ComputeRun computeRun = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeRun.NAME, pilot.getComputeRun().getName()));
+
+		if(computeRun.getIsActive())
+			return dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeTask.STATUSCODE, MolgenisPilotService.TASK_READY)
+				.and().eq(ComputeTask.COMPUTERUN, computeRun));
+		else
+			return new ArrayList<ComputeTask>();
+	}
+
+	private Iterable<ComputeTask> findRunTasksReadyForBackend(String backendName)
+	{
+		ComputeBackend computeBackend = dataService.findOne(ComputeBackend.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeBackend.NAME, backendName));
+
+
 		Iterable<ComputeRun> runs = dataService.findAll(ComputeRun.ENTITY_NAME, new QueryImpl()
-				.eq(ComputeRun.COMPUTEBACKEND, backendName)
+				.eq(ComputeRun.COMPUTEBACKEND, computeBackend)
 				.and().eq(ComputeRun.ISACTIVE, true));
 
         return dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()

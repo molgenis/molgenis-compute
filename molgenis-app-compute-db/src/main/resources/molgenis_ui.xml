@@ -2,8 +2,8 @@
 <molgenis name="compute" label="Compute Testing">
     <menu name="mainmenu" label="Main">
         <plugin id="home" name="Home" url="home"/>
-        <plugin id="extra" name="Extra" url="extra"/>
-        <plugin id="editor" name="Editor" url="editor"/>
+        <!--plugin id="extra" name="Extra" url="extra"/>
+        <plugin id="editor" name="Editor" url="editor"/-->
         <menu name="Compute" label="Compute">
             <plugin id="dashboard" name="Pilot dashboard"
                     url="dashboard"/>
