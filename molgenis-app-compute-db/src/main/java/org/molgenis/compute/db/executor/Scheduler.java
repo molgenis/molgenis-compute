@@ -24,7 +24,7 @@ public class Scheduler
 	private final TaskScheduler taskScheduler;
 	private final Map<Integer, ScheduledFuture<?>> scheduledJobs = new HashMap<Integer, ScheduledFuture<?>>();
 	private final ComputeExecutor computeExecutor;
-	private DataService dataService = null;
+	private final DataService dataService;
 	private static final Logger LOG = Logger.getLogger(Scheduler.class);
 
 	@Autowired
@@ -53,16 +53,9 @@ public class Scheduler
 			throw new ComputeDbException(e);
 		}
 
-//
-//		ComputeExecutor executor = new ComputeExecutorPilotDB(dataService, run.getComputeBackend().getBackendUrl(), username,
-//				password, ComputeExecutorPilotDB.SSH_PORT);
-
 		ComputeJob job = new ComputeJob(computeExecutor, run, username, password);
 
 		ScheduledFuture<?> future = taskScheduler.scheduleWithFixedDelay(job, run.getPollDelay());
-
-		System.out.println(SecurityUtils.getCurrentUsername());
-		System.out.println(SecurityUtils.currentUserIsSu());
 
 		scheduledJobs.put(run.getId(), future);
 	}
@@ -74,8 +67,6 @@ public class Scheduler
 
 	public synchronized void unschedule(Integer computeRunId)
 	{
-		System.out.println(SecurityUtils.getCurrentUsername());
-		System.out.println(SecurityUtils.currentUserIsSu());
 		LOG.debug(">> In scheduler:unschedule");
 
 		if (!isRunning(computeRunId))

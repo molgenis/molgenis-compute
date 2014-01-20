@@ -70,9 +70,7 @@ public class PilotDashboardController extends MolgenisPluginController
 	String username, @RequestParam("password")
 	String password, Model model) throws IOException
 	{
-		System.out.println(SecurityUtils.getCurrentUsername());
-		System.out.println(SecurityUtils.currentUserIsSu());
-		LOG.info(">> In PilotDashboardController:start");
+		LOG.debug(">> In PilotDashboardController:start");
 		runService.start(runName, username, password);
 		return init(model);
 	}
@@ -82,8 +80,6 @@ public class PilotDashboardController extends MolgenisPluginController
 	String runName, Model model)
 	{
 		LOG.debug(">> In PilotDashboardController:stop");
-		System.out.println(SecurityUtils.getCurrentUsername());
-		System.out.println(SecurityUtils.currentUserIsSu());
 		runService.stop(runName);
 		return init(model);
 	}

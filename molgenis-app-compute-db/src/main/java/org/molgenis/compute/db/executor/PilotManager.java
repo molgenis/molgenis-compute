@@ -32,7 +32,7 @@ public class PilotManager
 		{
 			Calendar calendar = Calendar.getInstance();
 			long now = calendar.getTimeInMillis();
-			long creationTime = pilot.getCteationTime().getTime();
+			long creationTime = pilot.getCreationTime().getTime();
 
 			long difference = now - creationTime;
 			long lifeTerm = pilot.getLifeTerm() * 60 * 1000; //in milliseconds

@@ -48,8 +48,6 @@ public class RunService
 	public ComputeRun create(String name, String backendName, Long pollDelay,
 							 List<Task> tasks, String userEnvironment, String userName)
 	{
-		System.out.println(SecurityUtils.getCurrentUsername());
-		System.out.println(SecurityUtils.currentUserIsSu());
 		Iterable<ComputeBackend> backends = dataService.findAll(ComputeBackend.ENTITY_NAME, new QueryImpl()
 				.eq(ComputeBackend.NAME, backendName));
 		if (!backends.iterator().hasNext())
@@ -210,8 +208,6 @@ public class RunService
 	 */
 	public void stop(String runName)
 	{
-		System.out.println(SecurityUtils.getCurrentUsername());
-		System.out.println(SecurityUtils.currentUserIsSu());
 		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
 				.eq(ComputeRun.NAME, runName));
 		if (run == null)
@@ -284,7 +280,6 @@ public class RunService
 		}
 
 		return run.getIsActive();
-		//return scheduler.isRunning(run.getId());
 	}
 
 	/**
@@ -401,8 +396,10 @@ public class RunService
 			return 0;
 		}
 
+		int numberOfTasks = 0;
 		for (ComputeTask task : tasks)
 		{
+			numberOfTasks++;
 			// mark job as generated
 			// entry to history is added by ComputeTaskDecorator
 			task.setStatusCode("generated");
@@ -414,7 +411,7 @@ public class RunService
 
 		dataService.update(ComputeTask.ENTITY_NAME, tasks);
 
-		return ((Collection<?>) tasks).size();
+		return numberOfTasks;
 	}
 
 	/**

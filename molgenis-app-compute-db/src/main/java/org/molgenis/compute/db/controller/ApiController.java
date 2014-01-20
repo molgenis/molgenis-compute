@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.google.common.collect.Iterables;
 import org.apache.log4j.Logger;
 import org.molgenis.compute.db.service.RunService;
 import org.molgenis.compute.runtime.ComputeBackend;
@@ -33,6 +34,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
+
+import javax.annotation.Nullable;
 
 /**
  * Json api for all compute db commands
@@ -177,23 +180,15 @@ public class ApiController
 		{
 			Iterable<ComputeBackend> itComputeBackends = database.findAll(ComputeBackend.ENTITY_NAME);
 
-
-			List<ComputeBackend> computeBackends = new ArrayList<ComputeBackend>();
-
-			Iterator it = itComputeBackends.iterator();
-			while(it.hasNext())
+			List<Backend> backends = Lists.newArrayList(Iterables.transform(itComputeBackends, new Function<ComputeBackend, Backend>()
 			{
-				computeBackends.add((ComputeBackend) it.next());
-			}
-
-			List<Backend> backends = Lists.transform(computeBackends, new Function<ComputeBackend, Backend>()
-			{
+				@Nullable
 				@Override
-				public Backend apply(ComputeBackend cb)
+				public Backend apply(@Nullable ComputeBackend cb)
 				{
 					return new Backend(cb.getName(), cb.getBackendUrl(), cb.getHostType(), cb.getCommand());
 				}
-			});
+			}));
 
 			response.setBackends(backends);
 		}

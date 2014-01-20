@@ -49,9 +49,6 @@ public class WebAppSecurityConfig extends MolgenisWebAppSecurityConfig
 	protected void configureUrlAuthorization(
 			ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry expressionInterceptUrlRegistry)
 	{
-//		expressionInterceptUrlRegistry.antMatchers("/**").permitAll();
-//		expressionInterceptUrlRegistry.antMatchers("/").permitAll();
-//		expressionInterceptUrlRegistry.antMatchers("/*/**").permitAll();
 		List<AccessDecisionVoter> listOfVoters = new ArrayList<AccessDecisionVoter>();
 		listOfVoters.add(new WebExpressionVoter());
 		listOfVoters.add(new MolgenisAccessDecisionVoter());

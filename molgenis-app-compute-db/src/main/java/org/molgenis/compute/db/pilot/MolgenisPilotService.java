@@ -391,10 +391,12 @@ public class MolgenisPilotService
 					LOG.info("double check: job is finished & no pulse from it for task [" + taskName + "] of run ["
 							+ runName + "]");
 				}
+
 			}
 
 			dataService.update(ComputeTask.ENTITY_NAME, task);
 		}
+
 	}
 
 	private void writeToFile(String filename, String text)

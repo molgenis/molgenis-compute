@@ -48,9 +48,8 @@ public class EnvironmentController
 
 		Iterable<ComputeRun> runs = database.findAll(ComputeRun.ENTITY_NAME,
 				new QueryImpl().eq(ComputeRun.NAME, runName));
-		if (runs.iterator().hasNext())
+		for(ComputeRun run : runs)
 		{
-			ComputeRun run = runs.iterator().next();
 			PrintWriter pw = response.getWriter();
 			pw.write(run.getUserEnvironment());
 			pw.flush();

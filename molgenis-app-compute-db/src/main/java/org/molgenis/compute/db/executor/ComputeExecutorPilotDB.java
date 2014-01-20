@@ -66,9 +66,6 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 
 		try
 		{
-			System.out.println(SecurityUtils.getCurrentUsername());
-			System.out.println(SecurityUtils.currentUserIsSu());
-
 			ComputeRun computeRunDB = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
 					.eq(ComputeRun.NAME, computeRun.getName()));
 			Iterable<ComputeTask> generatedTasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
@@ -85,16 +82,14 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 					.eq(ComputeTask.COMPUTERUN, computeRunDB).and()
 					.eq(ComputeTask.STATUSCODE, "ready"));
 
-			Iterator it = readyTasks.iterator();
-			while (it.hasNext())
+			for (ComputeTask task: readyTasks)
 			{
-				ComputeTask task = (ComputeTask) it.next();
 				LOG.info("Task ready: [" + task.getName() + "]");
 			}
 
 			if(computeRun.getIsSubmittingPilots())
 			{
-				for(int i = 0; i < ((Collection<?>) readyTasks).size(); i++)
+				for(ComputeTask task: readyTasks)
 				{
 					if (computeRun.getComputeBackend().getHostType().equalsIgnoreCase("localhost"))
 					{
@@ -156,7 +151,7 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 		{
 			if (executionHost != null)
 			{
-//				executionHost.close();
+				executionHost.close();
 			}
 
 		}
@@ -200,10 +195,8 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 
 	private void evaluateTasks(Iterable<ComputeTask> generatedTasks)
 	{
-		Iterator it = generatedTasks.iterator();
-		while(it.hasNext())
+		for(ComputeTask task : generatedTasks)
 		{
-			ComputeTask task = (ComputeTask) it.next();
 			boolean isReady = true;
 			List<ComputeTask> prevSteps = task.getPrevSteps();
 			for (ComputeTask prev : prevSteps)

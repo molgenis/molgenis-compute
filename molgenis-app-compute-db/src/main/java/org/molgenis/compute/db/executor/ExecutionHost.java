@@ -88,12 +88,12 @@ public class ExecutionHost extends Ssh
 
 				Iterable<ComputeRun> computeRuns = dataService.findAll(ComputeRun.ENTITY_NAME, new QueryImpl().eq(ComputeRun.NAME, computeRun.getName()));
 
-				Iterator itComputeRun = computeRuns.iterator();
+				Iterator<ComputeRun> itComputeRun = computeRuns.iterator();
 
 					ComputeRun run = null;
 					if(itComputeRun.hasNext())
 					{
-						run = (ComputeRun) itComputeRun.next();
+						run = itComputeRun.next();
 						int numberOfSubmittedPilots = run.getPilotsSubmitted();
 						run.setPilotsSubmitted(numberOfSubmittedPilots + 1);
 						dataService.update(ComputeRun.ENTITY_NAME, run);
@@ -132,10 +132,10 @@ public class ExecutionHost extends Ssh
         }
 
         LOG.info("Removing maverick" + pilotID + ".jdl ...");
-        //executeCommand("rm maverick/maverick" + pilotID +".jdl" );
+        executeCommand("rm maverick/maverick" + pilotID +".jdl" );
 
         LOG.info("Removing maverick" + pilotID + ".sh ...");
-        //executeCommand("rm maverick/maverick" + pilotID +".sh" );
+        executeCommand("rm maverick/maverick" + pilotID +".sh" );
 
     }
 
