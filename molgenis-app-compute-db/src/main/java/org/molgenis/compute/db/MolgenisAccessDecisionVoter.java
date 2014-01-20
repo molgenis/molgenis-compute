@@ -1,5 +1,12 @@
 package org.molgenis.compute.db;
 
+/**
+ * Created with IntelliJ IDEA.
+ * User: hvbyelas
+ * Date: 1/20/14
+ * Time: 10:55 AM
+ * To change this template use File | Settings | File Templates.
+ */
 import java.util.Collection;
 
 import org.molgenis.framework.server.MolgenisPermissionService;
@@ -58,4 +65,3 @@ public class MolgenisAccessDecisionVoter implements AccessDecisionVoter<FilterIn
 		return urlFragments.length > 0 ? urlFragments[urlFragments.length - 1] : requestUrl;
 	}
 }
-
