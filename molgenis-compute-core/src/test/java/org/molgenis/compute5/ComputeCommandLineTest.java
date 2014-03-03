@@ -690,7 +690,10 @@ public class ComputeCommandLineTest
 				"-header",
 				"src/main/resources/workflows/benchmark.5.1/header.ftl",
 				"-footer",
-				"src/main/resources/workflows/benchmark.5.1/footer.ftl"
+				"src/main/resources/workflows/benchmark.5.1/footer.ftl",
+				"-o",
+				"\"worksheet=lala\""
+
 		});
 
 		System.out.println("--- Test Created Files ---");

@@ -5,11 +5,11 @@ import org.molgenis.compute.runtime.ComputeRun;
 public class ComputeJob implements Runnable
 {
 	private final ComputeExecutor executor;
-	private final ComputeRun computeRun;
+	private final String computeRun;
 	private String username;
 	private String password;
 
-	public ComputeJob(ComputeExecutor executor, ComputeRun computeRun, String username, String password)
+	public ComputeJob(ComputeExecutor executor, String computeRun, String username, String password)
 	{
 		this.executor = executor;
 		this.computeRun = computeRun;
@@ -22,9 +22,9 @@ public class ComputeJob implements Runnable
 	{
 		try
 		{
-		computeRun.setIsActive(true);
-		computeRun.setIsSubmittingPilots(true);
-		executor.executeTasks(computeRun, username, password);
+//			computeRun.setIsActive(true);
+//			computeRun.setIsSubmittingPilots(true);
+			executor.executeTasks(computeRun, username, password);
 		}
 		catch (Exception e)
 		{

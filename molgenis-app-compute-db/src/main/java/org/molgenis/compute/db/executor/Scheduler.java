@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 import org.molgenis.compute.db.ComputeDbException;
 import org.molgenis.compute.runtime.ComputeRun;
 import org.molgenis.data.DataService;
+import org.molgenis.data.support.QueryImpl;
 import org.molgenis.security.SecurityUtils;
 import org.molgenis.security.runas.RunAsSystem;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,17 +36,20 @@ public class Scheduler
 		this.computeExecutor = computeExecutor;
 	}
 
-	public synchronized void schedule(ComputeRun run, String username, String password)
+	public synchronized void schedule(String runName, String username, String password)
 	{
-		if (scheduledJobs.containsKey(run.getId()))
+		ComputeRun computeRun =  dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeRun.NAME, runName));
+
+		if (scheduledJobs.containsKey(computeRun.getId()))
 		{
-			throw new ComputeDbException("Run " + run.getName() + " already running");
+			throw new ComputeDbException("Run " + computeRun.getName() + " already running");
 		}
 
 		ExecutionHost executionHost = null;
 		try
 		{
-			executionHost = new ExecutionHost(dataService, run.getComputeBackend().getBackendUrl(), username,
+			executionHost = new ExecutionHost(dataService, computeRun.getComputeBackend().getBackendUrl(), username,
 					password, ComputeExecutorPilotDB.SSH_PORT);
 		}
 		catch (IOException e)
@@ -53,11 +57,15 @@ public class Scheduler
 			throw new ComputeDbException(e);
 		}
 
-		ComputeJob job = new ComputeJob(computeExecutor, run, username, password);
+		ComputeJob job = new ComputeJob(computeExecutor, computeRun.getName(), username, password);
 
-		ScheduledFuture<?> future = taskScheduler.scheduleWithFixedDelay(job, run.getPollDelay());
+		ScheduledFuture<?> future = taskScheduler.scheduleWithFixedDelay(job, computeRun.getPollDelay());
 
-		scheduledJobs.put(run.getId(), future);
+		//to try
+		computeRun.setIsActive(true);
+		computeRun.setIsSubmittingPilots(true);
+
+		scheduledJobs.put(computeRun.getId(), future);
 	}
 
 	public synchronized boolean isRunning(Integer computeRunId)

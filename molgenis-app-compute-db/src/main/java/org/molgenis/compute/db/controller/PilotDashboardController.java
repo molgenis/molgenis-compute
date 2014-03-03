@@ -26,11 +26,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Start and stop pilots, show status
@@ -92,7 +88,7 @@ public class PilotDashboardController extends MolgenisPluginController
 		return init(model);
 	}
 
-    @RequestMapping("/activate")
+    @RequestMapping(value = "/activate", method = RequestMethod.POST)
     public String activate(@RequestParam("run")
     String runName, Model model)
     {
@@ -100,12 +96,12 @@ public class PilotDashboardController extends MolgenisPluginController
         return init(model);
     }
 
-    @RequestMapping("/inactivate")
+    @RequestMapping(value = "/inactivate", method = RequestMethod.POST)
     public String inactivate(@RequestParam("run")
     String runName, Model model)
     {
-        runService.inactivate(runName);
-        return init(model);
+        	runService.inactivate(runName);
+        	return init(model);
     }
 
 	@RequestMapping("/cancel")

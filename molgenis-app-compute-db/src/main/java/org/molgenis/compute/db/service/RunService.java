@@ -197,7 +197,7 @@ public class RunService
 
 		run.setIsSubmittingPilots(true);
 		dataService.update(ComputeRun.ENTITY_NAME, run);
-		scheduler.schedule(run, username, password);
+		scheduler.schedule(run.getName(), username, password);
 
 	}
 
@@ -257,6 +257,7 @@ public class RunService
 			throw new ComputeDbException("Unknown run name [" + runName + "]");
 		}
 
+//		scheduler.unschedule(run.getId());
 		run.setIsActive(false);
 		run.setIsSubmittingPilots(false);
 		dataService.update(ComputeRun.ENTITY_NAME, run);

@@ -8,8 +8,7 @@
     </parent>
     <artifactId>molgenis-app-compute-db</artifactId>
     <packaging>war</packaging>
-
-    <build>
+     <build>
         <resources>
             <resource>
                 <directory>${project.basedir}/src/main/resources</directory>

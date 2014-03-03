@@ -48,10 +48,14 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 
 	@Override
 	@RunAsSystem
-	public void executeTasks(ComputeRun computeRun, String username, String password)
+	public void executeTasks(String computeRunName, String username, String password)
 	{
+		ComputeRun computeRun = null;
 		try
 		{
+			computeRun = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
+					.eq(ComputeRun.NAME, computeRunName));
+
 			this.executionHost = new ExecutionHost(dataService,
 					computeRun.getComputeBackend().getBackendUrl(),
 					username, password, SSH_PORT);
@@ -66,10 +70,9 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 
 		try
 		{
-			ComputeRun computeRunDB = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
-					.eq(ComputeRun.NAME, computeRun.getName()));
+
 			Iterable<ComputeTask> generatedTasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
-					.eq(ComputeTask.COMPUTERUN, computeRunDB).and()
+					.eq(ComputeTask.COMPUTERUN, computeRun).and()
 					.eq(ComputeTask.STATUSCODE, "generated"));
 
 			int size =  ((Collection<?>)generatedTasks).size();
@@ -79,7 +82,7 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 			evaluateTasks(generatedTasks);
 
 			Iterable<ComputeTask> readyTasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
-					.eq(ComputeTask.COMPUTERUN, computeRunDB).and()
+					.eq(ComputeTask.COMPUTERUN, computeRun).and()
 					.eq(ComputeTask.STATUSCODE, "ready"));
 
 			for (ComputeTask task: readyTasks)
@@ -149,7 +152,7 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 		}
 		finally
 		{
-			if (executionHost != null)
+			if (executionHost != null && computeRun.getIsSubmittingPilots())
 			{
 				executionHost.close();
 			}
