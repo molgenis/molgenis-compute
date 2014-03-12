@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -81,10 +82,14 @@ public class ProtocolParser
 					{
 						// remove #, trim spaces, then split on " "
 						line = line.substring(1).trim();
-						List<String> els = new ArrayList<String>();
-						Matcher m = Pattern.compile("([^\"]\\S*|\".+?\")\\s*").matcher(line);
-						while (m.find())
-							els.add(m.group(1));
+//						List<String> els = new ArrayList<String>();
+//						Matcher m = Pattern.compile("([^\"]\\S*|\".+?\")\\s*").matcher(line);
+//						while (m.find())
+//							els.add(m.group(1));
+
+						//make a list out of line with spaces and commas
+						String[] values = line.replaceAll("^[,\\s]+", "").split("[,\\s]+");
+						List<String> els = Arrays.asList(values);
 
 						if (els.size() > 0)
 						{
@@ -120,54 +125,45 @@ public class ProtocolParser
 								description += "\n";
 							}
 
-							// input
+							// input, syntax = "#input inputVarName1, inputVarName2"
 							else if (els.get(0).equals(Parameters.STRING)
 									|| els.get(0).equals(Parameters.LIST_INPUT))
 							{
+								boolean allUniqueInputsCombination = false;
+								if(els.get(0).equals(Parameters.LIST_INPUT) &&
+										els.size() > 2)
+								{
+									//see folding tests
+									allUniqueInputsCombination = true;
+								}
+
 								// assume name column
 								if (els.size() < 2)
 									throw new IOException(
 										"param requires 'name', e.g. '#string input1'");
 
-								Input input = new Input(els.get(1));
-
-								input.setType(els.get(0));
-
-								// description is everything else
-								String inputDescription = "";
-								for (int i = 2; i < els.size(); i++)
+								for(int i = 1; i < els.size(); i++)
 								{
-									inputDescription += " " + els.get(i);
+									Input input = new Input(els.get(i));
+									input.setType(els.get(0));
+									input.foldingTypeUniqueCombination(allUniqueInputsCombination);
+									protocol.addInput(input);
 								}
-								if (inputDescription.length() > 0) input.setDescription(inputDescription.trim());
-
-								protocol.getInputs().add(input);
 							}
 
-							// output, syntax = "#output outputVarName description"
+							// output, syntax = "#output outputVarName1, outputVarName2"
 							else if (els.get(0).equals("output"))
 							{
 								if (els.size() < 2) throw new IOException(
 										"output requires 'name', e.g. '#output myOutputVariable'");
-								if (3 < els.size()) throw new IOException(
-										"Output cannot have more than 3 arguments.\nSyntax is: #output outputVarName \"description\", where description is optional.");
 
-								Output o = new Output(els.get(1));
-								// o.setValue(els.get(2));
-								// The value of the output parameter may not be set
-								// in the header
-								// This must be done in the template, instead!
-								o.setValue(Parameters.NOTAVAILABLE);
-
-								// description is everything else
-								String inputDescription = "";
-								for (int i = 2; i < els.size(); i++)
+								for(int i = 1; i < els.size(); i++)
 								{
-									inputDescription += " " + els.get(i);
+									Output output = new Output(els.get(i));
+									output.setValue(Parameters.NOTAVAILABLE);
+									protocol.addOutput(output);
 								}
-								if (inputDescription.length() > 0) o.setDescription(inputDescription.trim());
 
-								protocol.getOutputs().add(o);
 							}
 						}
 					}
