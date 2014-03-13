@@ -10,10 +10,7 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.molgenis.compute5.db.api.*;
 import org.molgenis.compute5.generators.*;
-import org.molgenis.compute5.model.Compute;
-import org.molgenis.compute5.model.Parameters;
-import org.molgenis.compute5.model.Task;
-import org.molgenis.compute5.model.Workflow;
+import org.molgenis.compute5.model.*;
 import org.molgenis.compute5.parsers.ParametersCsvParser;
 import org.molgenis.compute5.parsers.WorkflowCsvParser;
 import org.molgenis.compute5.sysexecutor.SysCommandExecutor;
@@ -222,6 +219,9 @@ public class ComputeCommandLine
 			parser.setParametersToOverwrite(computeProperties.getParametersToOverwrite());
 
 		Parameters parameters = parser.parse(parameterFiles, computeProperties);
+		ParametersContainer parametersContainer = new ParametersContainer();
+		parametersContainer.setFromFiles(parameterFiles, computeProperties);
+		compute.setParametersContainer(parametersContainer);
 		compute.setParameters(parameters);
 
 		// add command line parameters:

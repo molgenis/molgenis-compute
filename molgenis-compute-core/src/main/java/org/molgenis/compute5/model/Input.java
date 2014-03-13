@@ -73,4 +73,11 @@ public class Input
 	{
 		this.foldingAllUniqueInputsCombination = allUniqueInputsCombination;
 	}
+
+	public boolean isFoldingTypeUniqueCombination()
+	{
+		return foldingAllUniqueInputsCombination;
+	}
+
+
 }

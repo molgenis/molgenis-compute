@@ -18,10 +18,11 @@ public class TaskGenerator
 	private Workflow workflow = null;
 
 	private static final Logger LOG = Logger.getLogger(TaskGenerator.class);
-
-
+	private Compute compute;
+	private StringBuilder parameterHeader = null;
 	public List<Task> generate(Compute compute) throws IOException
 	{
+		this.compute = compute;
 		workflow = compute.getWorkflow();
 		Parameters parameters = compute.getParameters();
 		ComputeProperties computeProperties = compute.getComputeProperties();
@@ -90,7 +91,7 @@ public class TaskGenerator
 					step.setJobName(id, task.getName());
 				}
 
-				StringBuilder parameterHeader = new StringBuilder();
+				parameterHeader = new StringBuilder();
 				parameterHeader.append("\n#\n## Generated header\n#\n");
 				
 				// now source the task's parameters from each prevStep.env on
@@ -144,98 +145,47 @@ public class TaskGenerator
 				// now couple input parameters to parameters in sourced
 				// environment
 				Vector<String> presentStrings = new Vector<String>();
+				List<Input> listInputsToFoldNew = new ArrayList<Input>();
+				Hashtable<String, String> foreachParameters = new Hashtable<String, String>();
 				for (Input input : step.getProtocol().getInputs())
 				{
-					String parameterName = input.getName();
-
-					List<String> rowIndex = target.getList(Parameters.ID_COLUMN);
-					for (int i = 0; i < rowIndex.size(); i++)
+					if(input.getType().equalsIgnoreCase(Parameters.LIST_INPUT) &&
+							!input.isFoldingTypeUniqueCombination() &&
+							compute.getParametersContainer().isMultiParametersFiles())
 					{
-						Object rowIndexObject = rowIndex.get(i);
-						String rowIndexString = rowIndexObject.toString();
+						//a new way of folding
+						//take list of parameters from initial parameter list, where values are the same as for eachOne
+						listInputsToFoldNew.add(input);
+						continue;
+					}
+					//good all folding
+					else
+					{
+						String parameterName = input.getName();
 
-						String value = null;
-						String parameterMapping = step.getParametersMapping().get(parameterName);
-						if(parameterMapping != null)
+						List<String> rowIndex = target.getList(Parameters.ID_COLUMN);
+						for (int i = 0; i < rowIndex.size(); i++)
 						{
-							//parameter is mapped locally
-							value = parameterMapping;
+							Object rowIndexObject = rowIndex.get(i);
+							String rowIndexString = rowIndexObject.toString();
 
-							if(input.isKnownRunTime())
-								value = value.replace(Parameters.STEP_PARAM_SEP_PROTOCOL,
-										Parameters.STEP_PARAM_SEP_SCRIPT);
-							else
-								value = EnvironmentGenerator.GLOBAL_PREFIX + value;
-
-//								left in code for paper (SGW)
-//								parameterHeader += parameterName + "[" + i + "]=${" + value + "[" + rowIndexString
-//										+ "]}\n";
-
-							String type = input.getType();
-
-							String left = null;
-							if(type.equalsIgnoreCase(Input.TYPE_STRING))
+							String value = null;
+							String parameterMapping = step.getParametersMapping().get(parameterName);
+							if(parameterMapping != null)
 							{
-								left = parameterName;
-								if(presentStrings.contains(left))
-									continue;
+								//parameter is mapped locally
+								value = parameterMapping;
+
+								if(input.isKnownRunTime())
+									value = value.replace(Parameters.STEP_PARAM_SEP_PROTOCOL,
+											Parameters.STEP_PARAM_SEP_SCRIPT);
 								else
-									presentStrings.add(left);
-							}
-							else
-								left = parameterName + "[" + i + "]";
+									value = EnvironmentGenerator.GLOBAL_PREFIX + value;
 
-							String right = value + "[" + rowIndexString + "]";
-							if(right.startsWith(EnvironmentGenerator.GLOBAL_PREFIX))
-							{
-								right = right.substring(EnvironmentGenerator.GLOBAL_PREFIX.length());
-								String realValue = environment.get(right);
-								parameterHeader.append(left).append("=").append("\"").append(realValue).append("\"\n");
-							}
-							else
-							{
-								//leave old style (runtime parameter)
-								parameterHeader.append(left).append("=${").append(value).append("[").append(rowIndexString)
-										.append("]}\n");
-							}
-						}
-						else
-						{
-							if(step.hasParameter(parameterName))
-							{
-								value = parameterName;
+	//								left in code for paper (SGW)
+	//								parameterHeader += parameterName + "[" + i + "]=${" + value + "[" + rowIndexString
+	//										+ "]}\n";
 
-								Object oValue = map.get(parameterName);
-
-								if(oValue instanceof String)
-								{
-									if(input.isKnownRunTime())
-									{
-										value = parameterName;
-										value = value.replaceFirst(Parameters.UNDERSCORE,
-												Parameters.STEP_PARAM_SEP_SCRIPT);
-									}
-									else
-									{
-										value = EnvironmentGenerator.GLOBAL_PREFIX + value;
-									}
-								}
-								else if (oValue instanceof ArrayList)
-								{
-									if(input.isKnownRunTime())
-									{
-										value = (String) ((ArrayList) oValue).get(i);
-										value = value.replaceFirst(Parameters.UNDERSCORE,
-												Parameters.STEP_PARAM_SEP_SCRIPT);
-									}
-									else
-									{
-										value = EnvironmentGenerator.GLOBAL_PREFIX + value;
-									}
-								}
-//								left in code for paper (SGW)
-//								parameterHeader += parameterName + "[" + i + "]=${" + value + "[" + rowIndexString
-//										+ "]}\n";
 								String type = input.getType();
 
 								String left = null;
@@ -256,17 +206,87 @@ public class TaskGenerator
 									right = right.substring(EnvironmentGenerator.GLOBAL_PREFIX.length());
 									String realValue = environment.get(right);
 									parameterHeader.append(left).append("=").append("\"").append(realValue).append("\"\n");
+									foreachParameters.put(left,realValue);
 								}
 								else
 								{
 									//leave old style (runtime parameter)
-									parameterHeader.append(left).append("=${")
-											.append(value).append("[").append(rowIndexString).append("]}\n");
+									parameterHeader.append(left).append("=${").append(value).append("[").append(rowIndexString)
+											.append("]}\n");
+								}
+							}
+							else
+							{
+								if(step.hasParameter(parameterName))
+								{
+									value = parameterName;
+
+									Object oValue = map.get(parameterName);
+
+									if(oValue instanceof String)
+									{
+										if(input.isKnownRunTime())
+										{
+											value = parameterName;
+											value = value.replaceFirst(Parameters.UNDERSCORE,
+													Parameters.STEP_PARAM_SEP_SCRIPT);
+										}
+										else
+										{
+											value = EnvironmentGenerator.GLOBAL_PREFIX + value;
+										}
+									}
+									else if (oValue instanceof ArrayList)
+									{
+										if(input.isKnownRunTime())
+										{
+											value = (String) ((ArrayList) oValue).get(i);
+											value = value.replaceFirst(Parameters.UNDERSCORE,
+													Parameters.STEP_PARAM_SEP_SCRIPT);
+										}
+										else
+										{
+											value = EnvironmentGenerator.GLOBAL_PREFIX + value;
+										}
+									}
+	//								left in code for paper (SGW)
+	//								parameterHeader += parameterName + "[" + i + "]=${" + value + "[" + rowIndexString
+	//										+ "]}\n";
+									String type = input.getType();
+
+									String left = null;
+									if(type.equalsIgnoreCase(Input.TYPE_STRING))
+									{
+										left = parameterName;
+										if(presentStrings.contains(left))
+											continue;
+										else
+											presentStrings.add(left);
+									}
+									else
+										left = parameterName + "[" + i + "]";
+
+									String right = value + "[" + rowIndexString + "]";
+									if(right.startsWith(EnvironmentGenerator.GLOBAL_PREFIX))
+									{
+										right = right.substring(EnvironmentGenerator.GLOBAL_PREFIX.length());
+										String realValue = environment.get(right);
+										parameterHeader.append(left).append("=").append("\"").append(realValue).append("\"\n");
+										foreachParameters.put(left,realValue);
+									}
+									else
+									{
+										//leave old style (runtime parameter)
+										parameterHeader.append(left).append("=${")
+												.append(value).append("[").append(rowIndexString).append("]}\n");
+									}
 								}
 							}
 						}
 					}
 				}
+
+				foldNew(listInputsToFoldNew, foreachParameters);
 
 				parameterHeader.append("\n# Validate that each 'value' parameter has only identical values in its list\n")
 						.append("# We do that to protect you against parameter values that might not be correctly set at runtime.\n");
@@ -290,7 +310,6 @@ public class TaskGenerator
 					}
 				}
 				parameterHeader.append("\n#\n## Start of your protocol template\n#\n\n");
-
 
 				String script = step.getProtocol().getTemplate();
 
@@ -371,6 +390,33 @@ public class TaskGenerator
 			tasks.add(task);
 		}
 		return tasks;
+	}
+
+	private void foldNew(List<Input> list, Hashtable<String, String> foreachParameters)
+	{
+		for(Input input : list)
+		{
+			ParametersContainer originalParameters = compute.getParametersContainer();
+			boolean parameterOnlyInOneFile = originalParameters.isParameterOnlyInOneFile(input.getName());
+
+			if(parameterOnlyInOneFile)
+			{
+				String name = input.getName();
+				List<String> foldedList = originalParameters.foldingNieuwe(name, foreachParameters);
+
+				for(int i = 0; i < foldedList.size(); i++)
+				{
+					String value = foldedList.get(i);
+					parameterHeader.append(name).append("[").append(i).append("]").append("=").append("\"").append(value).append("\"\n");
+
+				}
+			}
+			else
+			{
+				LOG.error("PARAMETER [" + input.getName() + "] comes is a list, which " +
+						"requires simple way of folding, but comes from several parameter files");
+			}
+		}
 	}
 
 	private String weaveProtocol(Protocol protocol, HashMap<String, String> environment, MapEntity target)
