@@ -219,7 +219,7 @@ public class ComputeCommandLine
 			parser.setParametersToOverwrite(computeProperties.getParametersToOverwrite());
 
 		Parameters parameters = parser.parse(parameterFiles, computeProperties);
-		ParametersContainer parametersContainer = new ParametersContainer();
+		ParametersFolderNieuwe parametersContainer = new ParametersFolderNieuwe();
 		parametersContainer.setFromFiles(parameterFiles, computeProperties);
 		compute.setParametersContainer(parametersContainer);
 		compute.setParameters(parameters);

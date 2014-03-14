@@ -396,7 +396,7 @@ public class TaskGenerator
 	{
 		for(Input input : list)
 		{
-			ParametersContainer originalParameters = compute.getParametersContainer();
+			ParametersFolderNieuwe originalParameters = compute.getParametersContainer();
 			boolean parameterOnlyInOneFile = originalParameters.isParameterOnlyInOneFile(input.getName());
 
 			if(parameterOnlyInOneFile)
