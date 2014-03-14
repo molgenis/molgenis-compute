@@ -397,9 +397,9 @@ public class TaskGenerator
 		for(Input input : list)
 		{
 			ParametersFolderNieuwe originalParameters = compute.getParametersContainer();
-			boolean parameterOnlyInOneFile = originalParameters.isParameterOnlyInOneFile(input.getName());
+			int timeParameterFind = originalParameters.isParameterFindTimes(input.getName());
 
-			if(parameterOnlyInOneFile)
+			if(timeParameterFind == 1)
 			{
 				String name = input.getName();
 				List<String> foldedList = originalParameters.foldingNieuwe(name, foreachParameters);
@@ -411,10 +411,15 @@ public class TaskGenerator
 
 				}
 			}
-			else
+			else if(timeParameterFind > 1)
 			{
 				LOG.error("PARAMETER [" + input.getName() + "] comes is a list, which " +
 						"requires simple way of folding, but comes from several parameter files");
+			}
+			else if(timeParameterFind == 0)
+			{
+				LOG.warn("PARAMETER [" + input.getName() + "] does not found in design time files, " +
+						"maybe it is the run time list parameter");
 			}
 		}
 	}

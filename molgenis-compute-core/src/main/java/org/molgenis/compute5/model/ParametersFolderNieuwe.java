@@ -99,7 +99,7 @@ public class ParametersFolderNieuwe
 		return false;
 	}
 
-	public boolean isParameterOnlyInOneFile(String name)
+	public int isParameterFindTimes(String name)
 	{
 		int i = 0;
 		for (HashMap<String, List<String>> parametersFile : parameters)
@@ -108,9 +108,7 @@ public class ParametersFolderNieuwe
 			if (hasID)
 				i++;
 		}
-		if (i == 1)
-			return true;
-		return false;
+		return i;
 	}
 
 	public List<String> foldingNieuwe(String name, Hashtable<String, String> foreach)

@@ -31,11 +31,13 @@ public class WorkflowCsvParser
 			{
 				File workflowFile = urlReader.createFileFromGithub(computeProperties.webWorkflowLocation,
 						workflowPath);
-				reader = new CsvRepository(new BufferedReader(new FileReader(workflowFile)), ",", null);
+//				reader = new CsvRepository(new BufferedReader(new FileReader(workflowFile)), ",", null);
+				reader = new CsvRepository(workflowFile, ',', null);
 
 			}
 			else
-				reader = new CsvRepository(new BufferedReader(new FileReader(workflowPath)), ",", null);
+				reader = new CsvRepository(new File(workflowPath), ',', null);
+//				reader = new CsvRepository(new BufferedReader(new FileReader(workflowPath)), ",", null);
 
 			Workflow wf = new Workflow();
 
