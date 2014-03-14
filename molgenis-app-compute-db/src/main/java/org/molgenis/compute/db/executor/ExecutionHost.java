@@ -1,7 +1,7 @@
 package org.molgenis.compute.db.executor;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Iterator;
 
 import org.apache.log4j.Logger;
 import org.apache.poi.util.IOUtils;
@@ -9,12 +9,14 @@ import org.molgenis.compute.db.pilot.MolgenisPilotService;
 import org.molgenis.compute.runtime.ComputeBackend;
 import org.molgenis.compute.runtime.ComputeRun;
 import org.molgenis.compute.runtime.Pilot;
-import org.molgenis.framework.db.Database;
-import org.molgenis.framework.db.DatabaseException;
+import org.molgenis.data.DataService;
+import org.molgenis.data.support.QueryImpl;
 import org.molgenis.omx.auth.MolgenisUser;
+import org.molgenis.security.SecurityUtils;
 import org.molgenis.util.ApplicationUtil;
 import org.molgenis.util.Ssh;
 import org.molgenis.util.SshResult;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Created with IntelliJ IDEA. User: georgebyelas Date: 22/08/2012 Time: 15:39
@@ -28,10 +30,13 @@ public class ExecutionHost extends Ssh
     public static final String CORRECT_GLITE_RESPOND = "glite-wms-job-submit Success";
 	private static final Logger LOG = Logger.getLogger(ExecutionHost.class);
 
-	public ExecutionHost(String host, String user, String password, int port) throws IOException
+	private DataService dataService = null;
+
+	public ExecutionHost(DataService dataService, String host, String user, String password, int port) throws IOException
 
 	{
 		super(host, user, password, port);
+		this.dataService = dataService;
 		LOG.info("... " + host + " is started");
 	}
 
@@ -68,58 +73,50 @@ public class ExecutionHost extends Ssh
             LOG.info("Command StdOut result:\n" + sOut);
 
             if(sOut.contains(CORRECT_GLITE_RESPOND))
-            {
+			{
                 success = true;
-                Database database = null;
-                try
-                {
-                    database = ApplicationUtil.getUnauthorizedPrototypeDatabase();
 
-					List<ComputeBackend> computeBackends = database.query(ComputeBackend.class).equals(ComputeBackend.NAME, computeBackend.getName()).find();
+                    Iterable<ComputeBackend> computeBackends = dataService.findAll(ComputeBackend.ENTITY_NAME, new QueryImpl().eq(ComputeBackend.NAME, computeBackend.getName()));
 
-                    if(computeBackends.size() == 0)
+					//List<ComputeBackend> computeBackends = dataService.query(ComputeBackend.class).equals(ComputeBackend.NAME, computeBackend.getName()).find();
+
+					Iterator itBackend = computeBackends.iterator();
+
+                    if(!itBackend.hasNext())
 						LOG.error("No backend found for BACKENDNAME [" + computeBackend.getName() + "]");
 
-					List<ComputeRun> computeRuns = database.query(ComputeRun.class).equals(ComputeRun.NAME, computeRun.getName()).find();
+
+				Iterable<ComputeRun> computeRuns = dataService.findAll(ComputeRun.ENTITY_NAME, new QueryImpl().eq(ComputeRun.NAME, computeRun.getName()));
+
+				Iterator<ComputeRun> itComputeRun = computeRuns.iterator();
 
 					ComputeRun run = null;
-					if(computeRuns.size() == 1)
+					if(itComputeRun.hasNext())
 					{
-						run = computeRuns.get(0);
+						run = itComputeRun.next();
 						int numberOfSubmittedPilots = run.getPilotsSubmitted();
 						run.setPilotsSubmitted(numberOfSubmittedPilots + 1);
-						database.update(run);
+						dataService.update(ComputeRun.ENTITY_NAME, run);
 					}
 					else
 						LOG.error("No compute run found [" + computeRun.getName() + "] to submit pilot job");
 
-					List<MolgenisUser> owners = database.query(MolgenisUser.class).eq(MolgenisUser.NAME, owner.getName()).find();
+				Iterable<MolgenisUser> owners = dataService.findAll(MolgenisUser.ENTITY_NAME, new QueryImpl().eq(MolgenisUser.USERNAME, owner.getUsername()));
+				Iterator itUsers = owners.iterator();
 
-                    if(owners.size() == 0)
-                        LOG.error("No molgenis user found [" + database.getLogin().getUserName() + "] to submit pilot job");
 
-                    database.beginTx();
+                    if(!itUsers.hasNext())
+                        LOG.error("No molgenis user found [" + SecurityUtils.getCurrentUsername() + "] to submit pilot job");
 
                     Pilot pilot = new Pilot();
                     pilot.setValue(pilotID);
-                    pilot.setBackend(computeBackends.get(0));
+                    pilot.setBackend((ComputeBackend) itBackend.next());
                     pilot.setStatus(MolgenisPilotService.PILOT_SUBMITTED);
-                    pilot.setOwner(owners.get(0));
+                    pilot.setOwner((MolgenisUser) itUsers.next());
 					pilot.setComputeRun(run);
 
-                    database.add(pilot);
-                    database.commitTx();
+                    dataService.add(Pilot.ENTITY_NAME, pilot);
 
-                }
-                catch (DatabaseException e)
-                {
-                   //LOG.error("No backend found for BACKENDNAME [" + computeBackend.getName() + "]");
-                   e.printStackTrace();
-                }
-                finally
-                {
-                    IOUtils.closeQuietly(database);
-                }
             }
 			else
 			{

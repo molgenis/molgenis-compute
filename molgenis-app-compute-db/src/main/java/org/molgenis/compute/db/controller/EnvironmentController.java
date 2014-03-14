@@ -9,7 +9,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.molgenis.compute.runtime.ComputeRun;
 import org.molgenis.compute.runtime.ComputeTask;
-import org.molgenis.framework.db.Database;
+import org.molgenis.data.DataService;
+import org.molgenis.data.support.QueryImpl;
 import org.molgenis.framework.db.DatabaseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -31,20 +32,23 @@ import org.springframework.web.bind.annotation.RequestMethod;
 public class EnvironmentController
 {
 	public static final String URI = "/environment";
-	private final Database database;
+	private final DataService database;
 
 	@Autowired
-	public EnvironmentController(Database database)
+	public EnvironmentController(DataService database)
 	{
 		this.database = database;
 	}
 
 	@RequestMapping(value = "/{runName}/user.env", method = RequestMethod.GET)
 	public void getUserEnv(@PathVariable("runName")
-	String runName, HttpServletResponse response) throws DatabaseException, IOException
+	String runName, HttpServletResponse response) throws IOException
 	{
-		ComputeRun run = ComputeRun.findByName(database, runName);
-		if (run != null)
+
+
+		Iterable<ComputeRun> runs = database.findAll(ComputeRun.ENTITY_NAME,
+				new QueryImpl().eq(ComputeRun.NAME, runName));
+		for(ComputeRun run : runs)
 		{
 			PrintWriter pw = response.getWriter();
 			pw.write(run.getUserEnvironment());
@@ -55,17 +59,20 @@ public class EnvironmentController
 	@RequestMapping(value = "/{runName}/{taskName}.env", method = RequestMethod.GET)
 	public void getOutputEnv(@PathVariable("runName")
 	String runName, @PathVariable("taskName")
-	String taskName, HttpServletResponse response) throws DatabaseException, IOException
+	String taskName, HttpServletResponse response) throws IOException
 	{
-		List<ComputeTask> tasks = database.query(ComputeTask.class).eq(ComputeTask.COMPUTERUN_NAME, runName).and()
-				.eq(ComputeTask.NAME, taskName).find();
+		ComputeRun computeRun = database.findOne(ComputeRun.ENTITY_NAME, new QueryImpl().eq(ComputeRun.NAME, runName));
+		Iterable<ComputeTask> tasks = database.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeTask.COMPUTERUN, computeRun).and()
+				.eq(ComputeTask.NAME, taskName));
 
-		if (!tasks.isEmpty())
+		if (tasks.iterator().hasNext())
 		{
+			ComputeTask task = tasks.iterator().next();
 			PrintWriter pw = response.getWriter();
 			try
 			{
-				pw.write(tasks.get(0).getOutputEnvironment());
+				pw.write(task.getOutputEnvironment());
 				pw.flush();
 			}
 			finally

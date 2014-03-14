@@ -2,12 +2,12 @@ package org.molgenis.compute.db.executor;
 
 import org.molgenis.compute.db.pilot.MolgenisPilotService;
 import org.molgenis.compute.runtime.Pilot;
-import org.molgenis.framework.db.Database;
-import org.molgenis.framework.db.DatabaseException;
-import org.molgenis.util.ApplicationUtil;
+import org.molgenis.data.DataService;
+import org.molgenis.data.support.QueryImpl;
+import org.molgenis.security.runas.RunAsSystem;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Calendar;
-import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -18,33 +18,30 @@ import java.util.List;
  */
 public class PilotManager
 {
+	@Autowired
+	private DataService dataService;
+
+	@RunAsSystem
 	public void checkExperiredPilots()
 	{
-		Database database = ApplicationUtil.getUnauthorizedPrototypeDatabase();
-		try
-		{
-			List<Pilot> pilots = database.query(Pilot.class)
-					.equals(Pilot.STATUS, MolgenisPilotService.PILOT_SUBMITTED).find();
+		Iterable<Pilot> pilots = dataService.findAll(Pilot.ENTITY_NAME,
+				new QueryImpl().eq(Pilot.STATUS, MolgenisPilotService.PILOT_SUBMITTED));
 
-			for(Pilot pilot : pilots)
+
+		for (Pilot pilot : pilots)
+		{
+			Calendar calendar = Calendar.getInstance();
+			long now = calendar.getTimeInMillis();
+			long creationTime = pilot.getCreationTime().getTime();
+
+			long difference = now - creationTime;
+			long lifeTerm = pilot.getLifeTerm() * 60 * 1000; //in milliseconds
+
+			if (difference > lifeTerm)
 			{
-				Calendar calendar = Calendar.getInstance();
-				long now = calendar.getTimeInMillis();
-				long creationTime = pilot.getCteationTime().getTime();
-
-				long difference = now - creationTime;
-				long lifeTerm = pilot.getLifeTerm() * 60 * 1000; //in milliseconds
-
-				if (difference > lifeTerm)
-				{
-					pilot.setStatus(MolgenisPilotService.PILOT_EXPIRED);
-					database.update(pilot);
-				}
+				pilot.setStatus(MolgenisPilotService.PILOT_EXPIRED);
+				dataService.update(Pilot.ENTITY_NAME, pilot);
 			}
-		}
-		catch (DatabaseException e)
-		{
-			e.printStackTrace();
 		}
 	}
 }

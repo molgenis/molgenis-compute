@@ -9,8 +9,9 @@ import java.util.*;
 import org.molgenis.compute5.ComputeProperties;
 import org.molgenis.compute5.model.*;
 import org.molgenis.compute5.urlreader.UrlReader;
-import org.molgenis.io.csv.CsvReader;
-import org.molgenis.util.tuple.Tuple;
+import org.molgenis.data.Entity;
+import org.molgenis.data.csv.CsvRepository;
+import org.molgenis.data.support.MapEntity;
 
 /** Parser for the workflow csv */
 public class WorkflowCsvParser
@@ -25,26 +26,28 @@ public class WorkflowCsvParser
 	{
 		try
 		{
-			CsvReader reader = null;
+			CsvRepository reader = null;
 			if(computeProperties.isWebWorkflow)
 			{
 				File workflowFile = urlReader.createFileFromGithub(computeProperties.webWorkflowLocation,
 						workflowPath);
-				reader = new CsvReader(new BufferedReader(new FileReader(workflowFile)));
+//				reader = new CsvRepository(new BufferedReader(new FileReader(workflowFile)), ",", null);
+				reader = new CsvRepository(workflowFile, ',', null);
 
 			}
 			else
-				reader = new CsvReader(new BufferedReader(new FileReader(workflowPath)));
+				reader = new CsvRepository(new File(workflowPath), ',', null);
+//				reader = new CsvRepository(new BufferedReader(new FileReader(workflowPath)), ",", null);
 
 			Workflow wf = new Workflow();
 
-			for (Tuple row : reader)
+			for (Entity row : reader)
 			{
 				// check value
-				if (row.isNull(Parameters.STEP_HEADING_IN_WORKFLOW))
+				if (row.get(Parameters.STEP_HEADING_IN_WORKFLOW) == null)
 					throw new IOException("required column '" + Parameters.STEP_HEADING_IN_WORKFLOW +
 							"' is missing in row " + row);
-				if (row.isNull(Parameters.PROTOCOL_HEADING_IN_WORKFLOW))
+				if (row.get(Parameters.PROTOCOL_HEADING_IN_WORKFLOW) == null)
 					throw new IOException("required column '" + Parameters.PROTOCOL_HEADING_IN_WORKFLOW +
 							"' is missing in row " + row);
 

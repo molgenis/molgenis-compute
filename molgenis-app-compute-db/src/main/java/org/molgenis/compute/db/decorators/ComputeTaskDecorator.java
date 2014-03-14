@@ -4,13 +4,17 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
+import org.molgenis.compute.runtime.ComputeRun;
 import org.molgenis.compute.runtime.ComputeTask;
 import org.molgenis.compute.runtime.ComputeTaskHistory;
-import org.molgenis.framework.db.Database;
+import org.molgenis.data.CrudRepository;
+import org.molgenis.data.CrudRepositoryDecorator;
+import org.molgenis.data.DataService;
+import org.molgenis.data.support.QueryImpl;
 import org.molgenis.framework.db.DatabaseException;
-import org.molgenis.framework.db.Mapper;
-import org.molgenis.framework.db.MapperDecorator;
+import org.molgenis.util.ApplicationContextProvider;
 import org.molgenis.util.ApplicationUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Automatically adds a new entry to the ComputeTaskHisory if the statuscode changed
@@ -18,18 +22,20 @@ import org.molgenis.util.ApplicationUtil;
  * @author erwin
  * 
  */
-public class ComputeTaskDecorator<E extends ComputeTask> extends MapperDecorator<E>
+public class ComputeTaskDecorator<E extends ComputeTask> extends CrudRepositoryDecorator<E>
 {
 
-	public ComputeTaskDecorator(Mapper<E> generatedMapper)
+	public ComputeTaskDecorator(CrudRepository<E> generatedMapper)
 	{
 		super(generatedMapper);
 	}
 
 	@Override
-	public int add(List<E> entities) throws DatabaseException
+	public void add(Iterable<E> entities)
 	{
-		int result = super.add(entities);
+		super.add(entities);
+
+		DataService dataService = ApplicationContextProvider.getApplicationContext().getBean(DataService.class);
 
 		for (ComputeTask task : entities)
 		{
@@ -37,21 +43,20 @@ public class ComputeTaskDecorator<E extends ComputeTask> extends MapperDecorator
 			history.setComputeTask(task);
 			history.setStatusTime(new Date());
 			history.setNewStatusCode(task.getStatusCode());
-			getDatabase().add(history);
+			dataService.add(ComputeTaskHistory.ENTITY_NAME, history);
 		}
 
-		return result;
 	}
 
 	@Override
-	public int update(List<E> entities) throws DatabaseException
+	public void update(Iterable<E> entities)
 	{
-		Database database = ApplicationUtil.getUnauthorizedPrototypeDatabase();
-		try
-		{
-			for (ComputeTask task : entities)
+		DataService dataService = ApplicationContextProvider.getApplicationContext().getBean(DataService.class);
+
+		for (ComputeTask task : entities)
 			{
-				ComputeTask old = ComputeTask.findById(database, task.getId());
+				ComputeTask old = dataService.findOne(ComputeTask.ENTITY_NAME,
+						new QueryImpl().eq(ComputeTask.NAME, task.getName()));
 
 				if ((old != null) && !old.getStatusCode().equalsIgnoreCase(task.getStatusCode()))
 				{
@@ -62,16 +67,11 @@ public class ComputeTaskDecorator<E extends ComputeTask> extends MapperDecorator
 					history.setStatusCode(old.getStatusCode());
 					history.setNewStatusCode(task.getStatusCode());
 
-					database.add(history);
+					dataService.add(ComputeTaskHistory.ENTITY_NAME, history);
 				}
 
 			}
-		}
-		finally
-		{
-			IOUtils.closeQuietly(database);
-		}
 
-		return super.update(entities);
+		super.update(entities);
 	}
 }

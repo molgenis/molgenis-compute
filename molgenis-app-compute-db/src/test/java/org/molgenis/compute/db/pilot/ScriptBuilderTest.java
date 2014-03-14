@@ -6,6 +6,9 @@ import org.molgenis.compute.runtime.ComputeRun;
 import org.molgenis.compute.runtime.ComputeTask;
 import org.testng.annotations.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ScriptBuilderTest
 {
 	@Test
@@ -17,12 +20,15 @@ public class ScriptBuilderTest
 		ComputeTask prev = new ComputeTask();
 		prev.setName("task2");
 		prev.setComputeRun(run);
+		List<ComputeTask> list = new ArrayList<ComputeTask>();
+		list.add(prev);
+
 
 		ComputeTask task = new ComputeTask();
 		task.setName("task1");
 		task.setComputeScript("echo hallo");
 		task.setComputeRun(run);
-		task.setPrevSteps(prev);
+		task.setPrevSteps(list);
 
 		ScriptBuilder builder = new ScriptBuilder("username", "password");
 

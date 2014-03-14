@@ -1,9 +1,10 @@
 [
 # General
-JobType="Parametric";
-ParameterStart=0;
-ParameterStep=1;
-Parameters=2;
+#JobType="Parametric";
+#ParameterStart=0;
+#ParameterStep=1;
+#Parameters=2;
+JobType="Normal";
 VirtualOrganisation = "bbmri.nl";
 DefaultNodeShallowRetryCount = 5;
 

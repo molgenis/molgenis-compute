@@ -1,6 +1,7 @@
 package org.molgenis.compute.db.service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -14,11 +15,13 @@ import org.molgenis.compute.runtime.ComputeRun;
 import org.molgenis.compute.runtime.ComputeTask;
 import org.molgenis.compute5.db.api.RunStatus;
 import org.molgenis.compute5.model.Task;
-import org.molgenis.framework.db.Database;
+import org.molgenis.data.DataService;
+import org.molgenis.data.Query;
+import org.molgenis.data.QueryRule;
+import org.molgenis.data.support.QueryImpl;
 import org.molgenis.framework.db.DatabaseException;
-import org.molgenis.framework.db.Query;
-import org.molgenis.framework.db.QueryRule;
 import org.molgenis.omx.auth.MolgenisUser;
+import org.molgenis.security.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
@@ -26,349 +29,296 @@ import org.springframework.stereotype.Component;
 
 /**
  * ComputeRun service facade
- * 
+ *
  * @author erwin
- * 
  */
-@Scope(proxyMode = ScopedProxyMode.TARGET_CLASS, value="request")
+@Scope(proxyMode = ScopedProxyMode.TARGET_CLASS, value = "request")
 @Component
 public class RunService
 {
 	private static final Logger LOG = Logger.getLogger(RunService.class);
 	private static final long DEFAULT_POLL_DELAY = 30000;
-	@Autowired
-	private Database database;
+
 	@Autowired
 	private Scheduler scheduler;
 
-	/**
-	 * Create a new ComputeRun
-	 * 
-	 * @param name
-	 * @param backendName
-	 * @param pollDelay
-	 * @param tasks
-	 * @param userEnvironment
-     * @param userName
-	 * @return the new ComputeRun
-	 */
+	@Autowired
+	private DataService dataService;
+
 	public ComputeRun create(String name, String backendName, Long pollDelay,
 							 List<Task> tasks, String userEnvironment, String userName)
 	{
-		try
+		Iterable<ComputeBackend> backends = dataService.findAll(ComputeBackend.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeBackend.NAME, backendName));
+		if (!backends.iterator().hasNext())
 		{
-			ComputeBackend backend = ComputeBackend.findByName(database, backendName);
-			if (backend == null)
+			throw new ComputeDbException("Unknown backend with name [" + backendName + "]");
+		}
+
+		ComputeBackend backend = backends.iterator().next();
+
+		Iterable<MolgenisUser> users = dataService.findAll(MolgenisUser.ENTITY_NAME, new QueryImpl()
+				.eq(MolgenisUser.USERNAME, userName));
+		if (!users.iterator().hasNext())
+		{
+			throw new ComputeDbException("Unknown user with name [" + userName + "]");
+		}
+
+		MolgenisUser user = users.iterator().next();
+
+		Iterable<ComputeBackend> runs = dataService.findAll(ComputeRun.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeRun.NAME, name));
+
+		if (runs.iterator().hasNext())
+		{
+			throw new ComputeDbException("Run with name [" + name + "] already exists");
+		}
+
+		ComputeRun run = new ComputeRun();
+		run.setComputeBackend(backend);
+		run.setName(name);
+		run.setPollDelay(pollDelay == null ? DEFAULT_POLL_DELAY : pollDelay);
+		run.setUserEnvironment(userEnvironment);
+		run.setOwner(user);
+		dataService.add(ComputeRun.ENTITY_NAME, run);
+
+		// Add tasks to db
+		for (Task task : tasks)
+		{
+			ComputeTask computeTask = new ComputeTask();
+			computeTask.setName(task.getName());
+			computeTask.setComputeRun(run);
+			computeTask.setInterpreter("bash");
+			computeTask.setStatusCode(MolgenisPilotService.TASK_GENERATED);
+			computeTask.setComputeScript(task.getScript());
+			dataService.add(ComputeTask.ENTITY_NAME, computeTask);
+
+			if (LOG.isDebugEnabled())
 			{
-				throw new ComputeDbException("Unknown backend with name [" + backendName + "]");
+				LOG.debug("Added task [" + task.getName() + "]");
+			}
+		}
+
+		// Set prev tasks
+		for (Task task : tasks)
+		{
+			ComputeRun computeRun = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
+					.eq(ComputeRun.NAME, run.getName()));
+
+			Iterable<ComputeTask> computeTasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
+					.eq(ComputeTask.COMPUTERUN, computeRun).and()
+					.eq(ComputeTask.NAME, task.getName()));
+
+			ComputeTask computeTask = computeTasks.iterator().next();
+
+			List<ComputeTask> prevTasks = new ArrayList<ComputeTask>();
+			for (String prevTaskName : task.getPreviousTasks())
+			{
+
+
+				Iterable<ComputeTask> prevComputeTasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
+						.eq(ComputeTask.COMPUTERUN, computeRun).and()
+						.eq(ComputeTask.NAME, prevTaskName));
+
+
+				if (!prevComputeTasks.iterator().hasNext())
+				{
+					throw new ComputeDbException("Previous task [" + prevTaskName + "]  not found");
+				}
+
+				ComputeTask prevTask = prevComputeTasks.iterator().next();
+
+				prevTasks.add(prevTask);
 			}
 
-            MolgenisUser user = MolgenisUser.findByName(database, userName);
-            if (user == null)
-            {
-                throw new ComputeDbException("Unknown user with name [" + userName + "]");
-            }
-
-            if (ComputeRun.findByName(database, name) != null)
+			if (!prevTasks.isEmpty())
 			{
-				throw new ComputeDbException("Run with name [" + name + "] already exists");
+				computeTask.setPrevSteps(prevTasks);
 			}
+			dataService.update(ComputeTask.ENTITY_NAME, computeTask);
 
-            database.beginTx();
-
-			ComputeRun run = new ComputeRun();
-			run.setComputeBackend(backend);
-			run.setName(name);
-			run.setPollDelay(pollDelay == null ? DEFAULT_POLL_DELAY : pollDelay);
-			run.setUserEnvironment(userEnvironment);
-            run.setOwner(user);
-			database.add(run);
-
-			// Add tasks to db
-			for (Task task : tasks)
+			if (LOG.isDebugEnabled())
 			{
-				ComputeTask computeTask = new ComputeTask();
-				computeTask.setName(task.getName());
-				computeTask.setComputeRun(run);
-				computeTask.setInterpreter("bash");
-				computeTask.setStatusCode(MolgenisPilotService.TASK_GENERATED);
-				computeTask.setComputeScript(task.getScript());
-				database.add(computeTask);
+				LOG.debug("Set prevSteps for [" + task.getName() + "]");
+			}
+		}
+
+		// Add parameters
+		for (Task task : tasks)
+		{
+
+			Iterable<ComputeTask> computeTasks2 = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
+					.eq(ComputeTask.COMPUTERUN, run).and()
+					.eq(ComputeTask.NAME, task.getName()));
+
+			ComputeTask computeTask = computeTasks2.iterator().next();
+
+
+			for (Map.Entry<String, Object> param : task.getParameters().entrySet())
+			{
+				ComputeParameterValue computeParameterValue = new ComputeParameterValue();
+				computeParameterValue.setComputeTask(computeTask);
+				computeParameterValue.setName(param.getKey());
+				if (param.getValue() != null)
+				{
+					computeParameterValue.setValue(param.getValue().toString());
+				}
+
+				dataService.add(ComputeParameterValue.ENTITY_NAME, computeParameterValue);
 
 				if (LOG.isDebugEnabled())
 				{
-					LOG.debug("Added task [" + task.getName() + "]");
+					LOG.debug("Added parameter [" + param.getKey() + "]");
 				}
 			}
-
-			// Set prev tasks
-			for (Task task : tasks)
-			{
-				ComputeTask computeTask = ComputeTask.findByNameComputeRun(database, task.getName(), run.getId());
-
-				List<ComputeTask> prevTasks = new ArrayList<ComputeTask>();
-				for (String prevTaskName : task.getPreviousTasks())
-				{
-					ComputeTask prevTask = ComputeTask.findByNameComputeRun(database, prevTaskName, run.getId());
-					if (prevTask == null)
-					{
-						throw new ComputeDbException("Previous task [" + prevTaskName + "]  not found");
-					}
-
-					prevTasks.add(prevTask);
-				}
-
-				if (!prevTasks.isEmpty())
-				{
-					computeTask.setPrevSteps(prevTasks);
-				}
-				database.update(computeTask);
-
-				if (LOG.isDebugEnabled())
-				{
-					LOG.debug("Set prevSteps for [" + task.getName() + "]");
-				}
-			}
-
-			// Add parameters
-			for (Task task : tasks)
-			{
-				ComputeTask computeTask = ComputeTask.findByNameComputeRun(database, task.getName(), run.getId());
-
-				for (Map.Entry<String, Object> param : task.getParameters().entrySet())
-				{
-					ComputeParameterValue computeParameterValue = new ComputeParameterValue();
-					computeParameterValue.setComputeTask(computeTask);
-					computeParameterValue.setName(param.getKey());
-					if (param.getValue() != null)
-					{
-						computeParameterValue.setValue(param.getValue().toString());
-					}
-
-					database.add(computeParameterValue);
-
-					if (LOG.isDebugEnabled())
-					{
-						LOG.debug("Added parameter [" + param.getKey() + "]");
-					}
-				}
-			}
-
-			database.commitTx();
-
-			LOG.info("Create new run [" + name + "] done");
-
-			return run;
-		}
-		catch (DatabaseException e)
-		{
-			try
-			{
-				database.rollbackTx();
-			}
-			catch (DatabaseException e1)
-			{
-				LOG.error("Exception rollback transaction create ComputeRun", e1);
-			}
-
-			String msg = "DatabaseException starting creating ComputeRun with name [" + name + "] : " + e.getMessage();
-			LOG.error(msg, e);
-			throw new ComputeDbException(msg, e);
 		}
 
+		LOG.info("New run [" + name + "] is created");
+
+		return run;
 	}
 
 	/**
 	 * Start pilots
-	 * 
+	 *
 	 * @param runName
 	 * @param username
 	 * @param password
 	 */
 	public void start(String runName, String username, String password)
 	{
-		try
-		{
-			ComputeRun run = ComputeRun.findByName(database, runName);
-			if (run == null)
-			{
-				throw new ComputeDbException("Unknown run name [" + runName + "]");
-			}
+		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeRun.NAME, runName));
 
-            run.setIsSubmittingPilots(true);
-            database.update(run);
-
-            scheduler.schedule(run, username, password);
-		}
-		catch (DatabaseException e)
+		if (run == null)
 		{
-			String msg = "DatabaseException starting run with name [" + runName + "] : " + e.getMessage();
-			LOG.error(msg, e);
-			throw new ComputeDbException(msg, e);
+			throw new ComputeDbException("Unknown run name [" + runName + "]");
 		}
+
+		run.setIsSubmittingPilots(true);
+		dataService.update(ComputeRun.ENTITY_NAME, run);
+		scheduler.schedule(run.getName(), username, password);
+
 	}
 
 	/**
 	 * Stop database polling
-     *
+	 *
 	 * @param runName
 	 */
 	public void stop(String runName)
 	{
-		try
+		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeRun.NAME, runName));
+		if (run == null)
 		{
-			ComputeRun run = ComputeRun.findByName(database, runName);
-			if (run == null)
-			{
-				throw new ComputeDbException("Unknown run name [" + runName + "]");
-			}
-
-			LOG.debug(">> In RunService:stop");
-			scheduler.unschedule(run.getId());
-
-            run.setIsSubmittingPilots(false);
-            database.update(run);
-        }
-		catch (DatabaseException e)
-		{
-			String msg = "DatabaseException stopping run with name [" + runName + "] : " + e.getMessage();
-			LOG.error(msg, e);
-			throw new ComputeDbException(msg, e);
+			throw new ComputeDbException("Unknown run name [" + runName + "]");
 		}
+
+		LOG.debug(">> In RunService:stop");
+		scheduler.unschedule(run.getId());
+
+		run.setIsSubmittingPilots(false);
+		dataService.update(ComputeRun.ENTITY_NAME, run);
 	}
 
-    /**
-     * Activate run for execution
-     *
-     * @param runName
-     */
-    public void activate(String runName)
-    {
-        try
-        {
-            ComputeRun run = ComputeRun.findByName(database, runName);
-            if (run == null)
-            {
-                throw new ComputeDbException("Unknown run name [" + runName + "]");
-            }
+	/**
+	 * Activate run for execution
+	 *
+	 * @param runName
+	 */
+	public void activate(String runName)
+	{
 
-            run.setIsActive(true);
-            database.update(run);
-        }
-        catch (DatabaseException e)
-        {
-            String msg = "DatabaseException stopping run with name [" + runName + "] : " + e.getMessage();
-            LOG.error(msg, e);
-            throw new ComputeDbException(msg, e);
-        }
-    }
+		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeRun.NAME, runName));
+		if (run == null)
+		{
+			throw new ComputeDbException("Unknown run name [" + runName + "]");
+		}
 
-    /**
-     * Inactivate run for execution
-     *
-     * @param runName
-     */
-    public void inactivate(String runName)
-    {
-        try
-        {
-            ComputeRun run = ComputeRun.findByName(database, runName);
-            if (run == null)
-            {
-                throw new ComputeDbException("Unknown run name [" + runName + "]");
-            }
+		run.setIsActive(true);
+		dataService.update(ComputeRun.ENTITY_NAME, run);
 
-            run.setIsActive(false);
-            run.setIsSubmittingPilots(false);
-            database.update(run);
-        }
-        catch (DatabaseException e)
-        {
-            String msg = "DatabaseException stopping run with name [" + runName + "] : " + e.getMessage();
-            LOG.error(msg, e);
-            throw new ComputeDbException(msg, e);
-        }
-    }
+	}
+
+	/**
+	 * Inactivate run for execution
+	 *
+	 * @param runName
+	 */
+	public void inactivate(String runName)
+	{
+
+		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeRun.NAME, runName));
+		if (run == null)
+		{
+			throw new ComputeDbException("Unknown run name [" + runName + "]");
+		}
+
+//		scheduler.unschedule(run.getId());
+		run.setIsActive(false);
+		run.setIsSubmittingPilots(false);
+		dataService.update(ComputeRun.ENTITY_NAME, run);
+
+	}
 
 
-    /**
+	/**
 	 * Check is a run is currently running
-	 * 
+	 *
 	 * @param runName
 	 * @return
 	 */
 	public boolean isRunning(String runName)
 	{
-		try
+		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeRun.NAME, runName));
+		if (run == null)
 		{
-			ComputeRun run = ComputeRun.findByName(database, runName);
-			if (run == null)
-			{
-				throw new ComputeDbException("Unknown run name [" + runName + "]");
-			}
+			throw new ComputeDbException("Unknown run name [" + runName + "]");
+		}
 
-            return run.getIsActive();
-			//return scheduler.isRunning(run.getId());
-		}
-		catch (DatabaseException e)
-		{
-			String msg = "DatabaseException check running for run  [" + runName + "] : " + e.getMessage();
-			LOG.error(msg, e);
-			throw new ComputeDbException(msg, e);
-		}
+		return run.getIsActive();
 	}
 
-    /**
-     * Check is a run is currently submitting pilots
-     *
-     * @param runName
-     * @return
-     */
-    public boolean isSubmitting(String runName)
-    {
-        try
-        {
-            ComputeRun run = ComputeRun.findByName(database, runName);
-            if (run == null)
-            {
-                throw new ComputeDbException("Unknown run name [" + runName + "]");
-            }
+	/**
+	 * Check is a run is currently submitting pilots
+	 *
+	 * @param runName
+	 * @return
+	 */
+	public boolean isSubmitting(String runName)
+	{
 
-            return run.getIsSubmittingPilots();
-        }
-        catch (DatabaseException e)
-        {
-            String msg = "DatabaseException check running for run  [" + runName + "] : " + e.getMessage();
-            LOG.error(msg, e);
-            throw new ComputeDbException(msg, e);
-        }
-    }
+		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeRun.NAME, runName));
+		if (run == null)
+		{
+			throw new ComputeDbException("Unknown run name [" + runName + "]");
+		}
 
-    /**
-     * Check is a run is complete
-     *
-     * @param runName
-     * @return
-     */
-    public boolean isComplete(String runName)
-    {
-        try
-        {
-            ComputeRun run = ComputeRun.findByName(database, runName);
-            if (run == null)
-            {
-                throw new ComputeDbException("Unknown run name [" + runName + "]");
-            }
+		return run.getIsSubmittingPilots();
+	}
 
-            return run.getIsDone();
-        }
-        catch (DatabaseException e)
-        {
-            String msg = "DatabaseException check completeness for run  [" + runName + "] : " + e.getMessage();
-            LOG.error(msg, e);
-            throw new ComputeDbException(msg, e);
-        }
-    }
+	/**
+	 * Check is a run is complete
+	 *
+	 * @param runName
+	 * @return
+	 */
+	public boolean isComplete(String runName)
+	{
+		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeRun.NAME, runName));
+		if (run == null)
+		{
+			throw new ComputeDbException("Unknown run name [" + runName + "]");
+		}
+
+		return run.getIsDone();
+	}
 
 	/**
 	 * Check is a run is cancelled
@@ -378,152 +328,117 @@ public class RunService
 	 */
 	public boolean isCancelled(String runName)
 	{
-		try
+		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeRun.NAME, runName));
+		if (run == null)
 		{
-			ComputeRun run = ComputeRun.findByName(database, runName);
-			if (run == null)
-			{
-				throw new ComputeDbException("Unknown run name [" + runName + "]");
-			}
+			throw new ComputeDbException("Unknown run name [" + runName + "]");
+		}
 
-			return run.getIsCancelled();
-		}
-		catch (DatabaseException e)
-		{
-			String msg = "DatabaseException check cancellation for run  [" + runName + "] : " + e.getMessage();
-			LOG.error(msg, e);
-			throw new ComputeDbException(msg, e);
-		}
+		return run.getIsCancelled();
 	}
-
 
 
 	/**
 	 * Get the status of all tasks of a run
-	 * 
+	 *
 	 * @param runName
 	 * @return
 	 */
 	public RunStatus getStatus(String runName)
 	{
-		try
+		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeRun.NAME, runName));
+		if (run == null)
 		{
-			ComputeRun run = ComputeRun.findByName(database, runName);
-			if (run == null)
-			{
-				throw new ComputeDbException("Unknown run name [" + runName + "]");
-			}
-
-			int generated = getTaskStatusCount(run.getId(), MolgenisPilotService.TASK_GENERATED);
-			int ready = getTaskStatusCount(run.getId(), MolgenisPilotService.TASK_READY);
-			int running = getTaskStatusCount(run.getId(), MolgenisPilotService.TASK_RUNNING);
-			int failed = getTaskStatusCount(run.getId(), MolgenisPilotService.TASK_FAILED);
-			int done = getTaskStatusCount(run.getId(), MolgenisPilotService.TASK_DONE);
-			int cancelled = getTaskStatusCount(run.getId(), MolgenisPilotService.TASK_CANCELLED);
-
-            int submitted = run.getPilotsSubmitted();
-            int started = run.getPilotsStarted();
-
-            boolean status = false;
-
-            if((generated == 0) && (ready == 0) && (running == 0) && (failed == 0) && (cancelled == 0))
-            {
-                status = true;
-                run.setIsDone(true);
-                database.update(run);
-            }
-            return new RunStatus(generated, ready, running, failed, done, cancelled, submitted, started, status);
+			throw new ComputeDbException("Unknown run name [" + runName + "]");
 		}
-		catch (DatabaseException e)
+
+		int generated = getTaskStatusCount(run, MolgenisPilotService.TASK_GENERATED);
+		int ready = getTaskStatusCount(run, MolgenisPilotService.TASK_READY);
+		int running = getTaskStatusCount(run, MolgenisPilotService.TASK_RUNNING);
+		int failed = getTaskStatusCount(run, MolgenisPilotService.TASK_FAILED);
+		int done = getTaskStatusCount(run, MolgenisPilotService.TASK_DONE);
+		int cancelled = getTaskStatusCount(run, MolgenisPilotService.TASK_CANCELLED);
+
+		int submitted = run.getPilotsSubmitted();
+		int started = run.getPilotsStarted();
+
+		boolean status = false;
+
+		if ((generated == 0) && (ready == 0) && (running == 0) && (failed == 0) && (cancelled == 0))
 		{
-			String msg = "DatabaseException getting status for run  [" + runName + "] : " + e.getMessage();
-			LOG.error(msg, e);
-			throw new ComputeDbException(msg, e);
+			status = true;
+			run.setIsDone(true);
+			dataService.update(ComputeRun.ENTITY_NAME, run);
 		}
+		return new RunStatus(generated, ready, running, failed, done, cancelled, submitted, started, status);
 	}
 
 	/**
 	 * Resubmit all failed tasks of a run
-	 * 
+	 *
 	 * @param runName
 	 * @return the number of resubmitted failed tasks
 	 */
 	public int resubmitFailedTasks(String runName)
 	{
 		LOG.info("Resubmit failed tasks for run [" + runName + "]");
-		try
+
+		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeRun.NAME, runName));
+
+		Iterable<ComputeTask> tasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeTask.STATUSCODE, MolgenisPilotService.TASK_FAILED).and()
+				.eq(ComputeTask.COMPUTERUN, run));
+
+		if (!tasks.iterator().hasNext())
 		{
-			List<ComputeTask> tasks = database.query(ComputeTask.class)
-					.equals(ComputeTask.STATUSCODE, MolgenisPilotService.TASK_FAILED).and()
-					.equals(ComputeTask.COMPUTERUN_NAME, runName).find();
-
-			if (tasks.isEmpty())
-			{
-				return 0;
-			}
-
-			for (ComputeTask task : tasks)
-			{
-				// mark job as generated
-				// entry to history is added by ComputeTaskDecorator
-				task.setStatusCode("generated");
-				task.setRunLog(null);
-				task.setRunInfo(null);
-
-				LOG.info("Task [" + task.getName() + "] changed from failed to generated");
-			}
-
-			database.update(tasks);
-
-			return tasks.size();
+			return 0;
 		}
-		catch (DatabaseException e)
+
+		int numberOfTasks = 0;
+		for (ComputeTask task : tasks)
 		{
-			try
-			{
-				database.rollbackTx();
-			}
-			catch (DatabaseException e1)
-			{
-				LOG.error("Exception rollback transaction resubmitFailedTasks", e1);
-			}
+			numberOfTasks++;
+			// mark job as generated
+			// entry to history is added by ComputeTaskDecorator
+			task.setStatusCode("generated");
+			task.setRunLog(null);
+			task.setRunInfo(null);
 
-			String msg = "DatabaseException resubmitting failed tasks for run  [" + runName + "] : " + e.getMessage();
-			LOG.error(msg, e);
-			throw new ComputeDbException(msg, e);
+			LOG.info("Task [" + task.getName() + "] changed from failed to generated");
 		}
+
+		dataService.update(ComputeTask.ENTITY_NAME, tasks);
+
+		return numberOfTasks;
 	}
 
 	/**
 	 * Remove a run from the dashboard (not from the database)
-	 * 
+	 *
 	 * @param runName
 	 */
 	public void removeFromDashboard(String runName)
 	{
-		try
+		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeRun.NAME, runName));
+		if (run == null)
 		{
-			ComputeRun run = ComputeRun.findByName(database, runName);
-			if (run == null)
-			{
-				throw new ComputeDbException("Unknown run name [" + runName + "]");
-			}
+			throw new ComputeDbException("Unknown run name [" + runName + "]");
+		}
 
-			run.setShowInDashboard(false);
-			database.update(run);
-		}
-		catch (DatabaseException e)
-		{
-			String msg = "DatabaseException removing  [" + runName + "] from dashboard";
-			LOG.error(msg, e);
-			throw new ComputeDbException(msg, e);
-		}
+		run.setShowInDashboard(false);
+		dataService.update(ComputeRun.ENTITY_NAME, run);
 	}
 
-	private int getTaskStatusCount(Integer runId, String status) throws DatabaseException
+	private int getTaskStatusCount(ComputeRun run, String status)
 	{
-		return database.query(ComputeTask.class).eq(ComputeTask.COMPUTERUN, runId).and()
-				.eq(ComputeTask.STATUSCODE, status).count();
+		Iterable<ComputeTask> computeTasks =
+				dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl().eq(ComputeTask.COMPUTERUN, run).and()
+						.eq(ComputeTask.STATUSCODE, status));
+		return ((Collection<?>) computeTasks).size();
 	}
 
 	/**
@@ -534,41 +449,34 @@ public class RunService
 	 */
 	public void cancel(String runName)
 	{
-		try
+		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeRun.NAME, runName));
+		if (run == null)
 		{
-			ComputeRun run = ComputeRun.findByName(database, runName);
-			if (run == null)
-			{
-				throw new ComputeDbException("Unknown run name [" + runName + "]");
-			}
-
-			run.setIsCancelled(true);
-			database.update(run);
-
-			List<QueryRule> listOfQueryRules = new ArrayList<QueryRule>();
-
-			List<String> statuses = new ArrayList<String>();
-			statuses.add(MolgenisPilotService.TASK_RUNNING);
-			statuses.add(MolgenisPilotService.TASK_GENERATED);
-			statuses.add(MolgenisPilotService.TASK_READY);
-
-			listOfQueryRules.add(new QueryRule(ComputeTask.COMPUTERUN_NAME, QueryRule.Operator.EQUALS,run.getName()));
-			listOfQueryRules.add(new QueryRule(ComputeTask.STATUSCODE, QueryRule.Operator.IN, statuses));
-
-			List<ComputeTask> listTask = database.find(ComputeTask.class, new QueryRule(listOfQueryRules));
-
-			for(ComputeTask task: listTask)
-			{
-				task.setStatusCode(MolgenisPilotService.TASK_CANCELLED);
-				database.update(task);
-			}
-
+			throw new ComputeDbException("Unknown run name [" + runName + "]");
 		}
-		catch (DatabaseException e)
+
+		run.setIsCancelled(true);
+		dataService.update(ComputeRun.ENTITY_NAME, run);
+
+		List<String> statuses = new ArrayList<String>();
+		statuses.add(MolgenisPilotService.TASK_RUNNING);
+		statuses.add(MolgenisPilotService.TASK_GENERATED);
+		statuses.add(MolgenisPilotService.TASK_READY);
+
+		Query q = new QueryImpl()
+				.eq(ComputeTask.COMPUTERUN, run.getName())
+				.and().in(ComputeTask.STATUSCODE, statuses);
+
+
+		Iterable<ComputeTask> listTask = dataService
+				.findAll(ComputeTask.ENTITY_NAME, q);
+
+		for (ComputeTask task : listTask)
 		{
-			String msg = "DatabaseException cancelling run with name [" + runName + "] : " + e.getMessage();
-			LOG.error(msg, e);
-			throw new ComputeDbException(msg, e);
+			task.setStatusCode(MolgenisPilotService.TASK_CANCELLED);
+			dataService.update(ComputeTask.ENTITY_NAME, task);
 		}
+
 	}
 }

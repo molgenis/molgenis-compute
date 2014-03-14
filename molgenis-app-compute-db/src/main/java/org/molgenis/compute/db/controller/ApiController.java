@@ -3,8 +3,11 @@ package org.molgenis.compute.db.controller;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
+import com.google.common.collect.Iterables;
 import org.apache.log4j.Logger;
 import org.molgenis.compute.db.service.RunService;
 import org.molgenis.compute.runtime.ComputeBackend;
@@ -19,7 +22,7 @@ import org.molgenis.compute5.db.api.RunStatusRequest;
 import org.molgenis.compute5.db.api.RunStatusResponse;
 import org.molgenis.compute5.db.api.StartRunRequest;
 import org.molgenis.compute5.db.api.StopRunRequest;
-import org.molgenis.framework.db.Database;
+import org.molgenis.data.DataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
@@ -31,6 +34,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
+
+import javax.annotation.Nullable;
 
 /**
  * Json api for all compute db commands
@@ -45,10 +50,10 @@ public class ApiController
 {
 	private static final Logger LOG = Logger.getLogger(ApiController.class);
 	private final RunService runService;
-	private final Database database;
+	private final DataService database;
 
 	@Autowired
-	public ApiController(RunService runService, Database database)
+	public ApiController(RunService runService, DataService database)
 	{
 		this.runService = runService;
 		this.database = database;
@@ -173,15 +178,17 @@ public class ApiController
 		GetBackendsResponse response = new GetBackendsResponse();
 		try
 		{
-			List<ComputeBackend> computeBackends = database.find(ComputeBackend.class);
-			List<Backend> backends = Lists.transform(computeBackends, new Function<ComputeBackend, Backend>()
+			Iterable<ComputeBackend> itComputeBackends = database.findAll(ComputeBackend.ENTITY_NAME);
+
+			List<Backend> backends = Lists.newArrayList(Iterables.transform(itComputeBackends, new Function<ComputeBackend, Backend>()
 			{
+				@Nullable
 				@Override
-				public Backend apply(ComputeBackend cb)
+				public Backend apply(@Nullable ComputeBackend cb)
 				{
 					return new Backend(cb.getName(), cb.getBackendUrl(), cb.getHostType(), cb.getCommand());
 				}
-			});
+			}));
 
 			response.setBackends(backends);
 		}

@@ -7,21 +7,22 @@ import java.util.*;
 import org.apache.log4j.Logger;
 import org.molgenis.compute5.ComputeProperties;
 import org.molgenis.compute5.model.*;
-import org.molgenis.util.tuple.KeyValueTuple;
-import org.molgenis.util.tuple.Tuple;
-import org.molgenis.util.tuple.WritableTuple;
+import org.molgenis.data.Entity;
+import org.molgenis.data.support.MapEntity;
+
 
 public class TaskGenerator
 {
-	private List<WritableTuple> globalParameters = null;
+	private List<MapEntity> globalParameters = null;
 	private HashMap<String, String> environment = null;
 	private Workflow workflow = null;
 
 	private static final Logger LOG = Logger.getLogger(TaskGenerator.class);
-
-
+	private Compute compute;
+	private StringBuilder parameterHeader = null;
 	public List<Task> generate(Compute compute) throws IOException
 	{
+		this.compute = compute;
 		workflow = compute.getWorkflow();
 		Parameters parameters = compute.getParameters();
 		ComputeProperties computeProperties = compute.getComputeProperties();
@@ -34,7 +35,7 @@ public class TaskGenerator
 		{
 
 			// map global to local parameters
-			List<WritableTuple> localParameters = mapGlobalToLocalParameters(globalParameters, step);
+			List<MapEntity> localParameters = mapGlobalToLocalParameters(globalParameters, step);
 
 			// collapse parameter values
 			localParameters = collapseOnTargets(localParameters, step);
@@ -62,12 +63,12 @@ public class TaskGenerator
 
 	}
 
-	private Collection<? extends Task> generateTasks(Step step, List<WritableTuple> localParameters,
+	private Collection<? extends Task> generateTasks(Step step, List<MapEntity> localParameters,
 			Workflow workflow, ComputeProperties computeProperties) throws IOException
 	{
 		List<Task> tasks = new ArrayList<Task>();
 
-		for (WritableTuple target : localParameters)
+		for (MapEntity target : localParameters)
 		{
 			Task task = new Task(target.getString(Task.TASKID_COLUMN));
 
@@ -90,7 +91,7 @@ public class TaskGenerator
 					step.setJobName(id, task.getName());
 				}
 
-				StringBuilder parameterHeader = new StringBuilder();
+				parameterHeader = new StringBuilder();
 				parameterHeader.append("\n#\n## Generated header\n#\n");
 				
 				// now source the task's parameters from each prevStep.env on
@@ -144,98 +145,47 @@ public class TaskGenerator
 				// now couple input parameters to parameters in sourced
 				// environment
 				Vector<String> presentStrings = new Vector<String>();
+				List<Input> listInputsToFoldNew = new ArrayList<Input>();
+				Hashtable<String, String> foreachParameters = new Hashtable<String, String>();
 				for (Input input : step.getProtocol().getInputs())
 				{
-					String parameterName = input.getName();
-
-					List<String> rowIndex = target.getList(Parameters.ID_COLUMN);
-					for (int i = 0; i < rowIndex.size(); i++)
+					if(input.getType().equalsIgnoreCase(Parameters.LIST_INPUT) &&
+							!input.isFoldingTypeUniqueCombination() &&
+							compute.getParametersContainer().isMultiParametersFiles())
 					{
-						Object rowIndexObject = rowIndex.get(i);
-						String rowIndexString = rowIndexObject.toString();
+						//a new way of folding
+						//take list of parameters from initial parameter list, where values are the same as for eachOne
+						listInputsToFoldNew.add(input);
+						continue;
+					}
+					//good all folding
+					else
+					{
+						String parameterName = input.getName();
 
-						String value = null;
-						String parameterMapping = step.getParametersMapping().get(parameterName);
-						if(parameterMapping != null)
+						List<String> rowIndex = target.getList(Parameters.ID_COLUMN);
+						for (int i = 0; i < rowIndex.size(); i++)
 						{
-							//parameter is mapped locally
-							value = parameterMapping;
+							Object rowIndexObject = rowIndex.get(i);
+							String rowIndexString = rowIndexObject.toString();
 
-							if(input.isKnownRunTime())
-								value = value.replace(Parameters.STEP_PARAM_SEP_PROTOCOL,
-										Parameters.STEP_PARAM_SEP_SCRIPT);
-							else
-								value = EnvironmentGenerator.GLOBAL_PREFIX + value;
-
-//								left in code for paper (SGW)
-//								parameterHeader += parameterName + "[" + i + "]=${" + value + "[" + rowIndexString
-//										+ "]}\n";
-
-							String type = input.getType();
-
-							String left = null;
-							if(type.equalsIgnoreCase(Input.TYPE_STRING))
+							String value = null;
+							String parameterMapping = step.getParametersMapping().get(parameterName);
+							if(parameterMapping != null)
 							{
-								left = parameterName;
-								if(presentStrings.contains(left))
-									continue;
+								//parameter is mapped locally
+								value = parameterMapping;
+
+								if(input.isKnownRunTime())
+									value = value.replace(Parameters.STEP_PARAM_SEP_PROTOCOL,
+											Parameters.STEP_PARAM_SEP_SCRIPT);
 								else
-									presentStrings.add(left);
-							}
-							else
-								left = parameterName + "[" + i + "]";
+									value = EnvironmentGenerator.GLOBAL_PREFIX + value;
 
-							String right = value + "[" + rowIndexString + "]";
-							if(right.startsWith(EnvironmentGenerator.GLOBAL_PREFIX))
-							{
-								right = right.substring(EnvironmentGenerator.GLOBAL_PREFIX.length());
-								String realValue = environment.get(right);
-								parameterHeader.append(left).append("=").append("\"").append(realValue).append("\"\n");
-							}
-							else
-							{
-								//leave old style (runtime parameter)
-								parameterHeader.append(left).append("=${").append(value).append("[").append(rowIndexString)
-										.append("]}\n");
-							}
-						}
-						else
-						{
-							if(step.hasParameter(parameterName))
-							{
-								value = parameterName;
+	//								left in code for paper (SGW)
+	//								parameterHeader += parameterName + "[" + i + "]=${" + value + "[" + rowIndexString
+	//										+ "]}\n";
 
-								Object oValue = map.get(parameterName);
-
-								if(oValue instanceof String)
-								{
-									if(input.isKnownRunTime())
-									{
-										value = parameterName;
-										value = value.replaceFirst(Parameters.UNDERSCORE,
-												Parameters.STEP_PARAM_SEP_SCRIPT);
-									}
-									else
-									{
-										value = EnvironmentGenerator.GLOBAL_PREFIX + value;
-									}
-								}
-								else if (oValue instanceof ArrayList)
-								{
-									if(input.isKnownRunTime())
-									{
-										value = (String) ((ArrayList) oValue).get(i);
-										value = value.replaceFirst(Parameters.UNDERSCORE,
-												Parameters.STEP_PARAM_SEP_SCRIPT);
-									}
-									else
-									{
-										value = EnvironmentGenerator.GLOBAL_PREFIX + value;
-									}
-								}
-//								left in code for paper (SGW)
-//								parameterHeader += parameterName + "[" + i + "]=${" + value + "[" + rowIndexString
-//										+ "]}\n";
 								String type = input.getType();
 
 								String left = null;
@@ -256,17 +206,87 @@ public class TaskGenerator
 									right = right.substring(EnvironmentGenerator.GLOBAL_PREFIX.length());
 									String realValue = environment.get(right);
 									parameterHeader.append(left).append("=").append("\"").append(realValue).append("\"\n");
+									foreachParameters.put(left,realValue);
 								}
 								else
 								{
 									//leave old style (runtime parameter)
-									parameterHeader.append(left).append("=${")
-											.append(value).append("[").append(rowIndexString).append("]}\n");
+									parameterHeader.append(left).append("=${").append(value).append("[").append(rowIndexString)
+											.append("]}\n");
+								}
+							}
+							else
+							{
+								if(step.hasParameter(parameterName))
+								{
+									value = parameterName;
+
+									Object oValue = map.get(parameterName);
+
+									if(oValue instanceof String)
+									{
+										if(input.isKnownRunTime())
+										{
+											value = parameterName;
+											value = value.replaceFirst(Parameters.UNDERSCORE,
+													Parameters.STEP_PARAM_SEP_SCRIPT);
+										}
+										else
+										{
+											value = EnvironmentGenerator.GLOBAL_PREFIX + value;
+										}
+									}
+									else if (oValue instanceof ArrayList)
+									{
+										if(input.isKnownRunTime())
+										{
+											value = (String) ((ArrayList) oValue).get(i);
+											value = value.replaceFirst(Parameters.UNDERSCORE,
+													Parameters.STEP_PARAM_SEP_SCRIPT);
+										}
+										else
+										{
+											value = EnvironmentGenerator.GLOBAL_PREFIX + value;
+										}
+									}
+	//								left in code for paper (SGW)
+	//								parameterHeader += parameterName + "[" + i + "]=${" + value + "[" + rowIndexString
+	//										+ "]}\n";
+									String type = input.getType();
+
+									String left = null;
+									if(type.equalsIgnoreCase(Input.TYPE_STRING))
+									{
+										left = parameterName;
+										if(presentStrings.contains(left))
+											continue;
+										else
+											presentStrings.add(left);
+									}
+									else
+										left = parameterName + "[" + i + "]";
+
+									String right = value + "[" + rowIndexString + "]";
+									if(right.startsWith(EnvironmentGenerator.GLOBAL_PREFIX))
+									{
+										right = right.substring(EnvironmentGenerator.GLOBAL_PREFIX.length());
+										String realValue = environment.get(right);
+										parameterHeader.append(left).append("=").append("\"").append(realValue).append("\"\n");
+										foreachParameters.put(left,realValue);
+									}
+									else
+									{
+										//leave old style (runtime parameter)
+										parameterHeader.append(left).append("=${")
+												.append(value).append("[").append(rowIndexString).append("]}\n");
+									}
 								}
 							}
 						}
 					}
 				}
+
+				foldNew(listInputsToFoldNew, foreachParameters);
 
 				parameterHeader.append("\n# Validate that each 'value' parameter has only identical values in its list\n")
 						.append("# We do that to protect you against parameter values that might not be correctly set at runtime.\n");
@@ -290,7 +310,6 @@ public class TaskGenerator
 					}
 				}
 				parameterHeader.append("\n#\n## Start of your protocol template\n#\n\n");
-
 
 				String script = step.getProtocol().getTemplate();
 
@@ -373,7 +392,39 @@ public class TaskGenerator
 		return tasks;
 	}
 
-	private String weaveProtocol(Protocol protocol, HashMap<String, String> environment, WritableTuple target)
+	private void foldNew(List<Input> list, Hashtable<String, String> foreachParameters)
+	{
+		for(Input input : list)
+		{
+			ParametersFolderNieuwe originalParameters = compute.getParametersContainer();
+			int timeParameterFind = originalParameters.isParameterFindTimes(input.getName());
+
+			if(timeParameterFind == 1)
+			{
+				String name = input.getName();
+				List<String> foldedList = originalParameters.foldingNieuwe(name, foreachParameters);
+
+				for(int i = 0; i < foldedList.size(); i++)
+				{
+					String value = foldedList.get(i);
+					parameterHeader.append(name).append("[").append(i).append("]").append("=").append("\"").append(value).append("\"\n");
+
+				}
+			}
+			else if(timeParameterFind > 1)
+			{
+				LOG.error("PARAMETER [" + input.getName() + "] comes is a list, which " +
+						"requires simple way of folding, but comes from several parameter files");
+			}
+			else if(timeParameterFind == 0)
+			{
+				LOG.warn("PARAMETER [" + input.getName() + "] does not found in design time files, " +
+						"maybe it is the run time list parameter");
+			}
+		}
+	}
+
+	private String weaveProtocol(Protocol protocol, HashMap<String, String> environment, MapEntity target)
 	{
 		String template = protocol.getTemplate();
 		Hashtable<String, String> values = new Hashtable<String, String>();
@@ -456,10 +507,10 @@ public class TaskGenerator
 		return script + "\n" + appendString;
 	}
 
-	private List<WritableTuple> addStepIds(List<WritableTuple> localParameters, Step step)
+	private List<MapEntity> addStepIds(List<MapEntity> localParameters, Step step)
 	{
 		int stepId = 0;
-		for (WritableTuple target : localParameters)
+		for (MapEntity target : localParameters)
 		{
 			String name = step.getName() + "_" + stepId;
 			target.set(Task.TASKID_COLUMN, name);
@@ -468,31 +519,31 @@ public class TaskGenerator
 		return localParameters;
 	}
 
-	private void addLocalToGlobalParameters(Step step, List<WritableTuple> localParameters)
+	private void addLocalToGlobalParameters(Step step, List<MapEntity> localParameters)
 	{
 		for (int i = 0; i < localParameters.size(); i++)
 		{
-			WritableTuple local = localParameters.get(i);
+			MapEntity local = localParameters.get(i);
 
-			for (String localName : local.getColNames())
+			for (String localName : local.getAttributeNames())
 			{
 				if (!localName.contains(Parameters.UNDERSCORE))
 				{
-					WritableTuple tuple = globalParameters.get(i);
+					MapEntity tuple = globalParameters.get(i);
 					tuple.set(step.getName() + Parameters.UNDERSCORE + localName, local.get(localName));
 				}
 			}
 		}
 	}
 
-	private List<WritableTuple> addResourceValues(Step step, List<WritableTuple> localParameters)
+	private List<MapEntity> addResourceValues(Step step, List<MapEntity> localParameters)
 	{
 		// try
 		// {
-		for (WritableTuple target : localParameters)
+		for (MapEntity target : localParameters)
 		{
 			// add parameters for resource management:
-			Tuple defaultResousesMap = globalParameters.get(0);
+			Entity defaultResousesMap = globalParameters.get(0);
 
 			//choices to get value for resources
 			//1. get from protocol
@@ -564,7 +615,7 @@ public class TaskGenerator
 		return localParameters;
 	}
 
-	private List<WritableTuple> collapseOnTargets(List<WritableTuple> localParameters, Step step)
+	private List<MapEntity> collapseOnTargets(List<MapEntity> localParameters, Step step)
 	{
 
 		List<String> targets = new ArrayList<String>();
@@ -586,19 +637,19 @@ public class TaskGenerator
 		}
 		else
 		{
-			List<WritableTuple> collapsed = TupleUtils.collapse(localParameters, targets);
+			List<MapEntity> collapsed = TupleUtils.collapse(localParameters, targets);
 			return collapsed;
 		}
 	}
 
-	private List<WritableTuple> mapGlobalToLocalParameters(List<WritableTuple> globalParameters, Step step)
+	private List<MapEntity> mapGlobalToLocalParameters(List<MapEntity> globalParameters, Step step)
 			throws IOException
 	{
-		List<WritableTuple> localParameters = new ArrayList<WritableTuple>();
+		List<MapEntity> localParameters = new ArrayList<MapEntity>();
 
-		for (Tuple global : globalParameters)
+		for (Entity global : globalParameters)
 		{
-			WritableTuple local = new KeyValueTuple();
+			MapEntity local = new MapEntity();
 
 			// include row number for later to enable uncollapse
 			local.set(Parameters.ID_COLUMN, global.get(Parameters.ID_COLUMN));
@@ -619,7 +670,7 @@ public class TaskGenerator
 				}
 
 				boolean found = false;
-				for (String col : global.getColNames())
+				for (String col : global.getAttributeNames())
 				{
 					if(!workflow.parameterHasStepPrefix(globalName))
 						parameterNameWithPrefix = Parameters.USER_PREFIX + globalName;

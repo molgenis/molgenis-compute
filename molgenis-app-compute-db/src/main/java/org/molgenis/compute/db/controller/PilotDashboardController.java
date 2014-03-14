@@ -4,29 +4,29 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
+import org.elasticsearch.search.suggest.Suggest;
 import org.molgenis.compute.db.ComputeDbException;
 import org.molgenis.compute.db.service.RunService;
 import org.molgenis.compute.runtime.ComputeRun;
 import org.molgenis.compute5.db.api.RunStatus;
-import org.molgenis.framework.db.Database;
+import org.molgenis.data.DataService;
+import org.molgenis.data.support.QueryImpl;
 import org.molgenis.framework.db.DatabaseException;
-import org.molgenis.framework.db.Query;
-import org.molgenis.framework.ui.MolgenisPlugin;
+import org.molgenis.framework.ui.MolgenisPluginController;
+import org.molgenis.security.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Start and stop pilots, show status
@@ -35,17 +35,17 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @Controller
 @RequestMapping(PilotDashboardController.URI)
-public class PilotDashboardController extends MolgenisPlugin
+public class PilotDashboardController extends MolgenisPluginController
 {
 	public static final String URI = "/plugin/dashboard";
 	private static final String VIEW_NAME = "PilotDashboard";
-	private final Database database;
+	private final DataService database;
 	private final RunService runService;
 	private static final Logger LOG = Logger.getLogger(PilotDashboardController.class);
 
 
 	@Autowired
-	public PilotDashboardController(Database database, RunService runService)
+	public PilotDashboardController(DataService database, RunService runService)
 	{
 		super(URI);
 		
@@ -54,7 +54,7 @@ public class PilotDashboardController extends MolgenisPlugin
 	}
 
 	@RequestMapping(method = RequestMethod.GET)
-	public String init(Model model) throws DatabaseException
+	public String init(Model model)
 	{
 		model.addAttribute("runs", getRunModels());
 		return VIEW_NAME;
@@ -64,23 +64,16 @@ public class PilotDashboardController extends MolgenisPlugin
 	public String start(@RequestParam("run")
 	String runName, @RequestParam("username")
 	String username, @RequestParam("password")
-	String password, Model model) throws IOException, DatabaseException
+	String password, Model model) throws IOException
 	{
-		try
-		{
-			runService.start(runName, username, password);
-		}
-		catch (ComputeDbException e)
-		{
-			model.addAttribute("errormessage", "Your credentials are not valid for the selected back-end!");
-			model.addAttribute("errortask", runName);
-		}
+		LOG.debug(">> In PilotDashboardController:start");
+		runService.start(runName, username, password);
 		return init(model);
 	}
 
 	@RequestMapping("/stop")
 	public String stop(@RequestParam("run")
-	String runName, Model model) throws DatabaseException
+	String runName, Model model)
 	{
 		LOG.debug(">> In PilotDashboardController:stop");
 		runService.stop(runName);
@@ -89,31 +82,31 @@ public class PilotDashboardController extends MolgenisPlugin
 
 	@RequestMapping("/close")
 	public String close(@RequestParam("run")
-	String runName, Model model) throws DatabaseException
+	String runName, Model model)
 	{
 		runService.removeFromDashboard(runName);
 		return init(model);
 	}
 
-    @RequestMapping("/activate")
+    @RequestMapping(value = "/activate", method = RequestMethod.POST)
     public String activate(@RequestParam("run")
-    String runName, Model model) throws DatabaseException
+    String runName, Model model)
     {
         runService.activate(runName);
         return init(model);
     }
 
-    @RequestMapping("/inactivate")
+    @RequestMapping(value = "/inactivate", method = RequestMethod.POST)
     public String inactivate(@RequestParam("run")
-    String runName, Model model) throws DatabaseException
+    String runName, Model model)
     {
-        runService.inactivate(runName);
-        return init(model);
+        	runService.inactivate(runName);
+        	return init(model);
     }
 
 	@RequestMapping("/cancel")
 	public String cancel(@RequestParam("run")
-	String runName, Model model) throws DatabaseException
+	String runName, Model model)
 	{
 		runService.cancel(runName);
 		return init(model);
@@ -122,7 +115,7 @@ public class PilotDashboardController extends MolgenisPlugin
 
 	@RequestMapping("/resubmit")
 	public String resubmitFailedTasks(@RequestParam("run")
-	String runName, Model model) throws DatabaseException
+	String runName, Model model)
 	{
 		int count = runService.resubmitFailedTasks(runName);
 		model.addAttribute("message", "Resubmitted " + count + " failed tasks for '" + runName + "'");
@@ -132,14 +125,14 @@ public class PilotDashboardController extends MolgenisPlugin
 	@RequestMapping(value = "/status", produces = APPLICATION_JSON_VALUE)
 	@ResponseBody
 	public ResponseEntity<RunStatus> status(@RequestParam("run")
-	String runName) throws DatabaseException
+	String runName)
 	{
 		RunStatus status = runService.getStatus(runName);
 		return new ResponseEntity<RunStatus>(status, HttpStatus.OK);
 	}
 
 	@ExceptionHandler(ComputeDbException.class)
-	public String showComputeDbException(ComputeDbException e, HttpServletRequest request) throws DatabaseException
+	public String showComputeDbException(ComputeDbException e, HttpServletRequest request)
 	{
 		request.setAttribute("runs", getRunModels());
 		request.setAttribute("error", e.getMessage());
@@ -147,19 +140,20 @@ public class PilotDashboardController extends MolgenisPlugin
 		return VIEW_NAME;
 	}
 
-	private List<RunModel> getRunModels() throws DatabaseException
+	private List<RunModel> getRunModels()
 	{
 		List<RunModel> runModels = new ArrayList<RunModel>();
 
-		Query<ComputeRun> runs = database.query(ComputeRun.class).eq(ComputeRun.SHOWINDASHBOARD, true)
-				.sortDESC("creationTime");
+		Iterable<ComputeRun> runs = database.findAll(ComputeRun.ENTITY_NAME,
+				new QueryImpl().eq(ComputeRun.SHOWINDASHBOARD, true).sort(new Sort("creationTime")));
 
-		String userLogin = database.getLogin().getUserName();
+		String userLogin = SecurityUtils.getCurrentUsername();
 
-		for (ComputeRun run : runs.find())
+		Iterator it = runs.iterator();
+		while (it.hasNext())
 		{
-
-			String runOwner = run.getOwner().getName();
+			ComputeRun run = (ComputeRun) it.next();
+			String runOwner = run.getOwner().getUsername();
 			boolean isSame = false;
 			if(userLogin.equalsIgnoreCase(runOwner))
 				isSame = true;

@@ -1,5 +1,6 @@
 package org.molgenis.compute.db.pilot;
 
+import com.google.common.io.CharStreams;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -8,18 +9,25 @@ import org.molgenis.compute.runtime.ComputeBackend;
 import org.molgenis.compute.runtime.ComputeRun;
 import org.molgenis.compute.runtime.ComputeTask;
 import org.molgenis.compute.runtime.Pilot;
+import org.molgenis.data.DataService;
+import org.molgenis.data.support.QueryImpl;
 import org.molgenis.framework.db.DatabaseException;
+import org.molgenis.security.runas.RunAsSystem;
 import org.molgenis.util.ApplicationContextProvider;
 import org.molgenis.util.ApplicationUtil;
-import org.molgenis.util.tuple.HttpServletRequestTuple;
+import org.springframework.beans.factory.annotation.Autowired;
+import javax.servlet.http.Part;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -58,6 +66,9 @@ public class MolgenisPilotService
 	private static final String IS_CANCELLED = "cancelled";
 	private static final String IS_NOT_CANCELLED = "not_cancelled";
 
+	@Autowired
+	private DataService dataService;
+
 	public MolgenisPilotService()
 	{
 		createLogDir();
@@ -77,34 +88,40 @@ public class MolgenisPilotService
 		}
 	}
 
+	@RunAsSystem
 	@RequestMapping(method = RequestMethod.POST, headers = "Content-Type=multipart/form-data")
-	public synchronized void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ParseException,
-			DatabaseException, IOException
+	public synchronized void analysePilotCall(HttpServletRequest request,
+											  @RequestParam String pilotid,
+											  @RequestParam(required = false) String host,
+											  @RequestParam String status,
+											  @RequestParam(required = false) String backend,
+											  @RequestParam(required = false) Part log_file,
+											  @RequestParam(required = false) Part output_file,
+											  HttpServletResponse response
+											 ) throws IOException
 	{
 
 		LOG.debug(">> In handleRequest!");
-		HttpServletRequestTuple tuple = new HttpServletRequestTuple(request);
 
-//		small code to read parameters directly from request
-//		BufferedReader reader = request.getReader();
-//		String test = CharStreams.toString(reader);
 
-		if ("started".equals(tuple.get("status").toString()))
+		if (status.equalsIgnoreCase("started"))
 		{
-			LOG.info("Checking pilot ID");
-			String pilotID = (String) tuple.get(PILOT_ID);
-			List<Pilot> pilots = ApplicationUtil.getDatabase().query(Pilot.class).eq(Pilot.VALUE, pilotID)
-					.and().eq(Pilot.STATUS, PILOT_SUBMITTED).find();
+			LOG.info("Checking pilot ID in start");
+			String pilotID = pilotid;
 
-			System.out.println(">>>>>>>>>>>>>>>>>>>> " + pilotID + " @ " + tuple.get("host"));
+			Iterable<Pilot> pilots = dataService.findAll(Pilot.ENTITY_NAME, new QueryImpl()
+					.eq(Pilot.VALUE, pilotID)
+					.and().eq(Pilot.STATUS, PILOT_SUBMITTED));
+
+			System.out.println(">>>>>>>>>>>>>>>>>>>> " + pilotID + " @ " + host + " @ " + backend);
 
 			Pilot pilot = null;
-			if(pilots.size() > 0)
+			if(pilots.iterator().hasNext())
 			{
-				LOG.info("Pilot value is correct");
-				pilot = pilots.get(0);
+				LOG.info("Pilot value is correct [" + pilotID + "] in start");
+				pilot = pilots.iterator().next();
 				pilot.setStatus(PILOT_USED);
-				ApplicationUtil.getDatabase().update(pilot);
+				dataService.update(Pilot.ENTITY_NAME, pilot);
 			}
 			else
 			{
@@ -112,17 +129,15 @@ public class MolgenisPilotService
 				return;
 			}
 
-			String backend = (String) tuple.get("backend");
+			Iterable<ComputeRun> computeRuns = dataService.findAll(ComputeRun.ENTITY_NAME, new QueryImpl()
+					.eq(ComputeBackend.NAME, pilot.getComputeRun().getName()));
 
-			List<ComputeRun> computeRuns = ApplicationUtil.getDatabase().query(ComputeRun.class)
-					.equals(ComputeBackend.NAME, pilot.getComputeRun().getName()).find();
-
-			if(computeRuns.size() > 0)
+			if(computeRuns.iterator().hasNext())
             {
-                ComputeRun computeRun = computeRuns.get(0);
+                ComputeRun computeRun = computeRuns.iterator().next();
                 int pilotsStarted = computeRun.getPilotsStarted();
                 computeRun.setPilotsStarted(pilotsStarted + 1);
-                ApplicationUtil.getDatabase().update(computeRun);
+                dataService.update(ComputeRun.ENTITY_NAME, computeRun);
             }
             else
             {
@@ -131,20 +146,30 @@ public class MolgenisPilotService
 
             LOG.info("Looking for task to execute for host [" + backend + "]");
 
-			List<ComputeTask> tasks = findRunTasksReady(backend);
 
-			if (tasks.isEmpty())
+			//first we look for tasks, that from the run of the pilot
+			Iterable<ComputeTask> tasks = findRunTasksReadyForRun(pilot);
+
+			if((!tasks.iterator().hasNext()))
+			{
+				LOG.info("No tasks to start for compute run [" + pilot.getComputeRun().getName() + "]");
+				tasks = findRunTasksReadyForBackend(backend);
+			}
+
+			if (!tasks.iterator().hasNext())
 			{
 				LOG.info("No tasks to start for host [" + backend + "]");
 			}
 			else
 			{
-				ComputeTask task = tasks.get(0);
+				ComputeTask task = tasks.iterator().next();
 
 				// we add task id to the run listing to identify task when
 				// it is done
 				ScriptBuilder sb = ApplicationContextProvider.getApplicationContext().getBean(ScriptBuilder.class);
-				String serverAddress = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+				String serverAddress = request.getScheme() +
+								"://" + request.getServerName() +
+								":" + request.getServerPort();
 				String serverPath = request.getServletPath();
 				String taskScript = sb.build(task, serverAddress, serverPath, pilotID);
 
@@ -153,10 +178,10 @@ public class MolgenisPilotService
 
 				// change status to running
 				task.setStatusCode(MolgenisPilotService.TASK_RUNNING);
-				ApplicationUtil.getDatabase().update(task);
+				dataService.update(ComputeTask.ENTITY_NAME, task);
 
 				pilot.setComputeTask(task);
-				ApplicationUtil.getDatabase().update(pilot);
+				dataService.update(Pilot.ENTITY_NAME, pilot);
 
 				// send response
 				PrintWriter pw = response.getWriter();
@@ -171,18 +196,20 @@ public class MolgenisPilotService
 				}
 			}
 		}
-		else if("is_cancel".equals(tuple.get("status").toString()))
+		else if(status.equalsIgnoreCase("is_cancel"))
 		{
-			String pilotID = (String) tuple.get(PILOT_ID);
+			String pilotID = pilotid;
 			LOG.info("Checking if pilot " + pilotID + " is cancelled");
-			List<Pilot> pilots = ApplicationUtil.getDatabase().query(Pilot.class).eq(Pilot.VALUE, pilotID)
-					.and().eq(Pilot.STATUS, PILOT_USED).find();
+
+			Iterable<Pilot> pilots = dataService.findAll(Pilot.ENTITY_NAME, new QueryImpl()
+					.eq(Pilot.VALUE, pilotID)
+					.and().eq(Pilot.STATUS, PILOT_USED));
 
 			String runCancelStatus = IS_NOT_CANCELLED;
-			if(pilots.size() > 0)
+			if(pilots.iterator().hasNext())
 			{
 				LOG.info("Pilot value is correct");
-				Pilot pilot = pilots.get(0);
+				Pilot pilot = pilots.iterator().next();
 				ComputeRun run = pilot.getComputeRun();
 				boolean isCancelled = run.getIsCancelled();
 				if(isCancelled)
@@ -208,22 +235,25 @@ public class MolgenisPilotService
 		else
 		{
 
-			LOG.info("Checking pilot ID");
-			String pilotID = (String) tuple.get(PILOT_ID);
+			LOG.info("Checking pilot ID in report");
+			String pilotID = pilotid;
 
-			List<Pilot> pilots = ApplicationUtil.getDatabase().query(Pilot.class).eq(Pilot.VALUE, pilotID)
-					.and().eq(Pilot.STATUS, PILOT_DONE).find();
+			Iterable<Pilot> pilots = dataService.findAll(Pilot.ENTITY_NAME, new QueryImpl()
+					.eq(Pilot.VALUE, pilotID)
+					.and().eq(Pilot.STATUS, PILOT_DONE));
 
-			if((pilots.size() > 0) && tuple.get("status").toString().equalsIgnoreCase("nopulse"))
+			if((pilots.iterator().hasNext()) && status.equalsIgnoreCase("nopulse"))
 			{
 				LOG.info("Job is already reported back");
 			}
 			else
 			{
-				pilots = ApplicationUtil.getDatabase().query(Pilot.class).eq(Pilot.VALUE, pilotID)
-						.and().eq(Pilot.STATUS, PILOT_USED).find();
 
-				if(pilots.size() > 0)
+				pilots = dataService.findAll(Pilot.ENTITY_NAME, new QueryImpl()
+						.eq(Pilot.VALUE, pilotID)
+						.and().eq(Pilot.STATUS, PILOT_USED));
+
+				if(pilots.iterator().hasNext())
 				{
 					LOG.info("Pilot value is correct in report");
 				}
@@ -235,10 +265,11 @@ public class MolgenisPilotService
 			}
 
 			Pilot pilot_withTask = null;
-			pilots = ApplicationUtil.getDatabase().query(Pilot.class).eq(Pilot.VALUE, pilotID).find();
-			if(pilots.size() > 0)
+			pilots = dataService.findAll(Pilot.ENTITY_NAME, new QueryImpl()
+					.eq(Pilot.VALUE, pilotID));
+			if(pilots.iterator().hasNext())
 			{
-				pilot_withTask = pilots.get(0);
+				pilot_withTask = pilots.iterator().next();
 				ComputeTask task_from_pilot = pilot_withTask.getComputeTask();
 				if(task_from_pilot == null)
 				{
@@ -247,35 +278,43 @@ public class MolgenisPilotService
 				}
 			}
 
-			File file = tuple.getFile("log_file");
-			String logFileContent = FileUtils.readFileToString(file);
+			InputStream inputStream = log_file.getInputStream();
+
+			StringWriter writer = new StringWriter();
+			IOUtils.copy(inputStream, writer, "UTF-8");
+			String logFileContent = writer.toString();
 			LogFileParser logfile = new LogFileParser(logFileContent);
 			String taskName = logfile.getTaskName();
 			String runName = logfile.getRunName();
 			List<String> logBlocks = logfile.getLogBlocks();
 			String runInfo = StringUtils.join(logBlocks, "\n");
 
-			List<ComputeTask> tasks = ApplicationUtil.getDatabase().query(ComputeTask.class).eq(ComputeTask.NAME, taskName)
-					.and().eq(ComputeTask.COMPUTERUN_NAME, runName).find();
+			ComputeRun computeRun = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
+					.eq(ComputeRun.NAME, runName));
 
-			if (tasks.isEmpty())
+			Iterable<ComputeTask> tasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
+					.eq(ComputeTask.NAME, taskName)
+					.and().eq(ComputeTask.COMPUTERUN, computeRun));
+
+			if (!tasks.iterator().hasNext())
 			{
 				LOG.warn("No task found for TASKNAME [" + taskName + "] of RUN [" + runName + "]");
 				return;
 			}
 
-			ComputeTask task = tasks.get(0);
+			ComputeTask task = tasks.iterator().next();
 
-			if ("done".equals(tuple.get("status").toString()))
+			if (status.equalsIgnoreCase("done"))
 			{
 
-				List<Pilot> pilotList = ApplicationUtil.getDatabase().query(Pilot.class).eq(Pilot.COMPUTETASK, task).find();
+				Iterable<Pilot> pilotList = dataService.findAll(Pilot.ENTITY_NAME, new QueryImpl()
+						.eq(Pilot.COMPUTETASK, task));
 				Pilot pilot = null;
-				if(pilotList.size() > 0)
+				if(pilotList.iterator().hasNext())
 				{
-					pilot = pilots.get(0);
+					pilot = pilots.iterator().next();
 					pilot.setStatus(PILOT_DONE);
-					ApplicationUtil.getDatabase().update(pilot);
+					dataService.update(Pilot.ENTITY_NAME, pilot);
 				}
 				else
 				{
@@ -295,10 +334,14 @@ public class MolgenisPilotService
 					String logFile = LOG_DIR + "/" + taskName + LOG_EXTENSION;
 					writeToFile(logFile, logFileContent);
 
-					File output = tuple.getFile("output_file");
-					if(output != null)
+					if(output_file != null)
 					{
-						task.setOutputEnvironment(FileUtils.readFileToString(output));
+						inputStream = log_file.getInputStream();
+						writer = new StringWriter();
+						IOUtils.copy(inputStream, writer, "UTF-8");
+						String output = writer.toString();
+
+						task.setOutputEnvironment(output);
 					}
 				}
 				else
@@ -307,7 +350,7 @@ public class MolgenisPilotService
 							+ "] status should be [running] but is [" + task.getStatusCode() + "]");
 				}
 			}
-			else if ("pulse".equals(tuple.get("status").toString()))
+			else if (status.equalsIgnoreCase("pulse"))
 			{
 				if (task.getStatusCode().equalsIgnoreCase(TASK_RUNNING))
 				{
@@ -316,40 +359,44 @@ public class MolgenisPilotService
 					task.setRunInfo(runInfo);
 				}
 			}
-			else if ("nopulse".equals(tuple.get("status").toString()))
+			else if (status.equalsIgnoreCase("nopulse"))
 			{
 				//TODO sometimes there is no pulse received, but later job reports back itself
 				//todo improve pulse-task management
 
 				if (task.getStatusCode().equalsIgnoreCase(TASK_RUNNING))
 				{
-					Pilot pilot = pilots.get(0);
+					Pilot pilot = pilots.iterator().next();
 					pilot.setStatus(PILOT_FAILED);
-					ApplicationUtil.getDatabase().update(pilot);
+					dataService.update(Pilot.ENTITY_NAME, pilot);
 
 					LOG.info(">>> no pulse from task [" + taskName + "] of run [" + runName + "]");
 					task.setRunLog(logFileContent);
 					task.setRunInfo(runInfo);
 					task.setStatusCode("failed");
 
-					File failedLog = tuple.getFile("failed_log_file");
-					if (failedLog != null)
-					{
-						task.setFailedLog(FileUtils.readFileToString(failedLog));
+					inputStream = log_file.getInputStream();
 
-						String errFile = LOG_DIR + "/" + taskName + ERR_EXTENSION;
-						writeToFile(errFile, FileUtils.readFileToString(failedLog));
-					}
+					writer = new StringWriter();
+					IOUtils.copy(inputStream, writer, "UTF-8");
+					logFileContent = writer.toString();
+					task.setFailedLog(logFileContent);
+
+					String errFile = LOG_DIR + "/" + taskName + ERR_EXTENSION;
+					writeToFile(errFile, logFileContent);
+
 				}
 				else if (task != null && task.getStatusCode().equalsIgnoreCase(TASK_DONE))
 				{
 					LOG.info("double check: job is finished & no pulse from it for task [" + taskName + "] of run ["
 							+ runName + "]");
 				}
+
 			}
 
-			ApplicationUtil.getDatabase().update(task);
+			dataService.update(ComputeTask.ENTITY_NAME, task);
 		}
+
 	}
 
 	private void writeToFile(String filename, String text)
@@ -383,13 +430,30 @@ public class MolgenisPilotService
 		}
 	}
 
-	private List<ComputeTask> findRunTasksReady(String backendName) throws DatabaseException
+	private Iterable<ComputeTask> findRunTasksReadyForRun(Pilot pilot)
 	{
-       List<ComputeRun> runs = ApplicationUtil.getDatabase().query(ComputeRun.class)
-				.eq(ComputeRun.COMPUTEBACKEND_NAME, backendName)
-                .and().eq(ComputeRun.ISACTIVE, true).find();
+		ComputeRun computeRun = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeRun.NAME, pilot.getComputeRun().getName()));
 
-        return ApplicationUtil.getDatabase().query(ComputeTask.class)
-				.equals(ComputeTask.STATUSCODE, MolgenisPilotService.TASK_READY).in(ComputeTask.COMPUTERUN, runs).find();
+		if(computeRun.getIsActive())
+			return dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeTask.STATUSCODE, MolgenisPilotService.TASK_READY)
+				.and().eq(ComputeTask.COMPUTERUN, computeRun));
+		else
+			return new ArrayList<ComputeTask>();
+	}
+
+	private Iterable<ComputeTask> findRunTasksReadyForBackend(String backendName)
+	{
+		ComputeBackend computeBackend = dataService.findOne(ComputeBackend.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeBackend.NAME, backendName));
+
+
+		Iterable<ComputeRun> runs = dataService.findAll(ComputeRun.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeRun.COMPUTEBACKEND, computeBackend)
+				.and().eq(ComputeRun.ISACTIVE, true));
+
+        return dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeTask.STATUSCODE, MolgenisPilotService.TASK_READY).in(ComputeTask.COMPUTERUN, runs));
 	}
 }
