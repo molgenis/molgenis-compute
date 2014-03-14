@@ -2,6 +2,7 @@ package org.molgenis.compute5.model;
 
 import au.com.bytecode.opencsv.CSVReader;
 import org.molgenis.compute5.ComputeProperties;
+import org.molgenis.compute5.urlreader.UrlReader;
 
 
 import java.io.File;
@@ -21,6 +22,8 @@ public class ParametersContainer
 {
 	//map parameter name and values
 	List<HashMap> parameters = new ArrayList<HashMap>();
+	private UrlReader urlReader = new UrlReader();
+
 
 	public void setFromFiles(List<File> fromFiles, ComputeProperties computeProperties)
 	{
@@ -28,7 +31,19 @@ public class ParametersContainer
 		{
 			try
 			{
-				CSVReader reader = new CSVReader(new FileReader(file));
+				CSVReader reader = null;
+
+
+				if(!computeProperties.isWebWorkflow)
+					reader = new CSVReader(new FileReader(file));
+				else
+				{
+					String fString = file.getName();
+					File f = urlReader.createFileFromGithub(computeProperties.webWorkflowLocation, fString);
+					reader = new CSVReader(new FileReader(f));
+				}
+
+
 				HashMap<String, List<String>> onefileParameters = new HashMap<String, List<String>>();
 
 				List<String[]> allLines = reader.readAll();

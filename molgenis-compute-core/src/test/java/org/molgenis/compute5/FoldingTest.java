@@ -204,7 +204,8 @@ public class FoldingTest
 	@Test
 	public void testFoldingAssign2ParametersFiles() throws Exception
 	{
-		System.out.println("--- Start Test Folding 1---");
+		//shows nieuwe folding
+		System.out.println("--- Start Test Folding ---");
 
 		File f = new File(outputDir);
 		FileUtils.deleteDirectory(f);
@@ -275,7 +276,8 @@ public class FoldingTest
 	@Test
 	public void testFoldingAssign2doubleParametersFiles() throws Exception
 	{
-		System.out.println("--- Start Test Folding 1---");
+		//shows nieuwe folding
+		System.out.println("--- Start Test Folding ---");
 
 		File f = new File(outputDir);
 		FileUtils.deleteDirectory(f);
