@@ -11,7 +11,6 @@ import org.molgenis.compute.runtime.ComputeRun;
 import org.molgenis.compute.runtime.ComputeTask;
 import org.molgenis.data.DataService;
 import org.molgenis.data.support.QueryImpl;
-import org.molgenis.framework.db.DatabaseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
@@ -47,7 +46,7 @@ public class EnvironmentController
 
 
 		Iterable<ComputeRun> runs = database.findAll(ComputeRun.ENTITY_NAME,
-				new QueryImpl().eq(ComputeRun.NAME, runName));
+				new QueryImpl().eq(ComputeRun.NAME, runName), ComputeRun.class);
 		for(ComputeRun run : runs)
 		{
 			PrintWriter pw = response.getWriter();
@@ -61,10 +60,10 @@ public class EnvironmentController
 	String runName, @PathVariable("taskName")
 	String taskName, HttpServletResponse response) throws IOException
 	{
-		ComputeRun computeRun = database.findOne(ComputeRun.ENTITY_NAME, new QueryImpl().eq(ComputeRun.NAME, runName));
+		ComputeRun computeRun = database.findOne(ComputeRun.ENTITY_NAME, new QueryImpl().eq(ComputeRun.NAME, runName), ComputeRun.class);
 		Iterable<ComputeTask> tasks = database.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
 				.eq(ComputeTask.COMPUTERUN, computeRun).and()
-				.eq(ComputeTask.NAME, taskName));
+				.eq(ComputeTask.NAME, taskName), ComputeTask.class);
 
 		if (tasks.iterator().hasNext())
 		{

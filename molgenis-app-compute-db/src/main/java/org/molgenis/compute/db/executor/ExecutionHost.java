@@ -12,7 +12,7 @@ import org.molgenis.compute.runtime.Pilot;
 import org.molgenis.data.DataService;
 import org.molgenis.data.support.QueryImpl;
 import org.molgenis.omx.auth.MolgenisUser;
-import org.molgenis.security.SecurityUtils;
+import org.molgenis.security.core.utils.SecurityUtils;
 import org.molgenis.util.ApplicationUtil;
 import org.molgenis.util.Ssh;
 import org.molgenis.util.SshResult;
@@ -76,7 +76,7 @@ public class ExecutionHost extends Ssh
 			{
                 success = true;
 
-                    Iterable<ComputeBackend> computeBackends = dataService.findAll(ComputeBackend.ENTITY_NAME, new QueryImpl().eq(ComputeBackend.NAME, computeBackend.getName()));
+                    Iterable<ComputeBackend> computeBackends = dataService.findAll(ComputeBackend.ENTITY_NAME, new QueryImpl().eq(ComputeBackend.NAME, computeBackend.getName()), ComputeBackend.class);
 
 					//List<ComputeBackend> computeBackends = dataService.query(ComputeBackend.class).equals(ComputeBackend.NAME, computeBackend.getName()).find();
 
@@ -86,7 +86,7 @@ public class ExecutionHost extends Ssh
 						LOG.error("No backend found for BACKENDNAME [" + computeBackend.getName() + "]");
 
 
-				Iterable<ComputeRun> computeRuns = dataService.findAll(ComputeRun.ENTITY_NAME, new QueryImpl().eq(ComputeRun.NAME, computeRun.getName()));
+				Iterable<ComputeRun> computeRuns = dataService.findAll(ComputeRun.ENTITY_NAME, new QueryImpl().eq(ComputeRun.NAME, computeRun.getName()), ComputeRun.class);
 
 				Iterator<ComputeRun> itComputeRun = computeRuns.iterator();
 
@@ -101,7 +101,7 @@ public class ExecutionHost extends Ssh
 					else
 						LOG.error("No compute run found [" + computeRun.getName() + "] to submit pilot job");
 
-				Iterable<MolgenisUser> owners = dataService.findAll(MolgenisUser.ENTITY_NAME, new QueryImpl().eq(MolgenisUser.USERNAME, owner.getUsername()));
+				Iterable<MolgenisUser> owners = dataService.findAll(MolgenisUser.ENTITY_NAME, new QueryImpl().eq(MolgenisUser.USERNAME, owner.getUsername()), MolgenisUser.class);
 				Iterator itUsers = owners.iterator();
 
 

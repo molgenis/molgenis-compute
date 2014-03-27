@@ -25,7 +25,7 @@ public class PilotManager
 	public void checkExperiredPilots()
 	{
 		Iterable<Pilot> pilots = dataService.findAll(Pilot.ENTITY_NAME,
-				new QueryImpl().eq(Pilot.STATUS, MolgenisPilotService.PILOT_SUBMITTED));
+				new QueryImpl().eq(Pilot.STATUS, MolgenisPilotService.PILOT_SUBMITTED), Pilot.class);
 
 
 		for (Pilot pilot : pilots)

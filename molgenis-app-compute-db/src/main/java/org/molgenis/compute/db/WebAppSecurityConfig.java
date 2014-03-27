@@ -9,7 +9,13 @@ package org.molgenis.compute.db;
  */
 
 
+import static org.molgenis.security.core.utils.SecurityUtils.getPluginReadAuthority;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.log4j.Logger;
+import org.molgenis.compute.db.MolgenisAccessDecisionVoter;
 import org.molgenis.security.MolgenisWebAppSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -29,11 +35,6 @@ import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.molgenis.security.SecurityUtils.getPluginReadAuthority;
-
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -45,7 +46,6 @@ public class WebAppSecurityConfig extends MolgenisWebAppSecurityConfig
 	private RoleVoter roleVoter;
 
 	// TODO automate URL authorization configuration (ticket #2133)
-	@Override
 	protected void configureUrlAuthorization(
 			ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry expressionInterceptUrlRegistry)
 	{

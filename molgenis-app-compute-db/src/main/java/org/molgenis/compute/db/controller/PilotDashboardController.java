@@ -17,9 +17,8 @@ import org.molgenis.compute.runtime.ComputeRun;
 import org.molgenis.compute5.db.api.RunStatus;
 import org.molgenis.data.DataService;
 import org.molgenis.data.support.QueryImpl;
-import org.molgenis.framework.db.DatabaseException;
 import org.molgenis.framework.ui.MolgenisPluginController;
-import org.molgenis.security.SecurityUtils;
+import org.molgenis.security.core.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -145,7 +144,7 @@ public class PilotDashboardController extends MolgenisPluginController
 		List<RunModel> runModels = new ArrayList<RunModel>();
 
 		Iterable<ComputeRun> runs = database.findAll(ComputeRun.ENTITY_NAME,
-				new QueryImpl().eq(ComputeRun.SHOWINDASHBOARD, true).sort(new Sort("creationTime")));
+				new QueryImpl().eq(ComputeRun.SHOWINDASHBOARD, true).sort(new Sort("creationTime")), ComputeRun.class);
 
 		String userLogin = SecurityUtils.getCurrentUsername();
 

@@ -5,33 +5,36 @@ import org.molgenis.compute.db.ComputeDbException;
 import org.molgenis.compute.runtime.ComputeRun;
 import org.molgenis.data.CrudRepository;
 import org.molgenis.data.CrudRepositoryDecorator;
+import org.molgenis.data.Entity;
 
 
-public class ComputeRunDecorator<E extends ComputeRun> extends CrudRepositoryDecorator<E>
+public class ComputeRunDecorator extends CrudRepositoryDecorator
 {
-	public ComputeRunDecorator(CrudRepository<E> generatedMapper)
+	public ComputeRunDecorator(CrudRepository generatedMapper)
 	{
 		super(generatedMapper);
 	}
 
 	@Override
-	public void add(Iterable<E> entities)
+	public void add(Iterable<? extends Entity> entities)
 	{
 		validate(entities);
 		super.add(entities);
 	}
 
 	@Override
-	public void update(Iterable<E> entities)
+	public void update(Iterable<? extends Entity> entities)
 	{
 		validate(entities);
 		super.update(entities);
 	}
 
-	private void validate(Iterable<E> entities)
+	private void validate(Iterable<? extends Entity> entities)
 	{
-		for (ComputeRun run : entities)
+		for (Entity e : entities)
 		{
+			ComputeRun run = (ComputeRun) e;
+			
 			if (StringUtils.isEmpty(run.getName()) || !StringUtils.isAlphanumeric(run.getName()))
 			{
 				throw new ComputeDbException("Illegal run name [" + run.getName() + "] should be non empty alphnumeric");

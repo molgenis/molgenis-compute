@@ -10,7 +10,7 @@ import org.molgenis.compute.db.ComputeDbException;
 import org.molgenis.compute.runtime.ComputeRun;
 import org.molgenis.data.DataService;
 import org.molgenis.data.support.QueryImpl;
-import org.molgenis.security.SecurityUtils;
+import org.molgenis.security.core.utils.SecurityUtils;
 import org.molgenis.security.runas.RunAsSystem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.TaskScheduler;
@@ -39,7 +39,7 @@ public class Scheduler
 	public synchronized void schedule(String runName, String username, String password)
 	{
 		ComputeRun computeRun =  dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
-				.eq(ComputeRun.NAME, runName));
+				.eq(ComputeRun.NAME, runName), ComputeRun.class);
 
 		if (scheduledJobs.containsKey(computeRun.getId()))
 		{

@@ -178,7 +178,7 @@ public class ApiController
 		GetBackendsResponse response = new GetBackendsResponse();
 		try
 		{
-			Iterable<ComputeBackend> itComputeBackends = database.findAll(ComputeBackend.ENTITY_NAME);
+			Iterable<ComputeBackend> itComputeBackends = database.findAll(ComputeBackend.ENTITY_NAME, ComputeBackend.class);
 
 			List<Backend> backends = Lists.newArrayList(Iterables.transform(itComputeBackends, new Function<ComputeBackend, Backend>()
 			{

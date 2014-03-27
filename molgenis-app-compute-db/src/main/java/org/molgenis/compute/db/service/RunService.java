@@ -19,9 +19,8 @@ import org.molgenis.data.DataService;
 import org.molgenis.data.Query;
 import org.molgenis.data.QueryRule;
 import org.molgenis.data.support.QueryImpl;
-import org.molgenis.framework.db.DatabaseException;
 import org.molgenis.omx.auth.MolgenisUser;
-import org.molgenis.security.SecurityUtils;
+import org.molgenis.security.core.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
@@ -49,7 +48,7 @@ public class RunService
 							 List<Task> tasks, String userEnvironment, String userName)
 	{
 		Iterable<ComputeBackend> backends = dataService.findAll(ComputeBackend.ENTITY_NAME, new QueryImpl()
-				.eq(ComputeBackend.NAME, backendName));
+				.eq(ComputeBackend.NAME, backendName), ComputeBackend.class);
 		if (!backends.iterator().hasNext())
 		{
 			throw new ComputeDbException("Unknown backend with name [" + backendName + "]");
@@ -58,7 +57,7 @@ public class RunService
 		ComputeBackend backend = backends.iterator().next();
 
 		Iterable<MolgenisUser> users = dataService.findAll(MolgenisUser.ENTITY_NAME, new QueryImpl()
-				.eq(MolgenisUser.USERNAME, userName));
+				.eq(MolgenisUser.USERNAME, userName), MolgenisUser.class);
 		if (!users.iterator().hasNext())
 		{
 			throw new ComputeDbException("Unknown user with name [" + userName + "]");
@@ -67,7 +66,7 @@ public class RunService
 		MolgenisUser user = users.iterator().next();
 
 		Iterable<ComputeBackend> runs = dataService.findAll(ComputeRun.ENTITY_NAME, new QueryImpl()
-				.eq(ComputeRun.NAME, name));
+				.eq(ComputeRun.NAME, name), ComputeBackend.class);
 
 		if (runs.iterator().hasNext())
 		{
@@ -103,11 +102,11 @@ public class RunService
 		for (Task task : tasks)
 		{
 			ComputeRun computeRun = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
-					.eq(ComputeRun.NAME, run.getName()));
+					.eq(ComputeRun.NAME, run.getName()), ComputeRun.class);
 
 			Iterable<ComputeTask> computeTasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
 					.eq(ComputeTask.COMPUTERUN, computeRun).and()
-					.eq(ComputeTask.NAME, task.getName()));
+					.eq(ComputeTask.NAME, task.getName()), ComputeTask.class);
 
 			ComputeTask computeTask = computeTasks.iterator().next();
 
@@ -118,7 +117,7 @@ public class RunService
 
 				Iterable<ComputeTask> prevComputeTasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
 						.eq(ComputeTask.COMPUTERUN, computeRun).and()
-						.eq(ComputeTask.NAME, prevTaskName));
+						.eq(ComputeTask.NAME, prevTaskName), ComputeTask.class);
 
 
 				if (!prevComputeTasks.iterator().hasNext())
@@ -149,7 +148,7 @@ public class RunService
 
 			Iterable<ComputeTask> computeTasks2 = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
 					.eq(ComputeTask.COMPUTERUN, run).and()
-					.eq(ComputeTask.NAME, task.getName()));
+					.eq(ComputeTask.NAME, task.getName()), ComputeTask.class);
 
 			ComputeTask computeTask = computeTasks2.iterator().next();
 
@@ -188,7 +187,7 @@ public class RunService
 	public void start(String runName, String username, String password)
 	{
 		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
-				.eq(ComputeRun.NAME, runName));
+				.eq(ComputeRun.NAME, runName), ComputeRun.class);
 
 		if (run == null)
 		{
@@ -209,7 +208,7 @@ public class RunService
 	public void stop(String runName)
 	{
 		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
-				.eq(ComputeRun.NAME, runName));
+				.eq(ComputeRun.NAME, runName), ComputeRun.class);
 		if (run == null)
 		{
 			throw new ComputeDbException("Unknown run name [" + runName + "]");
@@ -231,7 +230,7 @@ public class RunService
 	{
 
 		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
-				.eq(ComputeRun.NAME, runName));
+				.eq(ComputeRun.NAME, runName), ComputeRun.class);
 		if (run == null)
 		{
 			throw new ComputeDbException("Unknown run name [" + runName + "]");
@@ -251,7 +250,7 @@ public class RunService
 	{
 
 		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
-				.eq(ComputeRun.NAME, runName));
+				.eq(ComputeRun.NAME, runName), ComputeRun.class);
 		if (run == null)
 		{
 			throw new ComputeDbException("Unknown run name [" + runName + "]");
@@ -274,7 +273,7 @@ public class RunService
 	public boolean isRunning(String runName)
 	{
 		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
-				.eq(ComputeRun.NAME, runName));
+				.eq(ComputeRun.NAME, runName), ComputeRun.class);
 		if (run == null)
 		{
 			throw new ComputeDbException("Unknown run name [" + runName + "]");
@@ -293,7 +292,7 @@ public class RunService
 	{
 
 		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
-				.eq(ComputeRun.NAME, runName));
+				.eq(ComputeRun.NAME, runName), ComputeRun.class);
 		if (run == null)
 		{
 			throw new ComputeDbException("Unknown run name [" + runName + "]");
@@ -311,7 +310,7 @@ public class RunService
 	public boolean isComplete(String runName)
 	{
 		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
-				.eq(ComputeRun.NAME, runName));
+				.eq(ComputeRun.NAME, runName), ComputeRun.class);
 		if (run == null)
 		{
 			throw new ComputeDbException("Unknown run name [" + runName + "]");
@@ -329,7 +328,7 @@ public class RunService
 	public boolean isCancelled(String runName)
 	{
 		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
-				.eq(ComputeRun.NAME, runName));
+				.eq(ComputeRun.NAME, runName), ComputeRun.class);
 		if (run == null)
 		{
 			throw new ComputeDbException("Unknown run name [" + runName + "]");
@@ -348,7 +347,7 @@ public class RunService
 	public RunStatus getStatus(String runName)
 	{
 		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
-				.eq(ComputeRun.NAME, runName));
+				.eq(ComputeRun.NAME, runName), ComputeRun.class);
 		if (run == null)
 		{
 			throw new ComputeDbException("Unknown run name [" + runName + "]");
@@ -386,11 +385,11 @@ public class RunService
 		LOG.info("Resubmit failed tasks for run [" + runName + "]");
 
 		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
-				.eq(ComputeRun.NAME, runName));
+				.eq(ComputeRun.NAME, runName), ComputeRun.class);
 
 		Iterable<ComputeTask> tasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
 				.eq(ComputeTask.STATUSCODE, MolgenisPilotService.TASK_FAILED).and()
-				.eq(ComputeTask.COMPUTERUN, run));
+				.eq(ComputeTask.COMPUTERUN, run), ComputeTask.class);
 
 		if (!tasks.iterator().hasNext())
 		{
@@ -423,7 +422,7 @@ public class RunService
 	public void removeFromDashboard(String runName)
 	{
 		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
-				.eq(ComputeRun.NAME, runName));
+				.eq(ComputeRun.NAME, runName), ComputeRun.class);
 		if (run == null)
 		{
 			throw new ComputeDbException("Unknown run name [" + runName + "]");
@@ -437,7 +436,7 @@ public class RunService
 	{
 		Iterable<ComputeTask> computeTasks =
 				dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl().eq(ComputeTask.COMPUTERUN, run).and()
-						.eq(ComputeTask.STATUSCODE, status));
+						.eq(ComputeTask.STATUSCODE, status), ComputeTask.class);
 		return ((Collection<?>) computeTasks).size();
 	}
 
@@ -450,7 +449,7 @@ public class RunService
 	public void cancel(String runName)
 	{
 		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
-				.eq(ComputeRun.NAME, runName));
+				.eq(ComputeRun.NAME, runName), ComputeRun.class);
 		if (run == null)
 		{
 			throw new ComputeDbException("Unknown run name [" + runName + "]");
@@ -470,7 +469,7 @@ public class RunService
 
 
 		Iterable<ComputeTask> listTask = dataService
-				.findAll(ComputeTask.ENTITY_NAME, q);
+				.findAll(ComputeTask.ENTITY_NAME, q, ComputeTask.class);
 
 		for (ComputeTask task : listTask)
 		{

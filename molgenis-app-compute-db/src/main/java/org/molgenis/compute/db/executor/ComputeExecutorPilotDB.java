@@ -1,30 +1,31 @@
 package org.molgenis.compute.db.executor;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.UUID;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
+import org.molgenis.compute.db.ComputeDbException;
+import org.molgenis.compute.runtime.ComputeRun;
+import org.molgenis.compute.runtime.ComputeTask;
+import org.molgenis.compute5.sysexecutor.SysCommandExecutor;
+import org.molgenis.data.DataService;
+import org.molgenis.data.support.QueryImpl;
+import org.molgenis.security.runas.RunAsSystem;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
-import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
-import org.molgenis.compute.db.ComputeDbException;
-import org.molgenis.compute5.sysexecutor.SysCommandExecutor;
-import org.molgenis.compute.runtime.ComputeRun;
-import org.molgenis.compute.runtime.ComputeTask;
-import org.molgenis.data.DataService;
-import org.molgenis.data.support.QueryImpl;
-import org.molgenis.framework.db.DatabaseException;
-import org.molgenis.security.SecurityUtils;
-import org.molgenis.security.runas.RunAsSystem;
-import org.molgenis.util.ApplicationUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Repository;
-
-import javax.servlet.ServletContext;
 
 /**
  * Created with IntelliJ IDEA. User: georgebyelas Date: 22/08/2012 Time: 14:26
@@ -54,7 +55,7 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 		try
 		{
 			computeRun = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
-					.eq(ComputeRun.NAME, computeRunName));
+					.eq(ComputeRun.NAME, computeRunName), ComputeRun.class);
 
 			this.executionHost = new ExecutionHost(dataService,
 					computeRun.getComputeBackend().getBackendUrl(),
@@ -73,7 +74,7 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 
 			Iterable<ComputeTask> generatedTasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
 					.eq(ComputeTask.COMPUTERUN, computeRun).and()
-					.eq(ComputeTask.STATUSCODE, "generated"));
+					.eq(ComputeTask.STATUSCODE, "generated"), ComputeTask.class);
 
 			int size =  ((Collection<?>)generatedTasks).size();
 
@@ -83,7 +84,7 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 
 			Iterable<ComputeTask> readyTasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
 					.eq(ComputeTask.COMPUTERUN, computeRun).and()
-					.eq(ComputeTask.STATUSCODE, "ready"));
+					.eq(ComputeTask.STATUSCODE, "ready"), ComputeTask.class);
 
 			for (ComputeTask task: readyTasks)
 			{

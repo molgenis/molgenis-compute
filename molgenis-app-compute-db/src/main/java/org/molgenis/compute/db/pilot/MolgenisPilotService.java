@@ -11,7 +11,6 @@ import org.molgenis.compute.runtime.ComputeTask;
 import org.molgenis.compute.runtime.Pilot;
 import org.molgenis.data.DataService;
 import org.molgenis.data.support.QueryImpl;
-import org.molgenis.framework.db.DatabaseException;
 import org.molgenis.security.runas.RunAsSystem;
 import org.molgenis.util.ApplicationContextProvider;
 import org.molgenis.util.ApplicationUtil;
@@ -111,7 +110,7 @@ public class MolgenisPilotService
 
 			Iterable<Pilot> pilots = dataService.findAll(Pilot.ENTITY_NAME, new QueryImpl()
 					.eq(Pilot.VALUE, pilotID)
-					.and().eq(Pilot.STATUS, PILOT_SUBMITTED));
+					.and().eq(Pilot.STATUS, PILOT_SUBMITTED), Pilot.class);
 
 			System.out.println(">>>>>>>>>>>>>>>>>>>> " + pilotID + " @ " + host + " @ " + backend);
 
@@ -130,7 +129,7 @@ public class MolgenisPilotService
 			}
 
 			Iterable<ComputeRun> computeRuns = dataService.findAll(ComputeRun.ENTITY_NAME, new QueryImpl()
-					.eq(ComputeBackend.NAME, pilot.getComputeRun().getName()));
+					.eq(ComputeBackend.NAME, pilot.getComputeRun().getName()), ComputeRun.class);
 
 			if(computeRuns.iterator().hasNext())
             {
@@ -203,7 +202,7 @@ public class MolgenisPilotService
 
 			Iterable<Pilot> pilots = dataService.findAll(Pilot.ENTITY_NAME, new QueryImpl()
 					.eq(Pilot.VALUE, pilotID)
-					.and().eq(Pilot.STATUS, PILOT_USED));
+					.and().eq(Pilot.STATUS, PILOT_USED), Pilot.class);
 
 			String runCancelStatus = IS_NOT_CANCELLED;
 			if(pilots.iterator().hasNext())
@@ -240,7 +239,7 @@ public class MolgenisPilotService
 
 			Iterable<Pilot> pilots = dataService.findAll(Pilot.ENTITY_NAME, new QueryImpl()
 					.eq(Pilot.VALUE, pilotID)
-					.and().eq(Pilot.STATUS, PILOT_DONE));
+					.and().eq(Pilot.STATUS, PILOT_DONE), Pilot.class);
 
 			if((pilots.iterator().hasNext()) && status.equalsIgnoreCase("nopulse"))
 			{
@@ -251,7 +250,7 @@ public class MolgenisPilotService
 
 				pilots = dataService.findAll(Pilot.ENTITY_NAME, new QueryImpl()
 						.eq(Pilot.VALUE, pilotID)
-						.and().eq(Pilot.STATUS, PILOT_USED));
+						.and().eq(Pilot.STATUS, PILOT_USED), Pilot.class);
 
 				if(pilots.iterator().hasNext())
 				{
@@ -266,7 +265,7 @@ public class MolgenisPilotService
 
 			Pilot pilot_withTask = null;
 			pilots = dataService.findAll(Pilot.ENTITY_NAME, new QueryImpl()
-					.eq(Pilot.VALUE, pilotID));
+					.eq(Pilot.VALUE, pilotID), Pilot.class);
 			if(pilots.iterator().hasNext())
 			{
 				pilot_withTask = pilots.iterator().next();
@@ -290,11 +289,11 @@ public class MolgenisPilotService
 			String runInfo = StringUtils.join(logBlocks, "\n");
 
 			ComputeRun computeRun = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
-					.eq(ComputeRun.NAME, runName));
+					.eq(ComputeRun.NAME, runName), ComputeRun.class);
 
 			Iterable<ComputeTask> tasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
 					.eq(ComputeTask.NAME, taskName)
-					.and().eq(ComputeTask.COMPUTERUN, computeRun));
+					.and().eq(ComputeTask.COMPUTERUN, computeRun), ComputeTask.class);
 
 			if (!tasks.iterator().hasNext())
 			{
@@ -308,7 +307,7 @@ public class MolgenisPilotService
 			{
 
 				Iterable<Pilot> pilotList = dataService.findAll(Pilot.ENTITY_NAME, new QueryImpl()
-						.eq(Pilot.COMPUTETASK, task));
+						.eq(Pilot.COMPUTETASK, task), Pilot.class);
 				Pilot pilot = null;
 				if(pilotList.iterator().hasNext())
 				{
@@ -433,12 +432,12 @@ public class MolgenisPilotService
 	private Iterable<ComputeTask> findRunTasksReadyForRun(Pilot pilot)
 	{
 		ComputeRun computeRun = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
-				.eq(ComputeRun.NAME, pilot.getComputeRun().getName()));
+				.eq(ComputeRun.NAME, pilot.getComputeRun().getName()), ComputeRun.class);
 
 		if(computeRun.getIsActive())
 			return dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
 				.eq(ComputeTask.STATUSCODE, MolgenisPilotService.TASK_READY)
-				.and().eq(ComputeTask.COMPUTERUN, computeRun));
+				.and().eq(ComputeTask.COMPUTERUN, computeRun), ComputeTask.class);
 		else
 			return new ArrayList<ComputeTask>();
 	}
@@ -446,14 +445,14 @@ public class MolgenisPilotService
 	private Iterable<ComputeTask> findRunTasksReadyForBackend(String backendName)
 	{
 		ComputeBackend computeBackend = dataService.findOne(ComputeBackend.ENTITY_NAME, new QueryImpl()
-				.eq(ComputeBackend.NAME, backendName));
+				.eq(ComputeBackend.NAME, backendName), ComputeBackend.class);
 
 
 		Iterable<ComputeRun> runs = dataService.findAll(ComputeRun.ENTITY_NAME, new QueryImpl()
 				.eq(ComputeRun.COMPUTEBACKEND, computeBackend)
-				.and().eq(ComputeRun.ISACTIVE, true));
+				.and().eq(ComputeRun.ISACTIVE, true), ComputeRun.class);
 
         return dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
-				.eq(ComputeTask.STATUSCODE, MolgenisPilotService.TASK_READY).in(ComputeTask.COMPUTERUN, runs));
+				.eq(ComputeTask.STATUSCODE, MolgenisPilotService.TASK_READY).in(ComputeTask.COMPUTERUN, runs), ComputeTask.class);
 	}
 }
