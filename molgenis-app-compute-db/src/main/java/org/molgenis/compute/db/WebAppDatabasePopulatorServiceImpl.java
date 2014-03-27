@@ -40,6 +40,8 @@ public class WebAppDatabasePopulatorServiceImpl implements WebAppDatabasePopulat
 	private String userPassword;
 	@Value("${user.email:molgenis+user@gmail.com}")
 	private String userEmail;
+	@Value("${anonymous.email:molgenis+anonymous@gmail.com}")
+	private String anonymousEmail;
 
 	@Autowired
 	public WebAppDatabasePopulatorServiceImpl(DataService dataService)
@@ -106,6 +108,19 @@ public class WebAppDatabasePopulatorServiceImpl implements WebAppDatabasePopulat
 		suAuthority.setMolgenisUser(userAdmin);
 		suAuthority.setRole("ROLE_SU");
 		dataService.add(UserAuthority.ENTITY_NAME, suAuthority);
+
+		MolgenisUser anonymousUser = new MolgenisUser();
+		anonymousUser.setUsername(SecurityUtils.ANONYMOUS_USERNAME);
+		anonymousUser.setPassword(new BCryptPasswordEncoder().encode(SecurityUtils.ANONYMOUS_USERNAME));
+		anonymousUser.setEmail(anonymousEmail);
+		anonymousUser.setActive(true);
+		anonymousUser.setSuperuser(false);
+		dataService.add(MolgenisUser.ENTITY_NAME, anonymousUser);
+
+		UserAuthority anonymousAuthority = new UserAuthority();
+		anonymousAuthority.setMolgenisUser(anonymousUser);
+		anonymousAuthority.setRole(SecurityUtils.AUTHORITY_ANONYMOUS);
+		dataService.add(UserAuthority.ENTITY_NAME, anonymousAuthority);
 
 		MolgenisUser userUser = new MolgenisUser();
 		userUser.setUsername(USERNAME_USER);

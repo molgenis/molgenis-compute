@@ -32,6 +32,7 @@ import org.springframework.security.config.annotation.web.configurers.Expression
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
+import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
@@ -78,6 +79,8 @@ public class WebAppSecurityConfig extends MolgenisWebAppSecurityConfig
 	@Override
 	protected void configure(HttpSecurity http) throws Exception
 	{
+		http.addFilterBefore(anonymousAuthFilter(), AnonymousAuthenticationFilter.class);
+
 		http.addFilter(basicAuthenticationFilter());
 		http.addFilter(anonymousAuthFilter());
 		http.authenticationProvider(anonymousAuthenticationProvider());
