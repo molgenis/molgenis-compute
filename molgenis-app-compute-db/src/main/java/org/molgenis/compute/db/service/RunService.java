@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.Iterables;
 import org.apache.log4j.Logger;
 import org.molgenis.compute.db.ComputeDbException;
 import org.molgenis.compute.db.executor.Scheduler;
@@ -437,7 +438,7 @@ public class RunService
 		Iterable<ComputeTask> computeTasks =
 				dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl().eq(ComputeTask.COMPUTERUN, run).and()
 						.eq(ComputeTask.STATUSCODE, status), ComputeTask.class);
-		return ((Collection<?>) computeTasks).size();
+		return Iterables.size(computeTasks);
 	}
 
 	/**
