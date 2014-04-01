@@ -9,7 +9,7 @@ getRemoteLocation()
 {
     ARGS=($@)
     myFile=${ARGS[0]}
-    remoteFile=srm://srm.grid.sara.nl/pnfs/grid.sara.nl/data/bbmri.nl/RP3${myFile:`expr length $TMPDIR`}
+    remoteFile=srm://srm.grid.sara.nl/pnfs/grid.sara.nl/data/bbmri.nl/RP2${myFile:`expr length $TMPDIR`}
     echo $remoteFile
 }
 
@@ -121,8 +121,8 @@ while [ 1 ] ; do
                 COUNTER=$((COUNTER+1))
                 echo "NOT RUNNING $COUNTER"
 
-                #time to make sure that job reported back to db
-                if [ $COUNTER -eq 10 ];
+                #time to make sure that job reported back to db; put it 10 for real
+                if [ $COUNTER -eq 3 ];
                 then
                 	echo 'FAILED 3 TIMES'
                 	cp log.log inter.log
@@ -140,5 +140,6 @@ while [ 1 ] ; do
         fi
         #this sleep can be modified depending on how often, you like to receive the job status
         #it also depends on the number of running jobs, more jobs -> bigger interval
-        sleep 3600
+        #if it is long, it is safe, but it keeps resource busy (3600 for long jobs)
+        sleep 3
 done

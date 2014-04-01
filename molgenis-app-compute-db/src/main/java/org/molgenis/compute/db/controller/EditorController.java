@@ -2,6 +2,7 @@ package org.molgenis.compute.db.controller;
 
 import org.molgenis.framework.server.MolgenisSettings;
 import org.molgenis.framework.ui.MolgenisPlugin;
+import org.molgenis.framework.ui.MolgenisPluginController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,7 +18,7 @@ import static org.molgenis.compute.db.controller.EditorController.URI;
  */
 @Controller
 @RequestMapping(URI)
-public class EditorController extends MolgenisPlugin
+public class EditorController extends MolgenisPluginController
 {
 
 	public static final String URI = "/plugin/editor";

@@ -1,40 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <molgenis name="compute" label="Compute Testing">
     <menu name="mainmenu" label="Main">
-        <plugin id="home" label="Home" name="HomeController" type="org.molgenis.compute.db.plugin.HomePlugin"/>
-        <plugin id="extra" label="Extra" name="ExtraController" type="org.molgenis.compute.db.plugin.ExtraPlugin"/>
-        <plugin id="editor" label="Editor" name="EditorController" type="org.molgenis.compute.db.plugin.EditorPlugin"/>
+        <plugin id="home" name="Home" url="home"/>
+        <!--plugin id="extra" name="Extra" url="extra"/>
+        <plugin id="editor" name="Editor" url="editor"/-->
         <menu name="Compute" label="Compute">
-            <plugin id="dashboard" name="PilotDashboardController" label="Pilot dashboard"
-                    type="org.molgenis.compute.db.plugin.PilotDashboardPlugin"/>
-            <plugin id="form.ComputeRun" label="Runs" name="MolgenisEntityFormPluginController"
-                    type="org.molgenis.ui.form.MolgenisEntityFormPlugin"/>
-            <plugin id="form.ComputeTask" label="Tasks" name="MolgenisEntityFormPluginController"
-                    type="org.molgenis.ui.form.MolgenisEntityFormPlugin"/>
+            <plugin id="dashboard" name="Pilot dashboard"
+                    url="dashboard"/>
+            <!--MolgenisEntityFormPlugin-->
+            <plugin id="form.ComputeRun" name="Runs" url="form.ComputeRun"/>
+            <plugin id="form.ComputeTask" name="Tasks" url="form.ComputeTask"/>
            <menu name="ComputeTaskValueMenu" label="Parameters">
-                <plugin id="form.ComputeParameterValue" label="Parameters" name="MolgenisEntityFormPluginController"
-                        type="org.molgenis.ui.form.MolgenisEntityFormPlugin"/>
-                <plugin id="form.ComputeTaskHistory" label="History" name="MolgenisEntityFormPluginController"
-                        type="org.molgenis.ui.form.MolgenisEntityFormPlugin"/>
+                <plugin id="form.ComputeParameterValue" name="Parameters" url="form.ComputeParameterValue"/>
+                <plugin id="form.ComputeTaskHistory" name="History" url="form.ComputeTaskHistory"/>
             </menu>
-            <plugin id="form.ComputeBackend" label="Backends" name="MolgenisEntityFormPluginController"
-                    type="org.molgenis.ui.form.MolgenisEntityFormPlugin"/>
+            <plugin id="form.ComputeBackend" name="Backends" url="form.ComputeBackend"/>
         </menu>
-
-        <!--menu label="User management" name="Management">
-            <plugin id="form.MolgenisUser" label="Users" name="MolgenisEntityFormPluginController"
-                    type="org.molgenis.ui.form.MolgenisEntityFormPlugin"/>
-            <plugin id="form.MolgenisGroup" label="Group" name="MolgenisEntityFormPluginController"
-                    type="org.molgenis.ui.form.MolgenisEntityFormPlugin"/>
-            <plugin id="form.MolgenisRoleGroupLink" label="RoleGroupLink" name="MolgenisEntityFormPluginController"
-                    type="org.molgenis.ui.form.MolgenisEntityFormPlugin"/>
-            <plugin id="form.MolgenisEntity" label="Entity" name="MolgenisEntityFormPluginController"
-                    type="org.molgenis.ui.form.MolgenisEntityFormPlugin"/>
-            <form name="MolgenisPermission" entity="MolgenisPermission"/>
-            <plugin id="form.MolgenisPermission" label="Permissions" name="MolgenisEntityFormPluginController"
-                    type="org.molgenis.ui.form.MolgenisEntityFormPlugin"/>
-        </menu-->
-        <plugin id="useraccount" name="UserAccountController" type="org.molgenis.omx.auth.ui.UserAccountPlugin"
-                label="Account"/>
+        <plugin id="useraccount" name="Account" url="useraccount"/>
+        <plugin id="permissionmanager" name="Permission Manager" url="permissionmanager"/>
     </menu>
 </molgenis>

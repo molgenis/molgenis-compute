@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.molgenis.framework.server.MolgenisSettings;
 import org.molgenis.framework.ui.MolgenisPlugin;
+import org.molgenis.framework.ui.MolgenisPluginController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -19,7 +20,7 @@ import static org.molgenis.compute.db.controller.ExtraController.URI;
  */
 @Controller
 @RequestMapping(URI)
-public class ExtraController extends MolgenisPlugin
+public class ExtraController extends MolgenisPluginController
 {
 	String json = "[ { \n" +
 			"\"id\": \"graphnode0\", " +

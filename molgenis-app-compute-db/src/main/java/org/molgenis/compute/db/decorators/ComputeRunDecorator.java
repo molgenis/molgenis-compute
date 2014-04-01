@@ -1,39 +1,40 @@
 package org.molgenis.compute.db.decorators;
 
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.molgenis.compute.db.ComputeDbException;
 import org.molgenis.compute.runtime.ComputeRun;
-import org.molgenis.framework.db.DatabaseException;
-import org.molgenis.framework.db.Mapper;
-import org.molgenis.framework.db.MapperDecorator;
+import org.molgenis.data.CrudRepository;
+import org.molgenis.data.CrudRepositoryDecorator;
+import org.molgenis.data.Entity;
 
-public class ComputeRunDecorator<E extends ComputeRun> extends MapperDecorator<E>
+
+public class ComputeRunDecorator extends CrudRepositoryDecorator
 {
-	public ComputeRunDecorator(Mapper<E> generatedMapper)
+	public ComputeRunDecorator(CrudRepository generatedMapper)
 	{
 		super(generatedMapper);
 	}
 
 	@Override
-	public int add(List<E> entities) throws DatabaseException
+	public void add(Iterable<? extends Entity> entities)
 	{
 		validate(entities);
-		return super.add(entities);
+		super.add(entities);
 	}
 
 	@Override
-	public int update(List<E> entities) throws DatabaseException
+	public void update(Iterable<? extends Entity> entities)
 	{
 		validate(entities);
-		return super.update(entities);
+		super.update(entities);
 	}
 
-	private void validate(List<E> entities) throws DatabaseException
+	private void validate(Iterable<? extends Entity> entities)
 	{
-		for (ComputeRun run : entities)
+		for (Entity e : entities)
 		{
+			ComputeRun run = (ComputeRun) e;
+			
 			if (StringUtils.isEmpty(run.getName()) || !StringUtils.isAlphanumeric(run.getName()))
 			{
 				throw new ComputeDbException("Illegal run name [" + run.getName() + "] should be non empty alphnumeric");

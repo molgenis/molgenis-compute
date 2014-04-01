@@ -6,11 +6,13 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
+import au.com.bytecode.opencsv.CSVReader;
 import org.molgenis.compute5.ComputeProperties;
 import org.molgenis.compute5.model.*;
 import org.molgenis.compute5.urlreader.UrlReader;
-import org.molgenis.io.csv.CsvReader;
-import org.molgenis.util.tuple.Tuple;
+import org.molgenis.data.Entity;
+import org.molgenis.data.csv.CsvRepository;
+import org.molgenis.data.support.MapEntity;
 
 /** Parser for the workflow csv */
 public class WorkflowCsvParser
@@ -23,71 +25,91 @@ public class WorkflowCsvParser
 
 	public Workflow parse(String workflowPath, ComputeProperties computeProperties) throws IOException
 	{
+		CSVReader reader = null;
 		try
 		{
-			CsvReader reader = null;
 			if(computeProperties.isWebWorkflow)
 			{
 				File workflowFile = urlReader.createFileFromGithub(computeProperties.webWorkflowLocation,
 						workflowPath);
-				reader = new CsvReader(new BufferedReader(new FileReader(workflowFile)));
+				reader = new CSVReader(new FileReader(workflowFile), ',');
 
 			}
 			else
-				reader = new CsvReader(new BufferedReader(new FileReader(workflowPath)));
+				reader = new CSVReader(new FileReader(workflowPath), ',');
 
 			Workflow wf = new Workflow();
 
-			for (Tuple row : reader)
+			List<String[]> listLines = reader.readAll();
+			boolean isFirstRow = true;
+
+			//current format name, protocol, dependencies
+			for (String[] row : listLines)
 			{
-				// check value
-				if (row.isNull(Parameters.STEP_HEADING_IN_WORKFLOW))
-					throw new IOException("required column '" + Parameters.STEP_HEADING_IN_WORKFLOW +
-							"' is missing in row " + row);
-				if (row.isNull(Parameters.PROTOCOL_HEADING_IN_WORKFLOW))
-					throw new IOException("required column '" + Parameters.PROTOCOL_HEADING_IN_WORKFLOW +
-							"' is missing in row " + row);
-
-				String stepName = row.getString(Parameters.STEP_HEADING_IN_WORKFLOW);
-
-				if(stepName.startsWith(WORKFLOW_COMMENT_SIGN))
-					continue;
-
-				Step step = new Step(stepName);
-				stepNames.add(stepName);
-				File workflowDir = new File(workflowPath).getParentFile();
-				String fileName = row.getString(Parameters.PROTOCOL_HEADING_IN_WORKFLOW);
-
-				Protocol protocol = parser.parse(workflowDir, fileName, computeProperties);
-				protocolAnalyser.analysesProtocolVariables(protocol);
-
-				step.setProtocol(protocol);
-				String strParameters = row.getString(Parameters.PARAMETER_MAPPING_HEADING_IN_WORKFLOW);
-				if(strParameters!=null)
+				if(isFirstRow)
 				{
-					HashSet<String> dependencies = parseParametersDependencies(strParameters);
-					if(dependencies.size() > 0)
-						step.setPreviousSteps(dependencies);
+					if(row[0].equalsIgnoreCase(Parameters.STEP_HEADING_IN_WORKFLOW) &&
+						row[1].equalsIgnoreCase(Parameters.PROTOCOL_HEADING_IN_WORKFLOW) &&
+						row[2].equalsIgnoreCase(Parameters.PARAMETER_MAPPING_HEADING_IN_WORKFLOW))
+							isFirstRow = false;
+					else
+						throw new IOException("Error in the header of workflow file");
+				}
+				else
+				{
 
-					if(resultParsing.size() > 0)
-						step.setParametersMapping(resultParsing);
+					if ((row[0] == null) || (row[0].length() == 0))
+						throw new IOException("required column '" + Parameters.STEP_HEADING_IN_WORKFLOW +
+								"' is missing in row " + row);
+					if ((row[1] == null) || (row[1].length() == 0))
+						throw new IOException("required column '" + Parameters.PROTOCOL_HEADING_IN_WORKFLOW +
+								"' is missing in row " + row);
+
+					String stepName = row[0];
+
+					if(stepName.startsWith(WORKFLOW_COMMENT_SIGN))
+						continue;
+
+					Step step = new Step(stepName);
+					stepNames.add(stepName);
+					File workflowDir = new File(workflowPath).getParentFile();
+					String fileName = row[1];
+
+					Protocol protocol = parser.parse(workflowDir, fileName, computeProperties);
+					protocolAnalyser.analysesProtocolVariables(protocol);
+
+					step.setProtocol(protocol);
+					String strParameters = row[2];
+					if(strParameters!=null)
+					{
+						HashSet<String> dependencies = parseParametersDependencies(strParameters);
+						if(dependencies.size() > 0)
+							step.setPreviousSteps(dependencies);
+
+						if(resultParsing.size() > 0)
+							step.setParametersMapping(resultParsing);
+					}
+
+					Set<Input> inputs = protocol.getInputs();
+					for(Input input : inputs)
+					{
+						step.addParameter(input.getName());
+					}
+
+					wf.addStep(step);
 				}
 
-				Set<Input> inputs = protocol.getInputs();
-				for(Input input : inputs)
-				{
-					step.addParameter(input.getName());
-				}
-
-				wf.addStep(step);
 			}
-
 			return wf;
 		}
 		catch (IOException e)
 		{
 			throw new IOException("Parsing of workflow failed: " + e.getMessage()
 					+ ".\nThe workflow csv requires columns " + Parameters.STEP_HEADING_IN_WORKFLOW + "," + Parameters.PROTOCOL_HEADING_IN_WORKFLOW + "," + Parameters.PARAMETER_MAPPING_HEADING_IN_WORKFLOW + ".");
+		}
+		finally
+		{
+			reader.close();
 		}
 	}
 

@@ -202,6 +202,172 @@ public class FoldingTest
 	}
 
 	@Test
+	public void testFoldingAssign2ParametersFiles() throws Exception
+	{
+		//shows nieuwe folding
+		System.out.println("--- Start Test Folding ---");
+
+		File f = new File(outputDir);
+		FileUtils.deleteDirectory(f);
+		Assert.assertFalse(f.exists());
+
+		f = new File(".compute.properties");
+		FileUtils.deleteQuietly(f);
+		Assert.assertFalse(f.exists());
+
+		ComputeCommandLine.main(new String[]{
+				"--generate",
+				"--run",
+				"--workflow",
+				"src/main/resources/workflows/testfolding/workflow2.csv",
+				"--parameters",
+				"src/main/resources/workflows/testfolding/parameters.csv",
+				"--parameters",
+				"src/main/resources/workflows/testfolding/parameters2.csv",
+				"--rundir",
+				outputDir
+		});
+
+		System.out.println("--- Test Created Files ---");
+
+		File file = new File(outputDir + "/test1_0.sh");
+
+		file = new File(outputDir + "/test2_1.sh");
+		if (!file.exists())
+		{
+			Assert.fail("test2_1.sh is not generated");
+		}
+
+		file = new File(outputDir + "/test2_2.sh");
+		if (file.exists())
+		{
+			Assert.fail("test2_2.sh should not be generated");
+		}
+
+		System.out.println("--- Test Lists Correctness ---");
+
+		//this conditions can be change later, when compute will weave parameters directly
+
+		String test2_0_list1 = "chunk[0]=\"a\"\n" +
+				"chunk[1]=\"b\"\n" +
+				"chunk[2]=\"c\"\n";
+		String test2_0_list2 ="chr=\"1\"";
+
+		String test2_1_list1 = "chunk[0]=\"a\"\n" +
+				"chunk[1]=\"b\"\n";
+		String test2_1_list2 ="chr=\"2\"";
+
+		String t = ComputeCommandLineTest.getFileAsString(outputDir + "/test2_0.sh");
+
+		if(!t.contains(test2_0_list1) || !t.contains(test2_0_list2))
+		{
+			Assert.fail("folding broken");
+		}
+
+		t = ComputeCommandLineTest.getFileAsString(outputDir + "/test2_1.sh");
+		if(!t.contains(test2_1_list1) || !t.contains(test2_1_list2))
+		{
+			Assert.fail("folding broken");
+		}
+
+		System.out.println("Test concatination with run-time parameters");
+	}
+
+	@Test
+	public void testFoldingAssign2doubleParametersFiles() throws Exception
+	{
+		//shows nieuwe folding
+		System.out.println("--- Start Test Folding ---");
+
+		File f = new File(outputDir);
+		FileUtils.deleteDirectory(f);
+		Assert.assertFalse(f.exists());
+
+		f = new File(".compute.properties");
+		FileUtils.deleteQuietly(f);
+		Assert.assertFalse(f.exists());
+
+		ComputeCommandLine.main(new String[]{
+				"--generate",
+				"--run",
+				"--workflow",
+				"src/main/resources/workflows/testfolding/workflow3.csv",
+				"--parameters",
+				"src/main/resources/workflows/testfolding/parameters.csv",
+				"--parameters",
+				"src/main/resources/workflows/testfolding/parameters2.csv",
+				"--rundir",
+				outputDir
+		});
+
+		System.out.println("--- Test Created Files ---");
+
+		File file = new File(outputDir + "/test1_0.sh");
+
+		file = new File(outputDir + "/test2_1.sh");
+		if (!file.exists())
+		{
+			Assert.fail("test2_1.sh is not generated");
+		}
+
+		file = new File(outputDir + "/test2_2.sh");
+		if (file.exists())
+		{
+			Assert.fail("test2_2.sh should not be generated");
+		}
+
+		System.out.println("--- Test Lists Correctness ---");
+
+		//this conditions can be change later, when compute will weave parameters directly
+
+		String test2_0_list1 = "just[0]=\"1\"\n" +
+				"just[1]=\"2\"\n" +
+				"just[2]=\"1\"\n" +
+				"just[3]=\"2\"\n" +
+				"just[4]=\"1\"\n" +
+				"just[5]=\"2\"";
+
+		String test2_0_list2 ="chunk[0]=\"a\"\n" +
+				"chunk[1]=\"a\"\n" +
+				"chunk[2]=\"b\"\n" +
+				"chunk[3]=\"b\"\n" +
+				"chunk[4]=\"c\"\n" +
+				"chunk[5]=\"c\"";
+
+		String test2_0_list3 ="chr=\"1\"";
+
+		String test2_1_list1 = "just[0]=\"1\"\n" +
+				"just[1]=\"2\"\n" +
+				"just[2]=\"1\"\n" +
+				"just[3]=\"2\"";
+
+		String test2_1_list2 ="chunk[0]=\"a\"\n" +
+				"chunk[1]=\"a\"\n" +
+				"chunk[2]=\"b\"\n" +
+				"chunk[3]=\"b\"";
+
+		String test2_1_list3 ="chr=\"2\"";
+
+		String t = ComputeCommandLineTest.getFileAsString(outputDir + "/test2_0.sh");
+
+		if(!t.contains(test2_0_list1) || !t.contains(test2_0_list2) || !t.contains(test2_0_list3))
+		{
+			Assert.fail("folding broken");
+		}
+
+		t = ComputeCommandLineTest.getFileAsString(outputDir + "/test2_1.sh");
+		if(!t.contains(test2_1_list1) || !t.contains(test2_1_list2) || !t.contains(test2_1_list3))
+		{
+			Assert.fail("folding broken");
+		}
+
+		System.out.println("Test concatination with run-time parameters");
+	}
+
+
+
+
+	@Test
 	public void testFoldingWeaving() throws Exception
 	{
 		System.out.println("--- Start Test Folding 1---");

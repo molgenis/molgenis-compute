@@ -1,57 +1,65 @@
 package org.molgenis.compute.db.executor;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
+import java.util.Collection;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.UUID;
 
-import freemarker.template.Configuration;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.molgenis.compute.db.ComputeDbException;
-import org.molgenis.compute5.sysexecutor.SysCommandExecutor;
 import org.molgenis.compute.runtime.ComputeRun;
 import org.molgenis.compute.runtime.ComputeTask;
-import org.molgenis.framework.db.Database;
-import org.molgenis.framework.db.DatabaseException;
-import org.molgenis.util.ApplicationUtil;
+import org.molgenis.compute5.sysexecutor.SysCommandExecutor;
+import org.molgenis.data.DataService;
+import org.molgenis.data.support.QueryImpl;
+import org.molgenis.security.runas.RunAsSystem;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import javax.servlet.ServletContext;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
 
 /**
  * Created with IntelliJ IDEA. User: georgebyelas Date: 22/08/2012 Time: 14:26
  * To change this template use File | Settings | File Templates.
  */
+@Component
 public class ComputeExecutorPilotDB implements ComputeExecutor
 {
 	public static final int SSH_PORT = 22;
 	private static final Logger LOG = Logger.getLogger(ComputeExecutorPilotDB.class);
 
-	private String backendUrl;
-	private String username;
-	private String password;
-	private int sshPort;
+	private DataService dataService;
 
 	private ExecutionHost executionHost = null;
 
-	public ComputeExecutorPilotDB(String backendUrl, String username, String password, int sshPort)
+	@Autowired
+	public ComputeExecutorPilotDB(DataService dataService)
 	{
-		this.backendUrl = backendUrl;
-		this.username = username;
-		this.password = password;
-		this.sshPort = sshPort;
+		this.dataService = dataService;
 	}
 
 	@Override
-	public void executeTasks(ComputeRun computeRun)
+	@RunAsSystem
+	public void executeTasks(String computeRunName, String username, String password)
 	{
+		ComputeRun computeRun = null;
 		try
 		{
-			this.executionHost = new ExecutionHost(backendUrl, username, password, sshPort);
+			computeRun = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
+					.eq(ComputeRun.NAME, computeRunName), ComputeRun.class);
+
+			this.executionHost = new ExecutionHost(dataService,
+					computeRun.getComputeBackend().getBackendUrl(),
+					username, password, SSH_PORT);
 		}
 		catch (IOException e)
 		{
@@ -61,29 +69,31 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 		if (computeRun == null)
 			throw new IllegalArgumentException("ComputRun is null");
 
-		Database database = null;
-
 		try
 		{
-			database = ApplicationUtil.getUnauthorizedPrototypeDatabase();
 
-			List<ComputeTask> generatedTasks = database.query(ComputeTask.class)
-					.equals(ComputeTask.STATUSCODE, "generated").equals(ComputeTask.COMPUTERUN, computeRun).find();
+			Iterable<ComputeTask> generatedTasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
+					.eq(ComputeTask.COMPUTERUN, computeRun).and()
+					.eq(ComputeTask.STATUSCODE, "generated"), ComputeTask.class);
 
-			LOG.info("Nr of tasks with status [generated]: [" + generatedTasks.size() + "]");
+			int size =  ((Collection<?>)generatedTasks).size();
 
-			evaluateTasks(database, generatedTasks);
+			LOG.info("Nr of tasks with status [generated]: [" + size + "]");
 
-			List<ComputeTask> readyTasks = database.query(ComputeTask.class).equals(ComputeTask.STATUSCODE, "ready")
-					.equals(ComputeTask.COMPUTERUN, computeRun).find();
+			evaluateTasks(generatedTasks);
 
-			for (ComputeTask task : readyTasks)
+			Iterable<ComputeTask> readyTasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
+					.eq(ComputeTask.COMPUTERUN, computeRun).and()
+					.eq(ComputeTask.STATUSCODE, "ready"), ComputeTask.class);
+
+			for (ComputeTask task: readyTasks)
 			{
 				LOG.info("Task ready: [" + task.getName() + "]");
 			}
 
 			if(computeRun.getIsSubmittingPilots())
-				for (int i = 0; i < readyTasks.size(); i++)
+			{
+				for(ComputeTask task: readyTasks)
 				{
 					if (computeRun.getComputeBackend().getHostType().equalsIgnoreCase("localhost"))
 					{
@@ -96,8 +106,9 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 
 						if (executionHost == null)
 						{
-							executionHost = new ExecutionHost(computeRun.getComputeBackend().getBackendUrl(), username,
-									password, SSH_PORT);
+							executionHost = new ExecutionHost(dataService,
+									computeRun.getComputeBackend().getBackendUrl(),
+									username, password, SSH_PORT);
 						}
 
 						//generate unique pilot and its submission command
@@ -130,12 +141,9 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 						executionHost.submitPilot(computeRun,
 													command, pilotID, sh, jdl, computeRun.getOwner());
 					}
+
 				}
-		}
-		catch (DatabaseException e)
-		{
-			LOG.error("DatabaseException executing tasks", e);
-			throw new ComputeDbException("DatabaseException executing tasks", e);
+			}
 		}
 		catch (IOException e)
 		{
@@ -145,12 +153,11 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 		}
 		finally
 		{
-			if (executionHost != null)
+			if (executionHost != null && computeRun.getIsSubmittingPilots())
 			{
 				executionHost.close();
 			}
 
-			IOUtils.closeQuietly(database);
 		}
 	}
 
@@ -190,10 +197,9 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 		LOG.info("Command output:\n" + cmdOutput);
 	}
 
-	private void evaluateTasks(Database database, List<ComputeTask> generatedTasks) throws DatabaseException
+	private void evaluateTasks(Iterable<ComputeTask> generatedTasks)
 	{
-
-		for (ComputeTask task : generatedTasks)
+		for(ComputeTask task : generatedTasks)
 		{
 			boolean isReady = true;
 			List<ComputeTask> prevSteps = task.getPrevSteps();
@@ -207,7 +213,7 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 				LOG.info(">>> TASK [" + task.getName() + "] is ready for execution");
 
 				task.setStatusCode("ready");
-				database.update(task);
+				dataService.update(ComputeTask.ENTITY_NAME, task);
 			}
 		}
 

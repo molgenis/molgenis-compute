@@ -206,4 +206,14 @@ public class Protocol
 	{
 		this.type = type;
 	}
+
+	public void addInput(Input input)
+	{
+		inputs.add(input);
+	}
+
+	public void addOutput(Output output)
+	{
+		outputs.add(output);
+	}
 }

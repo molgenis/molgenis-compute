@@ -14,7 +14,7 @@ public class Input
 	private String description;
 	private String type;
 
-	//
+	private boolean foldingAllUniqueInputsCombination = false;
 	private boolean isKnownRunTime = false;
 
 	public Input(String name)
@@ -66,4 +66,16 @@ public class Input
 	{
 		isKnownRunTime = knownRunTime;
 	}
+
+	public void foldingTypeUniqueCombination(boolean allUniqueInputsCombination)
+	{
+		this.foldingAllUniqueInputsCombination = allUniqueInputsCombination;
+	}
+
+	public boolean isFoldingTypeUniqueCombination()
+	{
+		return foldingAllUniqueInputsCombination;
+	}
+
+
 }
