@@ -34,6 +34,9 @@
 			<includes>
 				<include>org.molgenis:molgenis-core</include>
 				<include>org.molgenis:molgenis-compute-core</include>
+				<include>org.molgenis:molgenis-data</include>
+				<include>org.molgenis:molgenis-data-excel</include>
+				<include>org.molgenis:molgenis-data-csv</include>
 				<include>commons-cli:commons-cli</include>
 				<include>org.freemarker:freemarker</include>
 				<include>log4j:log4j</include>
@@ -45,6 +48,9 @@
 				<include>org.apache.commons:commons-lang3</include>
                 <include>commons-logging:commons-logging</include>
                 <include>com.google.code.gson:gson</include>
+                <include>org.springframework:spring-core</include>
+                <include>org.springframework:spring-context</include>
+                <include>org.springframework:spring-beans</include>
 			</includes>
 		</dependencySet>
 	</dependencySets>
