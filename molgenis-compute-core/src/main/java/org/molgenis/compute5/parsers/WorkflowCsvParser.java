@@ -25,9 +25,9 @@ public class WorkflowCsvParser
 
 	public Workflow parse(String workflowPath, ComputeProperties computeProperties) throws IOException
 	{
+		CSVReader reader = null;
 		try
 		{
-			CSVReader reader = null;
 			if(computeProperties.isWebWorkflow)
 			{
 				File workflowFile = urlReader.createFileFromGithub(computeProperties.webWorkflowLocation,
@@ -98,15 +98,18 @@ public class WorkflowCsvParser
 
 					wf.addStep(step);
 				}
-				reader.close();
-			}
 
+			}
 			return wf;
 		}
 		catch (IOException e)
 		{
 			throw new IOException("Parsing of workflow failed: " + e.getMessage()
 					+ ".\nThe workflow csv requires columns " + Parameters.STEP_HEADING_IN_WORKFLOW + "," + Parameters.PROTOCOL_HEADING_IN_WORKFLOW + "," + Parameters.PARAMETER_MAPPING_HEADING_IN_WORKFLOW + ".");
+		}
+		finally
+		{
+			reader.close();
 		}
 	}
 
