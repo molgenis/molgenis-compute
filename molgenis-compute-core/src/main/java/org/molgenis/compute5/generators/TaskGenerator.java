@@ -407,7 +407,7 @@ public class TaskGenerator
 				for(int i = 0; i < foldedList.size(); i++)
 				{
 					String value = foldedList.get(i);
-					parameterHeader.append(name).append("[").append(i).append("]").append("=").append("\"").append(value).append("\"\n");
+					parameterHeader.append(name).append("[").append(i).append("]=\"").append(value).append("\"\n");
 
 				}
 			}
@@ -538,8 +538,6 @@ public class TaskGenerator
 
 	private List<MapEntity> addResourceValues(Step step, List<MapEntity> localParameters)
 	{
-		// try
-		// {
 		for (MapEntity target : localParameters)
 		{
 			// add parameters for resource management:

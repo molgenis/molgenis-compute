@@ -38,6 +38,8 @@ public class RunService
 {
 	private static final Logger LOG = Logger.getLogger(RunService.class);
 	private static final long DEFAULT_POLL_DELAY = 30000;
+	public static final String IS_SUBMITTING = "is_submitting";
+	public static final String IS_RUNNING = "is_running";
 
 	@Autowired
 	private Scheduler scheduler;
@@ -264,32 +266,13 @@ public class RunService
 
 	}
 
-
-	/**
-	 * Check is a run is currently running
-	 *
-	 * @param runName
-	 * @return
-	 */
-	public boolean isRunning(String runName)
-	{
-		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
-				.eq(ComputeRun.NAME, runName), ComputeRun.class);
-		if (run == null)
-		{
-			throw new ComputeDbException("Unknown run name [" + runName + "]");
-		}
-
-		return run.getIsActive();
-	}
-
 	/**
 	 * Check is a run is currently submitting pilots
 	 *
 	 * @param runName
 	 * @return
 	 */
-	public boolean isSubmitting(String runName)
+	public boolean isRunningOrSubmitting(String runName, String question)
 	{
 
 		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
@@ -299,7 +282,11 @@ public class RunService
 			throw new ComputeDbException("Unknown run name [" + runName + "]");
 		}
 
-		return run.getIsSubmittingPilots();
+		if(question.equalsIgnoreCase(IS_SUBMITTING))
+			return run.getIsSubmittingPilots();
+		else if(question.equalsIgnoreCase(IS_RUNNING))
+			return run.getIsActive();
+		return false;
 	}
 
 	/**
@@ -459,14 +446,14 @@ public class RunService
 		run.setIsCancelled(true);
 		dataService.update(ComputeRun.ENTITY_NAME, run);
 
-		List<String> statuses = new ArrayList<String>();
-		statuses.add(MolgenisPilotService.TASK_RUNNING);
-		statuses.add(MolgenisPilotService.TASK_GENERATED);
-		statuses.add(MolgenisPilotService.TASK_READY);
+		List<String> status = new ArrayList<String>();
+		status.add(MolgenisPilotService.TASK_RUNNING);
+		status.add(MolgenisPilotService.TASK_GENERATED);
+		status.add(MolgenisPilotService.TASK_READY);
 
 		Query q = new QueryImpl()
 				.eq(ComputeTask.COMPUTERUN, run.getName())
-				.and().in(ComputeTask.STATUSCODE, statuses);
+				.and().in(ComputeTask.STATUSCODE, status);
 
 
 		Iterable<ComputeTask> listTask = dataService

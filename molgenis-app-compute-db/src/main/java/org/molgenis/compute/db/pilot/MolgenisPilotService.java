@@ -146,7 +146,7 @@ public class MolgenisPilotService
             LOG.info("Looking for task to execute for host [" + backend + "]");
 
 
-			//first we look for tasks, that from the run of the pilot
+			//first we submit tasks which are in the same run, that the submitted pilot job is.
 			Iterable<ComputeTask> tasks = findRunTasksReadyForRun(pilot);
 
 			if((!tasks.iterator().hasNext()))

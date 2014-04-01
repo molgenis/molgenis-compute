@@ -158,8 +158,8 @@ public class PilotDashboardController extends MolgenisPluginController
 				isSame = true;
 
 			runModels.add(new RunModel(run.getName(),
-                    runService.isRunning(run.getName()),
-                    runService.isSubmitting(run.getName()),
+                    runService.isRunningOrSubmitting(run.getName(), RunService.IS_RUNNING),
+                    runService.isRunningOrSubmitting(run.getName(), RunService.IS_SUBMITTING),
                     runService.isComplete(run.getName()),
 					runService.isCancelled(run.getName()),
 					isSame,

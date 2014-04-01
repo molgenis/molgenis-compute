@@ -82,10 +82,6 @@ public class ProtocolParser
 					{
 						// remove #, trim spaces, then split on " "
 						line = line.substring(1).trim();
-//						List<String> els = new ArrayList<String>();
-//						Matcher m = Pattern.compile("([^\"]\\S*|\".+?\")\\s*").matcher(line);
-//						while (m.find())
-//							els.add(m.group(1));
 
 						//make a list out of line with spaces and commas
 						String[] values = line.replaceAll("^[,\\s]+", "").split("[,\\s]+");

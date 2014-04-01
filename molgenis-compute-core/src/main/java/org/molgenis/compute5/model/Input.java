@@ -15,8 +15,6 @@ public class Input
 	private String type;
 
 	private boolean foldingAllUniqueInputsCombination = false;
-
-	//
 	private boolean isKnownRunTime = false;
 
 	public Input(String name)

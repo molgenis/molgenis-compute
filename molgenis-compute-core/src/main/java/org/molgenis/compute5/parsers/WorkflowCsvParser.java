@@ -32,14 +32,11 @@ public class WorkflowCsvParser
 			{
 				File workflowFile = urlReader.createFileFromGithub(computeProperties.webWorkflowLocation,
 						workflowPath);
-//				reader = new CsvRepository(new BufferedReader(new FileReader(workflowFile)), ",", null);
 				reader = new CSVReader(new FileReader(workflowFile), ',');
 
 			}
 			else
 				reader = new CSVReader(new FileReader(workflowPath), ',');
-//				reader = new CsvRepository(new File(workflowPath), ',', null);
-//				reader = new CsvRepository(new BufferedReader(new FileReader(workflowPath)), ",", null);
 
 			Workflow wf = new Workflow();
 
@@ -101,6 +98,7 @@ public class WorkflowCsvParser
 
 					wf.addStep(step);
 				}
+				reader.close();
 			}
 
 			return wf;
