@@ -7,6 +7,9 @@
 #PBS -o ${taskId}.out
 #PBS -W umask=0007
 
+# For bookkeeping how long your task takes
+MOLGENIS_START=$(date +%s)
+
 #
 ## Header for PBS backend
 #
