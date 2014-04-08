@@ -47,8 +47,6 @@ include () {
 	fi		
 }
 
-include $WORKDIR/gcc.bashrc
-
 <#noparse>
 getFile()
 {
