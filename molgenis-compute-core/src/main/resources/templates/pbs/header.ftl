@@ -49,7 +49,7 @@ include () {
 		echo "File not found: $1"
 	fi		
 }
-include $WORKDIR/gcc.bashrc
+include ${GCC_HOME}/gcc.bashrc
 <#noparse>
 getFile()
 {
