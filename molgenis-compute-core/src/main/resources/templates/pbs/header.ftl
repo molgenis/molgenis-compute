@@ -7,6 +7,9 @@
 #PBS -o ${taskId}.out
 #PBS -W umask=0007
 
+# For bookkeeping how long your task takes
+MOLGENIS_START=$(date +%s)
+
 #
 ## Header for PBS backend
 #
@@ -14,8 +17,8 @@
 echo Running on node: `hostname`
 
 #highly recommended to use
-#set -e # exit if any subcommand or pipeline returns a non-zero status
-#set -u # exit if any uninitialised variable is used
+set -e # exit if any subcommand or pipeline returns a non-zero status
+set -u # exit if any uninitialised variable is used
 
 # Set location of *.env files
 ENVIRONMENT_DIR="$PBS_O_WORKDIR"
@@ -46,9 +49,7 @@ include () {
 		echo "File not found: $1"
 	fi		
 }
-
 include $WORKDIR/gcc.bashrc
-
 <#noparse>
 getFile()
 {
