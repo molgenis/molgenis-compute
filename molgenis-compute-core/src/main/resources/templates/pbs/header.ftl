@@ -17,8 +17,8 @@ MOLGENIS_START=$(date +%s)
 echo Running on node: `hostname`
 
 #highly recommended to use
-#set -e # exit if any subcommand or pipeline returns a non-zero status
-#set -u # exit if any uninitialised variable is used
+set -e # exit if any subcommand or pipeline returns a non-zero status
+set -u # exit if any uninitialised variable is used
 
 # Set location of *.env files
 ENVIRONMENT_DIR="$PBS_O_WORKDIR"
