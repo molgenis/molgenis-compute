@@ -18,7 +18,7 @@ import java.util.*;
  * Time: 4:01 PM
  * To change this template use File | Settings | File Templates.
  */
-public class ParametersFolderNieuwe
+public class ParametersFolder
 {
 	//map parameter name and values
 	List<HashMap> parameters = new ArrayList<HashMap>();
@@ -197,5 +197,10 @@ public class ParametersFolderNieuwe
 			}
 		}
 		return values;
+	}
+
+	public List<HashMap> getParameters()
+	{
+		return parameters;
 	}
 }

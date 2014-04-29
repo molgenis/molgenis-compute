@@ -79,4 +79,82 @@ public class FoldingNieuweTest
 
 	}
 
+	@Test
+	public void testParametersAll() throws Exception
+	{
+		System.out.println("--- Start Test Folding 1---");
+
+		File f = new File(outputDir);
+		FileUtils.deleteDirectory(f);
+		Assert.assertFalse(f.exists());
+
+		f = new File(".compute.properties");
+		FileUtils.deleteQuietly(f);
+		Assert.assertFalse(f.exists());
+
+		ComputeCommandLine.main(new String[]{
+				"--generate",
+				"--run",
+				"--workflow",
+				"src/main/resources/workflows/listOutOfTwo/workflow.csv",
+				"--parameters",
+				"src/main/resources/workflows/listOutOfTwo/parametersall.csv",
+				"--rundir",
+				outputDir
+		});
+
+		String proper = "combination[0]=\"prefix1postfix1\"\n" +
+				"combination[1]=\"prefix2postfix2\"\n" +
+				"combination[2]=\"prefix3postfix3\"";
+
+		String t = ComputeCommandLineTest.getFileAsString(outputDir + "/test1_0.sh");
+
+		if(!t.contains(proper))
+		{
+			Assert.fail("folding broken");
+		}
+
+	}
+
+
+
+	@Test
+	public void testParametersAllInTwoFiles() throws Exception
+	{
+		System.out.println("--- Start Test Folding 1---");
+
+		File f = new File(outputDir);
+		FileUtils.deleteDirectory(f);
+		Assert.assertFalse(f.exists());
+
+		f = new File(".compute.properties");
+		FileUtils.deleteQuietly(f);
+		Assert.assertFalse(f.exists());
+
+		ComputeCommandLine.main(new String[]{
+				"--generate",
+				"--run",
+				"--workflow",
+				"src/main/resources/workflows/listOutOfTwo/workflow.csv",
+				"--parameters",
+				"src/main/resources/workflows/listOutOfTwo/parameters.csv",
+				"--parameters",
+				"src/main/resources/workflows/listOutOfTwo/parameters1.csv",
+				"--rundir",
+				outputDir
+		});
+
+		String proper = "combination[0]=\"prefix1postfix1\"\n" +
+				"combination[1]=\"prefix2postfix2\"\n" +
+				"combination[2]=\"prefix3postfix3\"";
+
+		String t = ComputeCommandLineTest.getFileAsString(outputDir + "/test1_0.sh");
+
+		if(!t.contains(proper))
+		{
+			Assert.fail("folding broken");
+		}
+
+	}
+
 }
