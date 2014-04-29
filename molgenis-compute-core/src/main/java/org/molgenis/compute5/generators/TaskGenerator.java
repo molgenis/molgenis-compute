@@ -701,7 +701,6 @@ public class TaskGenerator
 
 	public void analyseListsInProtocols(Workflow workflow, List<HashMap> parameters)
 	{
-		List<String> listAnalysedProtocols = new ArrayList<String>();
 
 		if(parameters.size() < 2)
 		    //all parameters come from one file
@@ -711,9 +710,6 @@ public class TaskGenerator
 		{
 			Protocol protocol = step.getProtocol();
 			String name = protocol.getName();
-
-			if(listAnalysedProtocols.contains(name))
-				continue;
 
 			//calculate how many lists separated lists we have
 			int size = 0;
