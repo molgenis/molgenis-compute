@@ -13,7 +13,7 @@ import java.io.File;
  * Time: 3:01 PM
  * To change this template use File | Settings | File Templates.
  */
-public class FoldingNieuweTest
+public class SeparatedListFoldingTest
 {
 	private String outputDir = "target/test/benchmark/run";
 
