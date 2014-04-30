@@ -1217,7 +1217,7 @@ public class ComputeCommandLineTest
 	}
 
 
-
+	@Test
 	public void testGenerate5PBS() throws Exception
 	{
 		System.out.println("--- Start TestRunLocally ---");

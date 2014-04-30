@@ -1,3 +1,4 @@
+#!/bin/sh
 #string chr
 #list chunk
 #list just

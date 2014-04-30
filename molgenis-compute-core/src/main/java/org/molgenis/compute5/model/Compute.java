@@ -16,7 +16,7 @@ public class Compute
 	private String userEnvironment;
 
 	HashMap<String, String> mapUserEnvironment = null;
-	private ParametersFolderNieuwe parametersContainer;
+	private ParametersFolder parametersContainer;
 
 
 	public Compute(ComputeProperties computeProperties)
@@ -84,12 +84,12 @@ public class Compute
 		this.mapUserEnvironment = mapUserEnvironment;
 	}
 
-	public void setParametersContainer(ParametersFolderNieuwe parametersContainer)
+	public void setParametersContainer(ParametersFolder parametersContainer)
 	{
 		this.parametersContainer = parametersContainer;
 	}
 
-	public ParametersFolderNieuwe getParametersContainer()
+	public ParametersFolder getParametersContainer()
 	{
 		return parametersContainer;
 	}

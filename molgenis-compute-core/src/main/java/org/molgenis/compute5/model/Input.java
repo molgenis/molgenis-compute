@@ -14,8 +14,10 @@ public class Input
 	private String description;
 	private String type;
 
-	private boolean foldingAllUniqueInputsCombination = false;
+	private boolean combineLists = true;
 	private boolean isKnownRunTime = false;
+
+	private boolean combinedListsNotation = false;
 
 	public Input(String name)
 	{
@@ -67,15 +69,23 @@ public class Input
 		isKnownRunTime = knownRunTime;
 	}
 
-	public void foldingTypeUniqueCombination(boolean allUniqueInputsCombination)
+	public void setCombineLists(boolean combineLists)
 	{
-		this.foldingAllUniqueInputsCombination = allUniqueInputsCombination;
+		this.combineLists = combineLists;
 	}
 
-	public boolean isFoldingTypeUniqueCombination()
+	public boolean isCombineLists()
 	{
-		return foldingAllUniqueInputsCombination;
+		return combineLists;
 	}
 
+	public boolean isCombinedListsNotation()
+	{
+		return combinedListsNotation;
+	}
 
+	public void setCombinedListsNotation(boolean combinedListsNotation)
+	{
+		this.combinedListsNotation = combinedListsNotation;
+	}
 }

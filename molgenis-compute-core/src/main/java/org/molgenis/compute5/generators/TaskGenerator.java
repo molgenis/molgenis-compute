@@ -20,6 +20,7 @@ public class TaskGenerator
 	private static final Logger LOG = Logger.getLogger(TaskGenerator.class);
 	private Compute compute;
 	private StringBuilder parameterHeader = null;
+
 	public List<Task> generate(Compute compute) throws IOException
 	{
 		this.compute = compute;
@@ -33,7 +34,6 @@ public class TaskGenerator
 		globalParameters = parameters.getValues();
 		for (Step step : workflow.getSteps())
 		{
-
 			// map global to local parameters
 			List<MapEntity> localParameters = mapGlobalToLocalParameters(globalParameters, step);
 
@@ -60,7 +60,6 @@ public class TaskGenerator
 		}
 
 		return result;
-
 	}
 
 	private Collection<? extends Task> generateTasks(Step step, List<MapEntity> localParameters,
@@ -150,7 +149,7 @@ public class TaskGenerator
 				for (Input input : step.getProtocol().getInputs())
 				{
 					if(input.getType().equalsIgnoreCase(Parameters.LIST_INPUT) &&
-							!input.isFoldingTypeUniqueCombination() &&
+							!input.isCombineLists() &&
 							compute.getParametersContainer().isMultiParametersFiles())
 					{
 						//a new way of folding
@@ -182,7 +181,7 @@ public class TaskGenerator
 								else
 									value = EnvironmentGenerator.GLOBAL_PREFIX + value;
 
-	//								left in code for paper (SGW)
+	//								left in code for future comparison in papers
 	//								parameterHeader += parameterName + "[" + i + "]=${" + value + "[" + rowIndexString
 	//										+ "]}\n";
 
@@ -249,7 +248,7 @@ public class TaskGenerator
 											value = EnvironmentGenerator.GLOBAL_PREFIX + value;
 										}
 									}
-	//								left in code for paper (SGW)
+	//								left in code for future comparison in papers
 	//								parameterHeader += parameterName + "[" + i + "]=${" + value + "[" + rowIndexString
 	//										+ "]}\n";
 									String type = input.getType();
@@ -396,7 +395,7 @@ public class TaskGenerator
 	{
 		for(Input input : list)
 		{
-			ParametersFolderNieuwe originalParameters = compute.getParametersContainer();
+			ParametersFolder originalParameters = compute.getParametersContainer();
 			int timeParameterFind = originalParameters.isParameterFindTimes(input.getName());
 
 			if(timeParameterFind == 1)
@@ -700,7 +699,38 @@ public class TaskGenerator
 	}
 
 
+	public void analyseListsInProtocols(Workflow workflow, List<HashMap> parameters)
+	{
 
-	/** Convert all parameters to lists, except the once marked as target */
+		if(parameters.size() < 2)
+		    //all parameters come from one file
+			return;
 
+		for(Step step : workflow.getSteps())
+		{
+			Protocol protocol = step.getProtocol();
+			String name = protocol.getName();
+
+			//calculate how many lists separated lists we have
+			int size = 0;
+			for(Input input : protocol.getInputs())
+			{
+				if(input.getType().equalsIgnoreCase(Input.TYPE_LIST))
+				{
+					size++;
+				}
+			}
+
+			if(size > 1)
+				for(Input input : protocol.getInputs())
+				{
+					if(input.getType().equalsIgnoreCase(Input.TYPE_LIST) &&
+							!input.isCombinedListsNotation())
+					{
+						input.setCombineLists(false);
+					}
+				}
+		}
+
+	}
 }

@@ -4,11 +4,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.commons.io.FilenameUtils;
 import org.molgenis.compute5.ComputeProperties;
@@ -125,12 +122,13 @@ public class ProtocolParser
 							else if (els.get(0).equals(Parameters.STRING)
 									|| els.get(0).equals(Parameters.LIST_INPUT))
 							{
-								boolean allUniqueInputsCombination = false;
+
+								boolean combinedListsNotation = false;
 								if(els.get(0).equals(Parameters.LIST_INPUT) &&
 										els.size() > 2)
 								{
 									//see folding tests
-									allUniqueInputsCombination = true;
+									combinedListsNotation = true;
 								}
 
 								// assume name column
@@ -142,7 +140,7 @@ public class ProtocolParser
 								{
 									Input input = new Input(els.get(i));
 									input.setType(els.get(0));
-									input.foldingTypeUniqueCombination(allUniqueInputsCombination);
+									input.setCombinedListsNotation(combinedListsNotation);
 									protocol.addInput(input);
 								}
 							}

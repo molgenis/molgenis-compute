@@ -1,7 +1,9 @@
+#!/bin/sh
 #string project
 #string dir
 #list sample
 #list chr
+
 
 for s in "${sample[@]}"
 do

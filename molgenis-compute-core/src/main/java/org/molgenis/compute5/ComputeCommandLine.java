@@ -219,7 +219,7 @@ public class ComputeCommandLine
 			parser.setParametersToOverwrite(computeProperties.getParametersToOverwrite());
 
 		Parameters parameters = parser.parse(parameterFiles, computeProperties);
-		ParametersFolderNieuwe parametersContainer = new ParametersFolderNieuwe();
+		ParametersFolder parametersContainer = new ParametersFolder();
 		parametersContainer.setFromFiles(parameterFiles, computeProperties);
 		compute.setParametersContainer(parametersContainer);
 		compute.setParameters(parameters);
@@ -257,8 +257,15 @@ public class ComputeCommandLine
 		HashMap<String, String> userEnvironment = new EnvironmentGenerator().generate(compute, computeProperties.runDir);
 		compute.setMapUserEnvironment(userEnvironment);
 
+		TaskGenerator taskGenerator = new TaskGenerator();
+
+		// analyse lists in workflow protocols
+		// we need to know if list input are coming from the same or different parameter files
+		// to combine lists or leave them separated
+		taskGenerator.analyseListsInProtocols(workflow, parametersContainer.getParameters());
+
 		// generate the tasks
-		List<Task> tasks = new TaskGenerator().generate(compute);
+		List<Task> tasks = taskGenerator.generate(compute);
 		compute.setTasks(tasks);
 
 		new BackendGenerator(computeProperties).generate(compute.getTasks(), dir);
