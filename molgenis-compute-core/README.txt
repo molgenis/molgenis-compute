@@ -238,7 +238,7 @@ If 'weaved' flag is not set, +step1_0.sh+ file, for example looks as follows:
 In this way, users can choose how generated files look like.
 In the current implementation, values are first taken from parameter files. If they are not present, then compute looks,
 if these values can be known at run-time, by analysing all previous steps of the protocol, where values are unknown.
-If values cannot be known at run-time, compute will give a generation error.
+If values cannot be known at run-time, compute will give a generation error. 
 
 Execute workflow
 ----------------
@@ -425,6 +425,87 @@ Alternatively to specifying workflow in the command-line using '-w' or '--workfl
   workflow, parameter1, parameter2
   workflow.csv, value1, value2
 
+Lists of parameters
+~~~~~~~~~~~~~~~~~~~
+
+Parameters can be specified in several parameter files. To understand how 'list' parameter specification works, let's consider the case with 2 parameter files and 1 protocol.
+
++parameters1.csv+
+
+  project , sample
+  project1, sample1
+  project1, sample2
+  project1, sample3
+
++parameters2.csv+
+
+  chr
+  chr1
+  chr2
+  chr3
+
+The example protocol looks like
+
++protocol1.sh+
+
+  #!/bin/sh
+  #string project
+  #list sample
+  #list chr
+  for s in "${sample[@]}"
+  do
+    echo $s
+    for c in "${chr[@]}"
+    do
+         echo $c
+    done
+  done
+
+Here, 'sample' and 'chr' parameters are coming from 2 different parameter files. Both parameters are specified as 'list' in the protocol. These lists of parameters will not be combined, since they are coming from different parameters files.
+The generated parameters lists will have the next look:
+
+  #!/bin/sh
+  #string project
+  #list sample
+  #list chr
+  for s in "sample1" "sample2" "sample3"
+  do
+    echo $s
+    for c in "chr1" "chr2" "chr3"
+    do
+         echo $c
+    done
+  done
+
+If users want to combine lists that coming from separated files, lists should be declared on the same line, like
+
+  list sample, chr
+
+It will produce one list with all possible combination of parameters:
+
+  sample1, chr1
+  sample1, chr2
+  sample1, chr3
+  sample2, chr1
+  sample2, chr2
+  sample2, chr3
+  sample3, chr1
+  sample3, chr2
+  sample3, chr3
+
+It is not the desired behaviour in the considered protocol:
+
+  #!/bin/sh
+  #string project
+  #list sample, chr
+  for s in "sample1" "sample1" "sample1" "sample2" "sample2" "sample2" "sample3" "sample3" "sample3"
+  do
+    echo $s
+    for c in "chr1" "chr2" "chr3" "chr1" "chr2" "chr3" "chr1" "chr2" "chr3"
+    do
+         echo $c
+    done
+  done
 
 Script generation for PBS cluster and other back-ends
 -----------------------------------------------------
@@ -515,4 +596,4 @@ However, this functionality is not fully tested yet and submission via web-user 
 Available workflows
 -------------------
 The available (NGS alignment, imputation) workflows are available in the  
-[[X13]]https://github.com/georgebyelas/molgenis-pipelines[workflow github repository].
+[[X13]]https://github.com/molgenis/molgenis-pipelines[workflow github repository].
