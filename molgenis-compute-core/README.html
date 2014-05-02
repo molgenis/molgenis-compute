@@ -9295,6 +9295,91 @@ number= 123</pre>
 <pre>workflow, parameter1, parameter2
 workflow.csv, value1, value2</pre>
 </div></div>
+<h2 id="lists_of_parameters">Lists of parameters</h2>
+<p>Parameters can be specified in several parameter files. To understand how <em>list</em> parameter specification works, let&#8217;s consider the case with 2 parameter files and 1 protocol.</p>
+<p><code>parameters1.csv</code></p>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>project , sample
+project1, sample1
+project1, sample2
+project1, sample3</pre>
+</div></div>
+<p><code>parameters2.csv</code></p>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>chr
+chr1
+chr2
+chr3</pre>
+</div></div>
+<p>The example protocol looks like</p>
+<p><code>protocol1.sh</code></p>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>#!/bin/sh
+#string project
+#list sample
+#list chr
+for s in "${sample[@]}"
+do
+  echo $s
+  for c in "${chr[@]}"
+  do
+       echo $c
+  done
+done</pre>
+</div></div>
+<p>Here, <em>sample</em> and <em>chr</em> parameters are coming from 2 different parameter files. Both parameters are specified as <em>list</em> in the protocol. These lists of parameters will not be combined, since they are coming from different parameters files.
+The generated parameters lists will have the next look:</p>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>#!/bin/sh
+#string project
+#list sample
+#list chr
+for s in "sample1" "sample2" "sample3"
+do
+  echo $s
+  for c in "chr1" "chr2" "chr3"
+  do
+       echo $c
+  done
+done</pre>
+</div></div>
+<p>If users want to combine lists that coming from separated files, lists should be declared on the same line, like</p>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>list sample, chr</pre>
+</div></div>
+<p>It will produce one list with all possible combination of parameters:</p>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>sample1, chr1
+sample1, chr2
+sample1, chr3
+sample2, chr1
+sample2, chr2
+sample2, chr3
+sample3, chr1
+sample3, chr2
+sample3, chr3</pre>
+</div></div>
+<p>It is not the desired behaviour in the considered protocol:</p>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>#!/bin/sh
+#string project
+#list sample, chr
+for s in "sample1" "sample1" "sample1" "sample2" "sample2" "sample2" "sample3" "sample3" "sample3"
+do
+  echo $s
+  for c in "chr1" "chr2" "chr3" "chr1" "chr2" "chr3" "chr1" "chr2" "chr3"
+  do
+       echo $c
+  done
+done</pre>
+</div></div>
 </section>
 <section id="script_generation_for_pbs_cluster_and_other_back_ends">
   <div class="page-header">
@@ -9386,7 +9471,7 @@ However, this functionality is not fully tested yet and submission via web-user 
     <h1>13. Available workflows</h1>
   </div>
 <p>The available (NGS alignment, imputation) workflows are available in the
-<a id="X13"></a><a href="https://github.com/georgebyelas/molgenis-pipelines">workflow github repository</a>.</p>
+<a id="X13"></a><a href="https://github.com/molgenis/molgenis-pipelines">workflow github repository</a>.</p>
 </section>
         </div>
       </div>
