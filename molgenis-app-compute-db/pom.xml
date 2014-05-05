@@ -88,6 +88,11 @@
         </dependency>
         <dependency>
             <groupId>org.molgenis</groupId>
+            <artifactId>molgenis-data-rest</artifactId>
+            <version>${molgenis.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.molgenis</groupId>
             <artifactId>molgenis-data-excel</artifactId>
             <version>${molgenis.version}</version>
         </dependency>
