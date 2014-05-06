@@ -65,6 +65,14 @@ public class WebAppDatabasePopulatorServiceImpl implements WebAppDatabasePopulat
 		grid.setHostType("GRID");
 		grid.setCommand("glite-wms-job-submit  -d $USER -o pilot-one $HOME/maverick/maverick${pilotid}.jdl");
 		dataService.add(ComputeBackend.ENTITY_NAME, grid);
+
+		ComputeBackend openStackCloud = new ComputeBackend();
+		openStackCloud.setName("gcc.open.stack.cloud");
+		openStackCloud.setBackendUrl("openstack01.gcc.rug.nl");
+		openStackCloud.setHostType("CLOUD");
+		openStackCloud.setCommand("none");
+		dataService.add(ComputeBackend.ENTITY_NAME, openStackCloud);
+
 	}
 
 	@Override

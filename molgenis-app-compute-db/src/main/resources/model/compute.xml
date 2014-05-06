@@ -69,7 +69,7 @@
         </entity>
         <entity name="ComputeBackend" implements="Nameable" xref_label="name">
             <field name="backendUrl" type="string" nillable="false" label="Backend url" description="Backend host" />
-      		<field name="hostType" type="enum" nillable="false" label="Host type" enum_options="[CLUSTER,GRID,LOCALHOST]" description="type of the host" />
+      		<field name="hostType" type="enum" nillable="false" label="Host type" enum_options="[CLUSTER,GRID,LOCALHOST,CLOUD]" description="type of the host" />
       		<field name="command" nillable="false" label="Command" description="Command to be executed" />
             <unique fields="name" />
         </entity>
