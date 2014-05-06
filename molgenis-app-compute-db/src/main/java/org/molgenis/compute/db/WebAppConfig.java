@@ -1,6 +1,7 @@
 package org.molgenis.compute.db;
 
 import org.molgenis.DatabaseConfig;
+import org.molgenis.compute.db.cloudexecutor.CloudManager;
 import org.molgenis.compute.db.executor.ComputeExecutor;
 import org.molgenis.compute.db.executor.PilotManager;
 import org.molgenis.compute.db.executor.Scheduler;
@@ -68,6 +69,12 @@ public class WebAppConfig extends MolgenisWebAppConfig
 	public Scheduler scheduler()
 	{
 		return new Scheduler(dataService, taskScheduler(), computeExecutor);
+	}
+
+	@Bean
+	public CloudManager cloudManager()
+	{
+		return new CloudManager();
 	}
 
 	@Bean(destroyMethod = "shutdown")

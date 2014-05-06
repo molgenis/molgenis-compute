@@ -91,6 +91,22 @@
                 <div class="text-success">Completed</div>
              <#elseif run.cancelled>
                 <div class="text-error">Cancelled</div>
+             <#elseif run.vmrun>
+                 <#if run.running>
+                    <div class="text-success">Running</div>
+                     <form action="/menu/Compute/dashboard/stop" class="form-inline" method="post">
+                         <input type="hidden" name="run" value="${run.name}"/>
+                         <button type="submit" class="btn">Stop</button>
+                     </form>
+                 <#else>
+                    <div class="text-info">Ready to run</div>
+                     <form action="/menu/Compute/dashboard/start" class="form-inline" method="post">
+                         <input type="hidden" name="run" value="${run.name}"/>
+                         <input type="text" name="username" id="inputUsername" placeholder="Username"/>
+                         <input type="password" name="password" id="inputPassword" placeholder="Password"/>
+                         <button type="submit" class="btn">Start</button>
+                     </form>
+                 </#if>
              <#else>
                 <#if run.owned>
                     <#if run.running>
@@ -157,12 +173,14 @@
                             <td class="text-error">Jobs cancelled</td>
                             <td class="cancelled text-error"></td>
                         </tr>
+                        <#if !run.vmrun>
                         <tr>
                             <td class="text-info">Pilots submitted</td>
                             <td class="submitted text-info"></td>
                             <td class="text-info">Pilots started</td>
                             <td class="started text-info"></td>
                         </tr>
+                        </#if>
                     </table>
                 </div>
             </div>
