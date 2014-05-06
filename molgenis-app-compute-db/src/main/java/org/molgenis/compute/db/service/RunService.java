@@ -1,13 +1,13 @@
 package org.molgenis.compute.db.service;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.Iterables;
 import org.apache.log4j.Logger;
 import org.molgenis.compute.db.ComputeDbException;
+import org.molgenis.compute.db.cloudexecutor.CloudManager;
 import org.molgenis.compute.db.executor.Scheduler;
 import org.molgenis.compute.db.pilot.MolgenisPilotService;
 import org.molgenis.compute.runtime.ComputeBackend;
@@ -18,10 +18,8 @@ import org.molgenis.compute5.db.api.RunStatus;
 import org.molgenis.compute5.model.Task;
 import org.molgenis.data.DataService;
 import org.molgenis.data.Query;
-import org.molgenis.data.QueryRule;
 import org.molgenis.data.support.QueryImpl;
 import org.molgenis.omx.auth.MolgenisUser;
-import org.molgenis.security.core.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
@@ -41,8 +39,13 @@ public class RunService
 	public static final String IS_SUBMITTING = "is_submitting";
 	public static final String IS_RUNNING = "is_running";
 
+	public static final String BACKEND_TYPE_CLOUD = "CLOUD";
+
 	@Autowired
 	private Scheduler scheduler;
+
+	@Autowired
+	private CloudManager cloudManager;
 
 	@Autowired
 	private DataService dataService;
@@ -58,6 +61,8 @@ public class RunService
 		}
 
 		ComputeBackend backend = backends.iterator().next();
+
+		String backendType = backend.getHostType();
 
 		Iterable<MolgenisUser> users = dataService.findAll(MolgenisUser.ENTITY_NAME, new QueryImpl()
 				.eq(MolgenisUser.USERNAME, userName), MolgenisUser.class);
@@ -82,6 +87,10 @@ public class RunService
 		run.setPollDelay(pollDelay == null ? DEFAULT_POLL_DELAY : pollDelay);
 		run.setUserEnvironment(userEnvironment);
 		run.setOwner(user);
+
+		if(backendType.equalsIgnoreCase(BACKEND_TYPE_CLOUD))
+			run.setIsVMrun(true);
+
 		dataService.add(ComputeRun.ENTITY_NAME, run);
 
 		// Add tasks to db
@@ -197,10 +206,19 @@ public class RunService
 			throw new ComputeDbException("Unknown run name [" + runName + "]");
 		}
 
-		run.setIsSubmittingPilots(true);
-		dataService.update(ComputeRun.ENTITY_NAME, run);
-		scheduler.schedule(run.getName(), username, password);
+		if(run.getIsVMrun())
+		{
+			run.setIsActive(true);
+			dataService.update(ComputeRun.ENTITY_NAME, run);
 
+			cloudManager.executeRun(run, username, password);
+		}
+		else
+		{
+			run.setIsSubmittingPilots(true);
+			dataService.update(ComputeRun.ENTITY_NAME, run);
+			scheduler.schedule(run.getName(), username, password);
+		}
 	}
 
 	/**
@@ -217,11 +235,21 @@ public class RunService
 			throw new ComputeDbException("Unknown run name [" + runName + "]");
 		}
 
-		LOG.debug(">> In RunService:stop");
-		scheduler.unschedule(run.getId());
+		if(run.getIsVMrun())
+		{
+			run.setIsActive(false);
+			cloudManager.stopExecutingRun(run);
+			dataService.update(ComputeRun.ENTITY_NAME, run);
 
-		run.setIsSubmittingPilots(false);
-		dataService.update(ComputeRun.ENTITY_NAME, run);
+		}
+		else
+		{
+			LOG.debug(">> In RunService:stop");
+			scheduler.unschedule(run.getId());
+
+			run.setIsSubmittingPilots(false);
+			dataService.update(ComputeRun.ENTITY_NAME, run);
+		}
 	}
 
 	/**
@@ -348,8 +376,15 @@ public class RunService
 		int done = getTaskStatusCount(run, MolgenisPilotService.TASK_DONE);
 		int cancelled = getTaskStatusCount(run, MolgenisPilotService.TASK_CANCELLED);
 
-		int submitted = run.getPilotsSubmitted();
-		int started = run.getPilotsStarted();
+		int submitted = 0;
+		int started = 0;
+
+
+		if(!run.getIsVMrun())
+		{
+			submitted = run.getPilotsSubmitted();
+			started = run.getPilotsStarted();
+		}
 
 		boolean status = false;
 

@@ -197,7 +197,7 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 		LOG.info("Command output:\n" + cmdOutput);
 	}
 
-	private void evaluateTasks(Iterable<ComputeTask> generatedTasks)
+	public void evaluateTasks(Iterable<ComputeTask> generatedTasks)
 	{
 		for(ComputeTask task : generatedTasks)
 		{
