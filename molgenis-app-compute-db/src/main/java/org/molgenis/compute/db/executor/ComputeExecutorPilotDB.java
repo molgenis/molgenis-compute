@@ -11,6 +11,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.UUID;
 
+import com.google.common.collect.Iterables;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.molgenis.compute.db.ComputeDbException;
@@ -76,7 +77,7 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 					.eq(ComputeTask.COMPUTERUN, computeRun).and()
 					.eq(ComputeTask.STATUSCODE, "generated"), ComputeTask.class);
 
-			int size =  ((Collection<?>)generatedTasks).size();
+			int size = Iterables.size(generatedTasks);
 
 			LOG.info("Nr of tasks with status [generated]: [" + size + "]");
 
@@ -161,7 +162,7 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 		}
 	}
 
-	private String getServerIP()
+	public String getServerIP()
 	{
 		String result = null;
 		try
@@ -197,7 +198,7 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 		LOG.info("Command output:\n" + cmdOutput);
 	}
 
-	public void evaluateTasks(Iterable<ComputeTask> generatedTasks)
+	private void evaluateTasks(Iterable<ComputeTask> generatedTasks)
 	{
 		for(ComputeTask task : generatedTasks)
 		{

@@ -74,7 +74,7 @@ public class WebAppConfig extends MolgenisWebAppConfig
 	@Bean
 	public CloudManager cloudManager()
 	{
-		return new CloudManager();
+		return new CloudManager(taskScheduler());
 	}
 
 	@Bean(destroyMethod = "shutdown")
