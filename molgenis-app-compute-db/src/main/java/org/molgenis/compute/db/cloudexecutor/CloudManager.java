@@ -1,15 +1,10 @@
 package org.molgenis.compute.db.cloudexecutor;
 
-import com.google.common.collect.Iterables;
 import org.apache.log4j.Logger;
-import org.molgenis.compute.runtime.ComputeBackend;
 import org.molgenis.compute.runtime.ComputeRun;
-import org.molgenis.compute.runtime.ComputeTask;
 import org.molgenis.data.DataService;
-import org.molgenis.data.support.QueryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 
 import java.io.FileInputStream;
@@ -26,10 +21,10 @@ import java.util.concurrent.ScheduledFuture;
  * To change this template use File | Settings | File Templates.
  */
 
+
 public class CloudManager
 {
 	private static final Logger LOG = Logger.getLogger(CloudManager.class);
-
 
 	private static final String AUTH = "auth";
 	private static final String COMPUTE = "compute";
@@ -57,18 +52,16 @@ public class CloudManager
 	@Autowired
 	private DataService dataService;
 
+	@Autowired
+	CloudExecutor cloudExecutor;
+
 	private final TaskScheduler taskScheduler;// = new ThreadPoolTaskScheduler();
 	private final Map<Integer, ScheduledFuture<?>> scheduledJobs = new HashMap<Integer, ScheduledFuture<?>>();
 	private List<CloudServer> servers = new ArrayList<CloudServer>();
 
-//	public CloudManager()
-//	{
-//		readUserProperties();
-//		taskScheduler.setPoolSize(10);
-//	}
-
 	public CloudManager(TaskScheduler taskScheduler)
 	{
+		readUserProperties();
 		this.taskScheduler = taskScheduler;
 	}
 
@@ -77,7 +70,7 @@ public class CloudManager
 		KEYSTONE_USERNAME = username;
 		KEYSTONE_PASSWORD = password;
 
-		CloudExecutor executor = new CloudExecutor(run);
+		CloudThread executor = new CloudThread(run, cloudExecutor);
 		ScheduledFuture<?> future = taskScheduler.scheduleWithFixedDelay(executor, run.getPollDelay());
 
 		scheduledJobs.put(run.getId(), future);

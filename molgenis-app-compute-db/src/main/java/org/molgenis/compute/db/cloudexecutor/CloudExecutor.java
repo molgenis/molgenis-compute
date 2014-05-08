@@ -1,38 +1,48 @@
 package org.molgenis.compute.db.cloudexecutor;
 
+import com.google.common.collect.Iterables;
 import org.apache.log4j.Logger;
-import org.molgenis.compute.runtime.ComputeBackend;
 import org.molgenis.compute.runtime.ComputeRun;
 import org.molgenis.compute.runtime.ComputeTask;
 import org.molgenis.data.DataService;
 import org.molgenis.data.support.QueryImpl;
+import org.molgenis.security.runas.RunAsSystem;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
  * User: hvbyelas
- * Date: 5/7/14
- * Time: 4:08 PM
+ * Date: 5/8/14
+ * Time: 9:49 AM
  * To change this template use File | Settings | File Templates.
  */
-public class CloudExecutor implements Runnable
-{
-	private static final Logger LOG = Logger.getLogger(CloudExecutor.class);
 
+public class CloudExecutor
+{
 	@Autowired
 	private DataService dataService;
 
 	@Autowired
 	private CloudManager cloudManager;
 
-	private ComputeRun run = null;
 
+	private static final Logger LOG = Logger.getLogger(CloudThread.class);
 
-	public CloudExecutor(ComputeRun run)
+	@RunAsSystem
+	public void executeRun(ComputeRun run)
 	{
-		this.run = run;
+		Iterable<ComputeTask> generatedTasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeTask.COMPUTERUN, run).and()
+				.eq(ComputeTask.STATUSCODE, "generated"), ComputeTask.class);
+
+		int size = Iterables.size(generatedTasks);
+		int i = 0;
+
+		//evaluateTasks(generatedTasks);
+
 	}
 
 	private void evaluateTasks(Iterable<ComputeTask> generatedTasks)
@@ -57,14 +67,4 @@ public class CloudExecutor implements Runnable
 
 	}
 
-	@Override
-	public void run()
-	{
-		Iterable<ComputeTask> generatedTasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
-				.eq(ComputeTask.COMPUTERUN, run).and()
-				.eq(ComputeTask.STATUSCODE, "generated"), ComputeTask.class);
-
-		//evaluateTasks(generatedTasks);
-
-	}
 }
