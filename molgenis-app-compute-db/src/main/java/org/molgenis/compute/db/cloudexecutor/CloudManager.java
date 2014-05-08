@@ -70,6 +70,11 @@ public class CloudManager
 		KEYSTONE_USERNAME = username;
 		KEYSTONE_PASSWORD = password;
 
+		String backendName = run.getComputeBackend().getName();
+
+		//for testing now
+		startServers(backendName, 3);
+
 		CloudThread executor = new CloudThread(run, cloudExecutor);
 		ScheduledFuture<?> future = taskScheduler.scheduleWithFixedDelay(executor, run.getPollDelay());
 
@@ -78,9 +83,12 @@ public class CloudManager
 
 	public void stopExecutingRun(ComputeRun run)
 	{
-//		ScheduledFuture<?> future = scheduledJobs.get(run.getId());
-//		future.cancel(false);
-//		scheduledJobs.remove(run.getId());
+		ScheduledFuture<?> future = scheduledJobs.get(run.getId());
+		if(future != null)
+		{
+			future.cancel(false);
+			scheduledJobs.remove(run.getId());
+		}
 	}
 
 	public void startServers(String backendName, int numberOfServers)
@@ -93,7 +101,7 @@ public class CloudManager
 
 	}
 
-	public CloudServer getNewServer()
+	public CloudServer getAvailServer()
 	{
 		return null;
 	}

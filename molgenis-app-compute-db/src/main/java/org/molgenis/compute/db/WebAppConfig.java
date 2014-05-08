@@ -97,4 +97,5 @@ public class WebAppConfig extends MolgenisWebAppConfig
 		return scheduler;
 	}
 
+
 }

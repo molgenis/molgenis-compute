@@ -39,10 +39,29 @@ public class CloudExecutor
 				.eq(ComputeTask.STATUSCODE, "generated"), ComputeTask.class);
 
 		int size = Iterables.size(generatedTasks);
-		int i = 0;
 
-		//evaluateTasks(generatedTasks);
+		evaluateTasks(generatedTasks);
 
+		Iterable<ComputeTask> readyTasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeTask.COMPUTERUN, run).and()
+				.eq(ComputeTask.STATUSCODE, "ready"), ComputeTask.class);
+
+		for(ComputeTask computeTask : readyTasks)
+		{
+			CloudServer server = cloudManager.getAvailServer();
+			if(server != null)
+			{
+				executeTaskOnServer(computeTask, server);
+			}
+			else
+				break;
+		}
+
+	}
+
+	private void executeTaskOnServer(ComputeTask computeTask, CloudServer server)
+	{
+		//here ssh script submission
 	}
 
 	private void evaluateTasks(Iterable<ComputeTask> generatedTasks)
