@@ -13,4 +13,5 @@ molgenis-compute-core/src/main/resources/workflows/*/rundir/
 molgenis-compute-core/test-output
 data/
 test-output/
+molgenis-app-compute-db/.openstack.properties
 

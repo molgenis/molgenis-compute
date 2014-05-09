@@ -70,7 +70,7 @@ public class ApiController
 	public ResponseEntity<ApiResponse> start(@RequestBody
 	StartRunRequest request)
 	{
-		LOG.info("Recieved start request for run [" + request.getRunName() + "]");
+		LOG.info("Received start request for run [" + request.getRunName() + "]");
 
 		ApiResponse response = new ApiResponse();
 		try
