@@ -3,6 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <properties>
         <molgenis.version>1.0.0</molgenis.version>
+        <client.version>3.2.1</client.version>
     </properties>
     <parent>
         <groupId>org.molgenis</groupId>
@@ -160,6 +161,26 @@
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-config</artifactId>
             <version>${spring.security.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.woorea</groupId>
+            <artifactId>jersey2-connector</artifactId>
+            <version>${client.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.woorea</groupId>
+            <artifactId>keystone-client</artifactId>
+            <version>${client.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.woorea</groupId>
+            <artifactId>nova-client</artifactId>
+            <version>${client.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.jcraft</groupId>
+            <artifactId>jsch</artifactId>
+            <version>0.1.50</version>
         </dependency>
     </dependencies>
 </project>
