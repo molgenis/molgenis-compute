@@ -1,6 +1,7 @@
 package org.molgenis.compute5.model;
 
 import au.com.bytecode.opencsv.CSVReader;
+import org.apache.log4j.Logger;
 import org.molgenis.compute5.ComputeProperties;
 import org.molgenis.compute5.urlreader.UrlReader;
 
@@ -20,6 +21,9 @@ import java.util.*;
  */
 public class ParametersFolder
 {
+	private static final Logger LOG = Logger.getLogger(ParametersFolder.class);
+
+
 	//map parameter name and values
 	List<HashMap> parameters = new ArrayList<HashMap>();
 	private UrlReader urlReader = new UrlReader();
@@ -50,36 +54,59 @@ public class ParametersFolder
 
 				String[] header = allLines.get(0);
 
-				//lets skip java properties format files
-				//they do not contain lists for time being; so they will not been used in "new" folding
 				if (header[0].contains("="))
-					break;
-
-				String[][] table = new String[header.length][allLines.size()];
-
-				for (int j = 0; j < allLines.size(); j++)
 				{
-					String[] line = allLines.get(j);
-					for (int i = 0; i < header.length; i++)
+					//properties file
+					for(String[] array : allLines)
 					{
-						table[i][j] = line[i];
+						if(array.length > 0)
+						{
+							List<String> values = new ArrayList<String>();
+							int eq = array[0].indexOf("=");
+							String name = array[0].substring(0, eq);
+							String value = array[0].substring(eq + 1);
+
+							values.add(value);
+
+							for(int i = 1; i <array.length; i++)
+								values.add(array[i].trim());
+
+							checkIfParameterExist(name, file);
+							onefileParameters.put(name, values);
+						}
 					}
 				}
-
-				for (int j = 0; j < header.length; j++)
+				else
 				{
-					String head = table[j][0];
-					List<String> values = new ArrayList<String>();
-					for (int i = 1; i < allLines.size(); i++)
+					String[][] table = new String[header.length][allLines.size()];
+
+					for (int j = 0; j < allLines.size(); j++)
 					{
-						String str = table[j][i];
-						values.add(str);
+						String[] line = allLines.get(j);
+						for (int i = 0; i < header.length; i++)
+						{
+							table[i][j] = line[i];
+						}
 					}
-					onefileParameters.put(head, values);
+
+					for (int j = 0; j < header.length; j++)
+					{
+						String head = table[j][0];
+						List<String> values = new ArrayList<String>();
+						for (int i = 1; i < allLines.size(); i++)
+						{
+							String str = table[j][i];
+							values.add(str);
+						}
+
+						//first check if this parameters already exist
+						checkIfParameterExist(head, file);
+
+						onefileParameters.put(head, values);
+					}
+
+					parameters.add(onefileParameters);
 				}
-
-				parameters.add(onefileParameters);
-
 			}
 			catch (FileNotFoundException e)
 			{
@@ -88,6 +115,23 @@ public class ParametersFolder
 			catch (IOException e)
 			{
 				e.printStackTrace();
+			}
+		}
+	}
+
+	private void checkIfParameterExist(String head, File file)
+	{
+		for(HashMap oneFile : parameters)
+		{
+			Set<String> keys = oneFile.keySet();
+			for(String key : keys)
+			{
+				if(key.equals(head))
+				{
+					throw new RuntimeException ("Parameter is doubled. [ "
+							+ head + " ] is present in [ " +
+					file.getName() + "] and one another parameters file");
+				}
 			}
 		}
 	}
