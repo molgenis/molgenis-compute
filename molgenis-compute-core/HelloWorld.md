@@ -32,7 +32,8 @@ The following commands show the help.
 	cat parameters.csv
 
 ### Inspect the MOLGENIS Compute parameter defaults
-	cat compute.properties
+	cd ~/molgenis-compute-core-0.0.1-SNAPSHOT
+	cat .compute.properties
 
 ## Generate a workflow with scripts for your parameters
 The following commands are equivalent. Parameters that are not specified are retrieved from the compute.properties file.
