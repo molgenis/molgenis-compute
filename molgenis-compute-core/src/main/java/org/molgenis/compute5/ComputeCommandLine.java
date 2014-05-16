@@ -97,11 +97,22 @@ public class ComputeCommandLine
 		}
 		else if (computeProperties.generate)
 		{
-			System.out.println("Using workflow:         " + new File(computeProperties.workFlow).getAbsolutePath());
-			if (defaultsExists(computeProperties)) System.out.println("Using defaults:         "
-					+ (new File(computeProperties.defaults)).getAbsolutePath());
-			System.out.println("Using parameters:       " + Joiner.on(",").join(computeProperties.parameters));
-			System.out.println("Using run (output) dir: " + new File(computeProperties.runDir).getAbsolutePath());
+			String toPrint = computeProperties.workFlow.substring(2);
+			System.out.println("Using workflow:         " + new File(toPrint).getAbsolutePath());
+
+			if (defaultsExists(computeProperties))
+			{
+				toPrint = computeProperties.defaults.substring(2);
+				System.out.println("Using defaults:         "
+						+ new File(toPrint).getAbsolutePath());
+			}
+
+			for(int i = 0; i < computeProperties.parameters.length; i++)
+			{
+				toPrint = computeProperties.parameters[i].substring(2);
+				System.out.println("Using parameters:       " + new File(toPrint).getAbsolutePath());
+			}
+				System.out.println("Using run (output) dir: " + new File(computeProperties.runDir).getAbsolutePath());
 			System.out.println("Using backend:          " + computeProperties.backend);
 			System.out.println("Using runID:            " + computeProperties.runId + "\n\n");
 
