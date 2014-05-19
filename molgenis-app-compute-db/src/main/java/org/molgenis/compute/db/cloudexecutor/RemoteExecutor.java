@@ -16,7 +16,6 @@ import java.io.*;
 public class RemoteExecutor
 {
 	public static final String EXECUTION_DIR = "/storage";
-	//public String SUBMIT_COMMAND = "bash /tmp/script.sh > /tmp/log.log";
 	public static String SUBMIT_COMMAND = "bash " + EXECUTION_DIR + "/script.sh > " + EXECUTION_DIR + "/log.log &";
 //	public static String SUBMIT_COMMAND = "bash -l " + EXECUTION_DIR + "/script.sh 2>&1 | tee -a " + EXECUTION_DIR + "/log.log &";
 
