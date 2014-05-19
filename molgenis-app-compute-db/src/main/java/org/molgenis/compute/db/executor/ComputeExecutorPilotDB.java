@@ -220,7 +220,7 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 
 	}
 
-    public String weaveFreemarker(String strTemplate, Hashtable<String, String> values)
+    public static String weaveFreemarker(String strTemplate, Hashtable<String, String> values)
     {
         Configuration cfg = new Configuration();
 

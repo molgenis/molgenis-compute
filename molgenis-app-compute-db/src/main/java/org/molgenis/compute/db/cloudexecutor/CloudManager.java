@@ -43,7 +43,12 @@ public class CloudManager
 	public static final String PASSWORD = "password";
 	public static final String KEYPASS = "keypass";
 
+	public static final String API_USER = "apiuser";
+	public static final String API_PASS = "apipass";
+
 	public static final String IP_POOL = "ippool";
+
+	public static final String SERVER_USERNAME = "serverusername";
 
 	private static final String SERVER_NAME = "MolgenisServer";
 	private static final String DEVICE_NAME = "/dev/vdb";
@@ -60,6 +65,11 @@ public class CloudManager
 	private String KEYSTONE_IMAGE;
 	private String KEYSTONE_IP_POOL;
 	private String KEYSTONE_VOLUME;
+	private String COMPUTE_API_USER;
+	private String COMPUTE_API_PASS;
+	private String COMPUTE_SERVER_USERNAME;
+
+
 
 	public static final String SERVER_STATUS_ACTIVE = "ACTIVE";
 	public static final String VOLUME_STATUS_AVAILABLE = "available";
@@ -123,6 +133,8 @@ public class CloudManager
 				boolean isSuccess = launchNewServer(cloudServer);
 				if(isSuccess)
 					servers.add(cloudServer);
+				else
+					i--;
 			}
 			catch (InterruptedException e)
 			{
@@ -143,6 +155,14 @@ public class CloudManager
 
 	public CloudServer getAvailServer()
 	{
+		for(CloudServer server : servers)
+		{
+			if(!server.isInUse())
+			{
+				server.setInUse(true);
+				return server;
+			}
+		}
 		return null;
 	}
 
@@ -173,7 +193,9 @@ public class CloudManager
 			KEYSTONE_FLAVOR = prop.getProperty(FLAVOR);
 			KEYSTONE_IP_POOL = prop.getProperty(IP_POOL);
 			KEYSTONE_VOLUME = prop.getProperty(VOLUME);
-
+			COMPUTE_API_USER = prop.getProperty(API_USER);
+			COMPUTE_API_PASS = prop.getProperty(API_PASS);
+			COMPUTE_SERVER_USERNAME = prop.getProperty(SERVER_USERNAME);
 		}
 		catch (IOException ex)
 		{
@@ -193,6 +215,11 @@ public class CloudManager
 				}
 			}
 		}
+	}
+
+	public String getShhPass()
+	{
+		return SSHPASS;
 	}
 
 	private boolean launchNewServer(CloudServer cloudServer) throws InterruptedException
@@ -345,7 +372,7 @@ public class CloudManager
 		LOG.info("Mounting volume...");
 		boolean notMounted = true;
 		while(notMounted)
-			notMounted = !RemoteExecutor.executeCommandRemote(cloudServer.getExternalIP(), SSHPASS, MOUNT_COMMAND);
+			notMounted = !RemoteExecutor.executeCommandRemote(cloudServer.getExternalIP(), SSHPASS, COMPUTE_SERVER_USERNAME, MOUNT_COMMAND);
 
 		return true;
 	}

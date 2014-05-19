@@ -70,4 +70,15 @@ public class CloudServer
 	{
 		this.currentJobID = currentJobID;
 	}
+
+	public boolean isInUse()
+	{
+		return isInUse;
+	}
+
+	public void setInUse(boolean isInUse)
+	{
+		this.isInUse = isInUse;
+	}
+
 }
