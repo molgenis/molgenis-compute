@@ -48,12 +48,19 @@ public class CloudCurlBuilder
 		String prefix = ComputeExecutorPilotDB.weaveFreemarker(curlStartedTemplate, values);
 		String postfix = ComputeExecutorPilotDB.weaveFreemarker(curlFinishedTemplate, values);
 
+		//for testing
+		sb.append("echo start\n");
+
 		sb.append(prefix);
 
 		String script = task.getComputeScript();
 		sb.append(script);
 
 		sb.append(postfix);
+
+		//for testing
+		sb.append("echo finish\n");
+
 
 		return sb.toString();
 	}
