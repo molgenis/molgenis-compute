@@ -87,11 +87,17 @@ public class CloudManager
 	private final TaskScheduler taskScheduler;// = new ThreadPoolTaskScheduler();
 	private final Map<Integer, ScheduledFuture<?>> scheduledJobs = new HashMap<Integer, ScheduledFuture<?>>();
 	private List<CloudServer> servers = new ArrayList<CloudServer>();
+	private static Object sshPass;
 
 	public CloudManager(TaskScheduler taskScheduler)
 	{
 		readUserProperties();
 		this.taskScheduler = taskScheduler;
+	}
+
+	public String getSshPass()
+	{
+		return SSHPASS;
 	}
 
 	public void executeRun(ComputeRun run, String username, String password)
@@ -101,12 +107,14 @@ public class CloudManager
 
 		String backendName = run.getComputeBackend().getName();
 
-		//TODO: move to separated thread
+		//TODO: move to separated thread to manage cloud VM's
 		//now one for testing
 		startServers(backendName, 1);
 
 		CloudThread executor = new CloudThread(run, cloudExecutor);
-		ScheduledFuture<?> future = taskScheduler.scheduleWithFixedDelay(executor, run.getPollDelay());
+		//now for testing to run it once
+		ScheduledFuture<?> future = taskScheduler.scheduleWithFixedDelay(executor, 1000000000);
+		//ScheduledFuture<?> future = taskScheduler.scheduleWithFixedDelay(executor, run.getPollDelay());
 
 		scheduledJobs.put(run.getId(), future);
 	}
@@ -130,11 +138,12 @@ public class CloudManager
 			CloudServer cloudServer = new CloudServer();
 			try
 			{
-				boolean isSuccess = launchNewServer(cloudServer);
-				if(isSuccess)
+				boolean isSuccess = false;
+				while(!isSuccess)
+				{
+					isSuccess = launchNewServer(cloudServer);
 					servers.add(cloudServer);
-				else
-					i--;
+				}
 			}
 			catch (InterruptedException e)
 			{
@@ -217,9 +226,9 @@ public class CloudManager
 		}
 	}
 
-	public String getShhPass()
+	public String getServerUsername()
 	{
-		return SSHPASS;
+		return COMPUTE_SERVER_USERNAME;
 	}
 
 	private boolean launchNewServer(CloudServer cloudServer) throws InterruptedException
@@ -377,4 +386,13 @@ public class CloudManager
 		return true;
 	}
 
+	public String getApiUser()
+	{
+		return COMPUTE_API_USER;
+	}
+
+	public String getApiPass()
+	{
+		return COMPUTE_API_PASS;
+	}
 }

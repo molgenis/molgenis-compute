@@ -1,6 +1,7 @@
 package org.molgenis.compute.db;
 
 import org.molgenis.DatabaseConfig;
+import org.molgenis.compute.db.cloudexecutor.CloudCurlBuilder;
 import org.molgenis.compute.db.cloudexecutor.CloudExecutor;
 import org.molgenis.compute.db.cloudexecutor.CloudManager;
 import org.molgenis.compute.db.executor.ComputeExecutor;
@@ -43,9 +44,6 @@ public class WebAppConfig extends MolgenisWebAppConfig
 	@Autowired
 	private ComputeExecutor computeExecutor;
 
-
-
-
 	@Value("${api.user.name:api}")
 	private String apiUserName; // specify in molgenis-server.properties
 
@@ -87,6 +85,13 @@ public class WebAppConfig extends MolgenisWebAppConfig
 	{
 		return new CloudExecutor();
 	}
+
+	@Bean
+	public CloudCurlBuilder cloudCurlBuilder()
+	{
+		return new CloudCurlBuilder();
+	}
+
 
 	@Bean(destroyMethod = "shutdown")
 	public TaskScheduler taskScheduler()

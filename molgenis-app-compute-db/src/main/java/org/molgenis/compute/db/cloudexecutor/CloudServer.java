@@ -2,6 +2,9 @@ package org.molgenis.compute.db.cloudexecutor;
 
 import org.molgenis.compute5.db.api.Backend;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created with IntelliJ IDEA.
  * User: hvbyelas
@@ -18,8 +21,9 @@ public class CloudServer
 	private String id;
 	private String externalIP;
 	private String hostName;
-	private String currentJobID;
+	private int currentJobID;
 	private boolean isInUse = false;
+	private List<String> finishedJobs = new ArrayList<String>();
 
 	public Backend getBackend()
 	{
@@ -61,12 +65,12 @@ public class CloudServer
 		this.hostName = hostName;
 	}
 
-	public String getCurrentJobID()
+	public int getCurrentJobID()
 	{
 		return currentJobID;
 	}
 
-	public void setCurrentJobID(String currentJobID)
+	public void setCurrentJobID(Integer currentJobID)
 	{
 		this.currentJobID = currentJobID;
 	}
@@ -81,4 +85,9 @@ public class CloudServer
 		this.isInUse = isInUse;
 	}
 
+	public void addFinishedJob()
+	{
+		finishedJobs.add(currentJobID + "");
+		currentJobID = -1;
+	}
 }

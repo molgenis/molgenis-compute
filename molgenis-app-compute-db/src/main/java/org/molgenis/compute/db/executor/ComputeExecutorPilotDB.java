@@ -162,7 +162,7 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 		}
 	}
 
-	public String getServerIP()
+	public static String getServerIP()
 	{
 		String result = null;
 		try

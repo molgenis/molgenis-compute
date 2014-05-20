@@ -28,6 +28,9 @@ public class CloudExecutor
 	@Autowired
 	private CloudManager cloudManager;
 
+	@Autowired
+	private CloudCurlBuilder builder;
+
 
 	private static final Logger LOG = Logger.getLogger(CloudThread.class);
 
@@ -51,7 +54,9 @@ public class CloudExecutor
 			CloudServer server = cloudManager.getAvailServer();
 			if(server != null)
 			{
+				server.setCurrentJobID(computeTask.getId());
 				executeTaskOnServer(computeTask, server);
+
 			}
 			else
 				break;
@@ -62,6 +67,23 @@ public class CloudExecutor
 	private void executeTaskOnServer(ComputeTask computeTask, CloudServer server)
 	{
 		//here ssh script submission
+		String script = builder.buildScript(computeTask, server);
+		boolean isSuccess = false;
+
+		while(!isSuccess)
+		{
+			//String IP, String SSHPASS,
+			//String serverUsername,
+			//String script, String jobID
+			isSuccess = RemoteExecutor.transferScriptAndRun(server.getExternalIP(), cloudManager.getSshPass(),
+															cloudManager.getServerUsername(),
+															script, computeTask.getName() + "_" + computeTask.getId());
+		}
+
+		//here move result + clear server
+		server.setInUse(false);
+		server.addFinishedJob();
+
 	}
 
 	private void evaluateTasks(Iterable<ComputeTask> generatedTasks)

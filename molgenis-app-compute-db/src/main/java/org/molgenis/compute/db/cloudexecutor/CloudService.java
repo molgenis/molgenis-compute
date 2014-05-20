@@ -29,6 +29,10 @@ public class CloudService
 {
 	private static final Logger LOG = Logger.getLogger(CloudService.class);
 
+	public static final String STATUS_STARTED = "started";
+	public static final String STATUS_FINISHED = "finished";
+
+
 	@Autowired
 	private DataService dataService;
 
@@ -40,13 +44,21 @@ public class CloudService
 	public synchronized void analyseCloudCall(HttpServletRequest request,
 											  @RequestParam String jobid,
 											  @RequestParam String status,
-											  @RequestParam(required = false) String host,
-											  @RequestParam(required = false) String backend,
+											  @RequestParam String serverid,
+											  @RequestParam String backend,
 											  @RequestParam(required = false) Part log_file,
 											  HttpServletResponse response
 	) throws IOException
 	{
 		LOG.debug(">> In handleRequest!");
+		if (status.equalsIgnoreCase(STATUS_STARTED))
+		{
+			int i = 0;
+		}
+		else if(status.equalsIgnoreCase(STATUS_FINISHED))
+		{
+			int i = 0;
+		}
 	}
 
 }
