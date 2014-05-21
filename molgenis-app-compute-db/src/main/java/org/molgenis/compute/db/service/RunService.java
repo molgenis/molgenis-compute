@@ -23,6 +23,7 @@ import org.molgenis.omx.auth.MolgenisUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
@@ -190,12 +191,13 @@ public class RunService
 	}
 
 	/**
-	 * Start pilots
+	 * Start pilots or cloud execution
 	 *
 	 * @param runName
 	 * @param username
 	 * @param password
 	 */
+
 	public void start(String runName, String username, String password)
 	{
 		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
@@ -257,6 +259,8 @@ public class RunService
 	 *
 	 * @param runName
 	 */
+
+
 	public void activate(String runName)
 	{
 

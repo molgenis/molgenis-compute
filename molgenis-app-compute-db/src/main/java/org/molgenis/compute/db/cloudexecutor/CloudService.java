@@ -1,7 +1,14 @@
 package org.molgenis.compute.db.cloudexecutor;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
+import org.molgenis.compute.db.pilot.MolgenisPilotService;
+import org.molgenis.compute.runtime.ComputeRun;
+import org.molgenis.compute.runtime.ComputeTask;
+import org.molgenis.compute.runtime.Pilot;
+import org.molgenis.data.CrudRepository;
 import org.molgenis.data.DataService;
+import org.molgenis.data.support.QueryImpl;
 import org.molgenis.security.runas.RunAsSystem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -13,6 +20,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
 
 /**
  * Created with IntelliJ IDEA.
@@ -51,13 +60,67 @@ public class CloudService
 	) throws IOException
 	{
 		LOG.debug(">> In handleRequest!");
+
+		//for testing temporary
+//		if(true)
+//			return;
+
+		ComputeTask computeTask = dataService.findOne(ComputeTask.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeTask.ID, jobid), ComputeTask.class);
+
+		if(computeTask == null)
+		{
+			LOG.warn("Compute Task with ID [" + jobid + "] does not exist in database");
+			return;
+		}
+
 		if (status.equalsIgnoreCase(STATUS_STARTED))
 		{
-			int i = 0;
+			if(computeTask.getStatusCode().equalsIgnoreCase(MolgenisPilotService.TASK_RUNNING))
+			{
+
+				computeTask.setStatusCode(MolgenisPilotService.TASK_RUNNING);
+				dataService.update(ComputeTask.ENTITY_NAME, computeTask);
+
+				CrudRepository repo = dataService.getCrudRepository(ComputeTask.ENTITY_NAME);
+				repo.flush();
+			}
+			else
+				LOG.warn("Compute Task [" + computeTask.getId() + " : " + computeTask.getName() + "] has a wrong status in started");
+
 		}
 		else if(status.equalsIgnoreCase(STATUS_FINISHED))
 		{
-			int i = 0;
+			releaseServer(serverid);
+
+			if(computeTask.getStatusCode().equalsIgnoreCase(MolgenisPilotService.TASK_RUNNING))
+			{
+				computeTask.setStatusCode(MolgenisPilotService.TASK_DONE);
+
+				InputStream inputStream = log_file.getInputStream();
+
+				StringWriter writer = new StringWriter();
+				IOUtils.copy(inputStream, writer, "UTF-8");
+				String logFileContent = writer.toString();
+
+				computeTask.setRunLog(logFileContent);
+				dataService.update(ComputeTask.ENTITY_NAME, computeTask);
+
+			}
+			else
+				LOG.warn("Compute Task [" + computeTask.getId() + " : " + computeTask.getName() + "] has a wrong status in finished");
+
+		}
+	}
+
+	private void releaseServer(String serverid)
+	{
+		for(CloudServer server : cloudManager.getCloudServers())
+		{
+			if(server.getId().equalsIgnoreCase(serverid))
+			{
+				server.setInUse(false);
+			}
 		}
 	}
 

@@ -4,6 +4,7 @@ import org.molgenis.DatabaseConfig;
 import org.molgenis.compute.db.cloudexecutor.CloudCurlBuilder;
 import org.molgenis.compute.db.cloudexecutor.CloudExecutor;
 import org.molgenis.compute.db.cloudexecutor.CloudManager;
+import org.molgenis.compute.db.cloudexecutor.ServerStarter;
 import org.molgenis.compute.db.executor.ComputeExecutor;
 import org.molgenis.compute.db.executor.PilotManager;
 import org.molgenis.compute.db.executor.Scheduler;
@@ -92,6 +93,11 @@ public class WebAppConfig extends MolgenisWebAppConfig
 		return new CloudCurlBuilder();
 	}
 
+	@Bean
+	public ServerStarter serverStarter()
+	{
+		return new ServerStarter();
+	}
 
 	@Bean(destroyMethod = "shutdown")
 	public TaskScheduler taskScheduler()
