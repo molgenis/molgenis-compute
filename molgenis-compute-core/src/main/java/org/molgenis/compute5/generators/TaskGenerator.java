@@ -21,6 +21,8 @@ public class TaskGenerator
 	private Compute compute;
 	private StringBuilder parameterHeader = null;
 
+	private HashMap<String, List<String>> newEnvironment = new HashMap<String, List<String>>();
+
 	public List<Task> generate(Compute compute) throws IOException
 	{
 		this.compute = compute;
@@ -113,8 +115,8 @@ public class TaskGenerator
 				parameterHeader.append("\npath=\"").append(computeProperties.path).append("\"");
 
 				parameterHeader.append("\n# Load parameters from previous steps\n")
-						.append(Parameters.SOURCE_COMMAND).append(" ")
-						.append(Parameters.ENVIRONMENT_DIR_VARIABLE).append(File.separator).append(Parameters.ENVIRONMENT)
+//						.append(Parameters.SOURCE_COMMAND).append(" ")
+//						.append(Parameters.ENVIRONMENT_DIR_VARIABLE).append(File.separator).append(Parameters.ENVIRONMENT)
 						.append("\n\n");
 
 				for (String previousStepName : step.getPreviousSteps())
@@ -317,7 +319,7 @@ public class TaskGenerator
 				if(step.getProtocol().getType().equalsIgnoreCase(Protocol.TYPE_FREEMARKER) ||
 						computeProperties.weave)
 				{
-					String weavedScript = weaveProtocol(step.getProtocol(), environment, target);
+					String weavedScript = weaveProtocol(step.getProtocol(), newEnvironment, environment, target);
 					script = parameterHeader.toString() + weavedScript;
 				}
 				else if(step.getProtocol().getType().equalsIgnoreCase(Protocol.TYPE_SHELL))
@@ -404,12 +406,14 @@ public class TaskGenerator
 				String name = input.getName();
 				List<String> foldedList = originalParameters.foldingNieuwe(name, foreachParameters);
 
+				List<String> values = new ArrayList<String>();
 				for(int i = 0; i < foldedList.size(); i++)
 				{
 					String value = foldedList.get(i);
 					parameterHeader.append(name).append("[").append(i).append("]=\"").append(value).append("\"\n");
-
+					values.add(value);
 				}
+				newEnvironment.put(name, values);
 			}
 			else if(timeParameterFind > 1)
 			{
@@ -424,7 +428,7 @@ public class TaskGenerator
 		}
 	}
 
-	private String weaveProtocol(Protocol protocol, HashMap<String, String> environment, MapEntity target)
+	private String weaveProtocol(Protocol protocol, HashMap<String, List<String>> newEnvironment, HashMap<String, String> environment, MapEntity target)
 	{
 		String template = protocol.getTemplate();
 		Hashtable<String, String> values = new Hashtable<String, String>();
@@ -448,7 +452,12 @@ public class TaskGenerator
 			else if(input.getType().equalsIgnoreCase(Parameters.LIST_INPUT))
 			{
 				String name = input.getName();
-				ArrayList<String> arrayList = (ArrayList<String>) target.get(name);
+
+				List<String> arrayList = null;
+				if(newEnvironment.containsKey(name))
+					arrayList = newEnvironment.get(name);
+				else
+					arrayList = (ArrayList<String>) target.get(name);
 
 				name += FreemarkerUtils.LIST_SIGN;
 
@@ -490,7 +499,7 @@ public class TaskGenerator
 		return "${" + str + "}";
 	}
 
-	private boolean checkIfAllAvailable(ArrayList<String> arrayList)
+	private boolean checkIfAllAvailable(List<String> arrayList)
 	{
 		for(String s : arrayList)
 		{
