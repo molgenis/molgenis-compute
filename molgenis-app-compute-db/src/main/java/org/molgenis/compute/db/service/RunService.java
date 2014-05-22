@@ -379,6 +379,7 @@ public class RunService
 		int failed = getTaskStatusCount(run, MolgenisPilotService.TASK_FAILED);
 		int done = getTaskStatusCount(run, MolgenisPilotService.TASK_DONE);
 		int cancelled = getTaskStatusCount(run, MolgenisPilotService.TASK_CANCELLED);
+		int jobsubmitted = getTaskStatusCount(run, MolgenisPilotService.TASK_SUBMITTED);
 
 		int submitted = 0;
 		int started = 0;
@@ -398,7 +399,7 @@ public class RunService
 			run.setIsDone(true);
 			dataService.update(ComputeRun.ENTITY_NAME, run);
 		}
-		return new RunStatus(generated, ready, running, failed, done, cancelled, submitted, started, status);
+		return new RunStatus(generated, ready, running, failed, done, cancelled, jobsubmitted, submitted, started, status);
 	}
 
 	/**

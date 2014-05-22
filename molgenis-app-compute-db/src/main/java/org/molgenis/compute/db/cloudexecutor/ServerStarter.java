@@ -34,6 +34,7 @@ public class ServerStarter
 	public static final String API_PASS = "apipass";
 
 	public static final String IP_POOL = "ippool";
+	public static final String NUMBER_OF_SERVERS = "numberofservers";
 
 	public static final String SERVER_USERNAME = "serverusername";
 
@@ -49,6 +50,8 @@ public class ServerStarter
 	private String COMPUTE_API_USER;
 	private String COMPUTE_API_PASS;
 	private String COMPUTE_SERVER_USERNAME;
+	private int numberToStart;
+
 
 	private static final String SERVER_NAME = "MolgenisServer";
 
@@ -67,7 +70,6 @@ public class ServerStarter
 	public void startServers()
 	{
 		String backendName = cloudManager.getBackendName();
-		int numberToStart = cloudManager.getNumberToStart();
 		startServers(backendName, numberToStart);
 	}
 
@@ -121,6 +123,7 @@ public class ServerStarter
 			COMPUTE_API_USER = prop.getProperty(API_USER);
 			COMPUTE_API_PASS = prop.getProperty(API_PASS);
 			COMPUTE_SERVER_USERNAME = prop.getProperty(SERVER_USERNAME);
+			numberToStart =  Integer.parseInt(prop.getProperty(NUMBER_OF_SERVERS));
 		}
 		catch (IOException ex)
 		{

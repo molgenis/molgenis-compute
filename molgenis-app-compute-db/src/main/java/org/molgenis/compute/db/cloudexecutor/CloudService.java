@@ -82,8 +82,8 @@ public class CloudService
 				computeTask.setStatusCode(MolgenisPilotService.TASK_RUNNING);
 				dataService.update(ComputeTask.ENTITY_NAME, computeTask);
 
-				CrudRepository repo = dataService.getCrudRepository(ComputeTask.ENTITY_NAME);
-				repo.flush();
+//				CrudRepository repo = dataService.getCrudRepository(ComputeTask.ENTITY_NAME);
+//				repo.flush();
 			}
 			else
 				LOG.warn("Compute Task [" + computeTask.getId() + " : " + computeTask.getName() + "] has a wrong status in started");

@@ -25,6 +25,7 @@
         $('#' + run + ' td.running').html(response.running);
         $('#' + run + ' td.failed').html(response.failed);
         $('#' + run + ' td.done').html(response.done);
+        $('#' + run + ' td.jobsubmitted').html(response.jobsubmitted);
         $('#' + run + ' td.submitted').html(response.submitted);
         $('#' + run + ' td.started').html(response.started);
         $('#' + run + ' td.cancelled').html(response.cancelled);
@@ -100,7 +101,7 @@
                      </form>
                  <#else>
                     <div class="text-info">Ready to run</div>
-                     <form action="/menu/Compute/dashboard/start" class="form-inline" method="post">
+                     <form name="cloudsubmit" action="/menu/Compute/dashboard/start" class="form-inline" method="post">
                          <input type="hidden" name="run" value="${run.name}"/>
                          <input type="text" name="username" id="inputUsername" placeholder="Username"/>
                          <input type="password" name="password" id="inputPassword" placeholder="Password"/>
@@ -163,13 +164,18 @@
                         </tr>
                         <tr>
                             <td class="text-info">Jobs ready</td>
-                            <td class="ready text-info"></td>
+                            <td class="ready text-warning"></td>
                             <td class="text-error">Jobs failed</td>
                             <td class="failed text-error"></td>
                         </tr>
                         <tr>
-                            <td class="text-warning">Jobs running</td>
-                            <td class="running text-warning"></td>
+                            <#if !run.vmrun>
+                                <td class="text-warning">Jobs running</td>
+                                <td class="running text-info"></td>
+                            <#else>
+                                <td class="text-warning">Jobs submitted</td>
+                                <td class="jobsubmitted text-warning"></td>
+                            </#if>
                             <td class="text-error">Jobs cancelled</td>
                             <td class="cancelled text-error"></td>
                         </tr>
@@ -180,6 +186,11 @@
                             <td class="text-info">Pilots started</td>
                             <td class="started text-info"></td>
                         </tr>
+                        <#else>
+                            <td class="text-info">Job running</td>
+                            <td class="running text-info"></td>
+                            <td></td>
+                            <td></td>
                         </#if>
                     </table>
                 </div>

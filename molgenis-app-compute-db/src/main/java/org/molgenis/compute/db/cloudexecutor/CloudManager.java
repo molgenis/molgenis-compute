@@ -48,7 +48,6 @@ public class CloudManager
 	private final Map<Integer, ScheduledFuture<?>> scheduledJobs = new HashMap<Integer, ScheduledFuture<?>>();
 	private List<CloudServer> servers = new ArrayList<CloudServer>();
 	private String backendName;
-	private int numberToStart = 1;
 
 	public CloudManager(TaskScheduler taskScheduler)
 	{
@@ -73,7 +72,7 @@ public class CloudManager
 		CloudThread executor = new CloudThread(run, cloudExecutor);
 
 		//now for testing to run it once
-		ScheduledFuture<?> future = taskScheduler.scheduleWithFixedDelay(executor, 5000);
+		ScheduledFuture<?> future = taskScheduler.scheduleWithFixedDelay(executor, 50000000);
 
 		scheduledJobs.put(run.getId(), future);
 	}
@@ -186,11 +185,6 @@ public class CloudManager
 	public String getBackendName()
 	{
 		return backendName;
-	}
-
-	public int getNumberToStart()
-	{
-		return numberToStart;
 	}
 
 	public String getKeyStoneUser()
