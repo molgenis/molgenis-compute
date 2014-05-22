@@ -115,8 +115,8 @@ public class TaskGenerator
 				parameterHeader.append("\npath=\"").append(computeProperties.path).append("\"");
 
 				parameterHeader.append("\n# Load parameters from previous steps\n")
-//						.append(Parameters.SOURCE_COMMAND).append(" ")
-//						.append(Parameters.ENVIRONMENT_DIR_VARIABLE).append(File.separator).append(Parameters.ENVIRONMENT)
+						.append(Parameters.SOURCE_COMMAND).append(" ")
+						.append(Parameters.ENVIRONMENT_DIR_VARIABLE).append(File.separator).append(Parameters.ENVIRONMENT)
 						.append("\n\n");
 
 				for (String previousStepName : step.getPreviousSteps())
