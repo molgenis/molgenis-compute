@@ -23,6 +23,7 @@ import org.molgenis.omx.auth.MolgenisUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
@@ -190,12 +191,13 @@ public class RunService
 	}
 
 	/**
-	 * Start pilots
+	 * Start pilots or cloud execution
 	 *
 	 * @param runName
 	 * @param username
 	 * @param password
 	 */
+
 	public void start(String runName, String username, String password)
 	{
 		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
@@ -257,6 +259,8 @@ public class RunService
 	 *
 	 * @param runName
 	 */
+
+
 	public void activate(String runName)
 	{
 
@@ -375,6 +379,7 @@ public class RunService
 		int failed = getTaskStatusCount(run, MolgenisPilotService.TASK_FAILED);
 		int done = getTaskStatusCount(run, MolgenisPilotService.TASK_DONE);
 		int cancelled = getTaskStatusCount(run, MolgenisPilotService.TASK_CANCELLED);
+		int jobsubmitted = getTaskStatusCount(run, MolgenisPilotService.TASK_SUBMITTED);
 
 		int submitted = 0;
 		int started = 0;
@@ -394,7 +399,7 @@ public class RunService
 			run.setIsDone(true);
 			dataService.update(ComputeRun.ENTITY_NAME, run);
 		}
-		return new RunStatus(generated, ready, running, failed, done, cancelled, submitted, started, status);
+		return new RunStatus(generated, ready, running, failed, done, cancelled, jobsubmitted, submitted, started, status);
 	}
 
 	/**

@@ -19,13 +19,13 @@ public class CloudCurlBuilder
 	private String curlStartedTemplate = "curl -s -S -u ${"+ CloudManager.API_USER +"}:" +
 			"${"+ CloudManager.API_PASS +"} -F jobid=${" + JOB_ID + "} -F serverid=${serverid}" +
 			" -F status=" + CloudService.STATUS_STARTED + " -F backend=${backend} " +
-			"http://${IP}:8080/api/cloud";
+			"http://${IP}:8080/api/cloud\n";
 
 	private String curlFinishedTemplate = "curl -s -S -u ${"+ CloudManager.API_USER +"}:" +
 			"${"+ CloudManager.API_PASS +"} -F jobid=${" + JOB_ID + "} -F serverid=${serverid}" +
 			" -F status=" + CloudService.STATUS_FINISHED + " -F backend=${backend} " +
-			"-F log_file=log.log" +
-			"http://${IP}:8080/api/cloud";
+			"-F log_file=log.log " +
+			"http://${IP}:8080/api/cloud\n";
 
 
 	public String buildScript(ComputeTask task, CloudServer server)
@@ -52,6 +52,8 @@ public class CloudCurlBuilder
 		sb.append("echo start\n");
 
 		sb.append(prefix);
+
+		sb.append("echo \"after curl\"\n");
 
 		String script = task.getComputeScript();
 		sb.append(script);

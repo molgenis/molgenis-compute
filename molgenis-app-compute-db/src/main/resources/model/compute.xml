@@ -22,7 +22,7 @@
 			<field name="failedLog" type="text" description="Failed log of the task execution" nillable="true" />
          	<field name="interpreter" type="enum" enum_options="[bash,R]" description="the interpreter used to run this command. For example 'shellTemplate'" />
 			<field name="prevSteps" type="mref" xref_entity="ComputeTask" nillable="true" description="To keep track of calculation dependencies" />
-			<field name="statusCode" nillable="false" type="enum" enum_options="[generated,ready,running,failed,done]" default="generated"
+			<field name="statusCode" nillable="false" type="enum" enum_options="[generated,ready,running,failed,done,jobsubmitted,cancelled]" default="generated"
 				description="Last known status of this task. See compute history for details. NB 'ready' means ready for running (cf. 'done')." />
 			<unique fields="name,computeRun" />
 		</entity>
@@ -33,7 +33,7 @@
       		<field name="statusTime" type="datetime" auto="true" description="time of state change" />
       		<field name="runLog" nillable="true" type="text" description="field to show the content of the error file (only applicable on fail/done of a task)" />
             <field name="statusCode" nillable="true" type="enum" enum_options="[generated,ready,running,failed,done,cancelled]"  description="current status of this task." />
-            <field name="newStatusCode" nillable="false" type="enum" enum_options="[generated,ready,running,failed,done]"  description="current status of this task." />
+            <field name="newStatusCode" nillable="false" type="enum" enum_options="[generated,ready,running,failed,done,jobsubmitted,cancelled]"  description="current status of this task." />
       	</entity>
 		<entity name="ComputeParameterValue" implements="Nameable">
 			<description>Related to ComputeTask values
