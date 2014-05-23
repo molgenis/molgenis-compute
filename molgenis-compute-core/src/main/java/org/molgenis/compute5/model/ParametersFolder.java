@@ -224,12 +224,14 @@ public class ParametersFolder
 							if (!v1.equalsIgnoreCase(v2))
 							{
 								stillGood = false;
-								//values.add(table[0][i]);
 							}
 						}
 
 						if(stillGood)
-							values.add(table[0][i]);
+						{
+							//if(!values.contains(table[0][i]))
+								values.add(table[0][i]);
+						}
 					}
 				}
 				else

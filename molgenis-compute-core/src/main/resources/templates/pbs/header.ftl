@@ -37,6 +37,7 @@ MOLGENIS_START=$(date +%s)
 # Show that the task has started
 touch $ENVIRONMENT_DIR/${taskId}.sh.started
 
+<#noparse>
 # Define the root to all your tools and data
 WORKDIR=${WORKDIR}
 
@@ -50,7 +51,7 @@ include () {
 	fi		
 }
 include ${GCC_HOME}/gcc.bashrc
-<#noparse>
+
 getFile()
 {
         ARGS=($@)
