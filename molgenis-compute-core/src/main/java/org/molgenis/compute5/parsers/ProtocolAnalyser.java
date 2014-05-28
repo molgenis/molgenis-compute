@@ -76,7 +76,7 @@ public class ProtocolAnalyser
 
 		if(warn)
 		{
-			LOG.warn("Variable [" + variable + "] in Protocol [" + protocol.getName() + "] can be not mapped");
+			LOG.warn("Variable [" + variable + "] in Protocol [" + protocol.getName() + "] can be unmapped");
 		}
 	}
 }
