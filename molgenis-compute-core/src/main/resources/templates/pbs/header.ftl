@@ -14,6 +14,29 @@ MOLGENIS_START=$(date +%s)
 ## Header for PBS backend
 #
 
+declare MC_tmpFolder="tmpFolder"
+declare MC_tmpFile="tmpFile"
+
+function makeTmpDir {
+ 	base=$(basename $1)
+        dir=$(dirname $1)
+        echo "dir $dir"
+        echo "base $base"
+        if [[ -d $1 ]]
+        then
+                dir=$dir/$base
+        fi
+        myMD5=$(md5sum $0)
+        IFS=' ' read -a myMD5array <<< "$myMD5"
+        MC_tmpFolder=$dir/tmp_${taskId}_$myMD5array/
+        mkdir -p $MC_tmpFolder
+        if [[ -d $1 ]]
+        then
+                MC_tmpFile="$MC_tmpFolder"
+        else
+                MC_tmpFile="$MC_tmpFolder/$base"
+        fi
+}
 echo Running on node: `hostname`
 
 #highly recommended to use
@@ -37,6 +60,7 @@ MOLGENIS_START=$(date +%s)
 # Show that the task has started
 touch $ENVIRONMENT_DIR/${taskId}.sh.started
 
+<#noparse>
 # Define the root to all your tools and data
 WORKDIR=${WORKDIR}
 
@@ -49,8 +73,7 @@ include () {
 		echo "File not found: $1"
 	fi		
 }
-include ${GCC_HOME}/gcc.bashrc
-<#noparse>
+include $GCC_HOME/gcc.bashrc
 getFile()
 {
         ARGS=($@)
@@ -126,3 +149,4 @@ alloutputsexist()
 #
 ## End of header for PBS backend
 #
+
