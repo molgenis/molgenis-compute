@@ -1,80 +1,152 @@
-'''__ login on VM (e.g. user@molgenis01.target.rug.nl)__'''
+#PBS -N ${taskId}
+#PBS -q ${queue}
+#PBS -l nodes=${nodes}:ppn=${ppn}
+#PBS -l walltime=${walltime}
+#PBS -l mem=${mem}
+#PBS -e ${taskId}.err
+#PBS -o ${taskId}.out
+#PBS -W umask=0007
 
-''sudo su - molgenis''
+# For bookkeeping how long your task takes
+MOLGENIS_START=$(date +%s)
 
-'''#make directory and create a molgenis-server.properties file[[BR]]'''''mkdir ~/.molgenis [[BR]]mkdir ~/.molgenis/omx [[BR]]mkdir ~/.molgenis/omx/data [[BR]]nano ~/.molgenis/omx/molgenis-server.properties''
+#
+## Header for PBS backend
+#
 
-'''#add the following to the file:[[BR]]'''admin.password=admin[[BR]]user.password=admin[[BR]]db_driver=com.mysql.jdbc.Driver [[BR]]db_uri=jdbc:mysql://localhost/<nameofthedatabase>?innodb_autoinc_lock_mode=2&rewriteBatchedStatements=true[[BR]]db_user=molgenis[[BR]]db_password=molgenis
+declare MC_tmpFolder="tmpFolder"
+declare MC_tmpFile="tmpFile"
 
-'''# use wget to get the latest tomcat7 package from http://tomcat.apache.org/download-70.cgi (copy link address from the tar.gz in the binary->core)'''
+function makeTmpDir {
+ 	base=$(basename $1)
+        dir=$(dirname $1)
+        echo "dir $dir"
+        echo "base $base"
+        if [[ -d $1 ]]
+        then
+                dir=$dir/$base
+        fi
+        myMD5=$(md5sum $0)
+        IFS=' ' read -a myMD5array <<< "$myMD5"
+        MC_tmpFolder=$dir/tmp_${taskId}_$myMD5array/
+        mkdir -p $MC_tmpFolder
+        if [[ -d $1 ]]
+        then
+                MC_tmpFile="$MC_tmpFolder"
+        else
+                MC_tmpFile="$MC_tmpFolder/$base"
+        fi
+}
+echo Running on node: `hostname`
 
-''wget http://apache.hippo.nl/tomcat/tomcat-7/v7.0.54/bin/apache-tomcat-7.0.54.tar.gz''
+#highly recommended to use
+set -e # exit if any subcommand or pipeline returns a non-zero status
+set -u # exit if any uninitialised variable is used
 
-'''#unpack the tar '''[[BR]]''tar xzfv apache-tomcat-7.0.54.tar.gz[[BR]][[BR]]'''#make symlink'''[[BR]]ln -s apache-tomcat-7.0.54 ''apache-tomcat
+# Set location of *.env files
+ENVIRONMENT_DIR="$PBS_O_WORKDIR"
 
-'''#set permissions'''[[BR]]''chmod  -R g+rX apache-tomcat''
+# If you detect an error, then exit your script by calling this function
+exitWithError(){
+	errorCode=$1
+	errorMessage=$2
+	echo "$errorCode: $errorMessage --- TASK '${taskId}.sh' --- ON $(date +"%Y-%m-%d %T"), AFTER $(( ($(date +%s) - $MOLGENIS_START) / 60 )) MINUTES" >> $ENVIRONMENT_DIR/molgenis.error.log
+	exit $errorCode
+}
 
-'''#setting the environment variable '''[[BR]]''nano ~/apache-tomcat-7.0.54/bin/setenv.sh ''[[BR]]
+# For bookkeeping how long your task takes
+MOLGENIS_START=$(date +%s)
 
-{{{
-CATALINA_OPTS="-Xmx2g -XX:MaxPermSize=256m -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -Dmolgenis.home=/srv/molgenis/.molgenis/omx -Dlog4j.configuration=log4j-molgenis.properties"
-}}}
-'''#set encoding and maxpostsize to server''' [[BR]]'' nano ~/apache-tomcat-7.0.54/conf/server.xml''
+# Show that the task has started
+touch $ENVIRONMENT_DIR/${taskId}.sh.started
 
-'''#add the following attributes to port 8080:''' [[BR]]
+<#noparse>
+# Define the root to all your tools and data
+WORKDIR=${WORKDIR}
 
-{{{
-maxPostSize="33554432" 
-URIEncoding="UTF-8" 
-compression="2048"  
-compressableMimeType="text/html,application/javascript,application/json"'' 
-}}}
-[[BR]][[BR]]'''#this is how it should look like  [[BR]]'''
+# Source getFile, putFile, inputs, alloutputsexist
+include () {
+	if [[ -f "$1" ]]; then
+		source "$1"
+		echo "sourced $1"
+	else
+		echo "File not found: $1"
+	fi		
+}
+include $GCC_HOME/gcc.bashrc
+getFile()
+{
+        ARGS=($@)
+        NUMBER="${#ARGS[@]}";
+        if [ "$NUMBER" -eq "1" ]
+        then
+                myFile=${ARGS[0]}
 
-{{{
-<Connector port="8080" 
-protocol="HTTP/1.1" 
-connectionTimeout="20000" 
-maxPostSize="33554432" 
-URIEncoding="UTF-8" 
-compression="2048"  
-compressableMimeType="text/html,application/javascript,application/json" 
-redirectPort="8443" />
-}}}
-'''# install tomcat user''' [[BR]]''nano ~/apache-tomcat-7.0.54/conf/tomcat-users.xml [[BR]]'''''#paste just before the closing tag from tomcat-users (</tomcat-users>)''' [[BR]]
+                if test ! -e $myFile;
+                then
+                                echo "WARNING in getFile/putFile: $myFile is missing" 1>&2
+                fi
 
-{{{
-<role rolename="manager-gui"/>
-<user username="molgenis" password="password" roles="manager-gui,manager-script"/>
-<role rolename="login"/>
-<user username="molgenis_user" password="password" roles="login"/>
-}}}
-'''# get mysql connector''' [[BR]]''cd ~/apache-tomcat-7.0.54/lib/ ''[[BR]]''wget http://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.28/mysql-connector-java-5.1.28.jar''
+        else
+                echo "Example usage: getData \"\$TMPDIR/datadir/myfile.txt\""
+        fi
+}
 
-'''#create database''' [[BR]]''mysql -u molgenis -p password; [[BR]]
-create database omx;[[BR]]
-exit''
+putFile()
+{
+        `getFile $@`
+}
 
-'''__Make sure that relevant daemons startup on reboot.__'''
+inputs()
+{
+  for name in $@
+  do
+    if test ! -e $name;
+    then
+      echo "$name is missing" 1>&2
+      exit 1;
+    fi
+  done
+}
 
- * 
-{{{
-sudo chkconfig
+outputs()
+{
+  for name in $@
+  do
+    if test -e $name;
+    then
+      echo "skipped"
+      echo "skipped" 1>&2
+      exit 0;
+    else
+      return 0;
+    fi
+  done
+}
 
-}}}
-   If httpd, tomcat7 or mysqld are ''off'', turn them on:
-{{{
-sudo chkconfig httpd on
-sudo chkconfig tomcat7 on
-sudo chkconfig mysqld on
+alloutputsexist()
+{
+  all_exist=true
+  for name in $@
+  do
+    if test ! -e $name;
+    then
+        all_exist=false
+    fi
+  done
+  if $all_exist;
+  then
+      echo "skipped"
+      echo "skipped" 1>&2
+      sleep 30
+      exit 0;
+  else
+      return 0;
+  fi
+}
+</#noparse>
 
-}}}
- * Starting and stopping daemons
-{{{
-sudo service [daemon] [start|stop|status|reload|restart]
+#
+## End of header for PBS backend
+#
 
-}}}
-   For example to restart Tomcat:
-{{{
-sudo service tomcat7 restart
-}}}
