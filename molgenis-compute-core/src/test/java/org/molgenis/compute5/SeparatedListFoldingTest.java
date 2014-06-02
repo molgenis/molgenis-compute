@@ -116,8 +116,6 @@ public class SeparatedListFoldingTest
 
 	}
 
-
-
 	@Test
 	public void testParametersAllInTwoFiles() throws Exception
 	{
