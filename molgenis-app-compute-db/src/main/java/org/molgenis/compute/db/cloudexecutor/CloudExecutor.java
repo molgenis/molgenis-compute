@@ -1,8 +1,6 @@
 package org.molgenis.compute.db.cloudexecutor;
 
-import com.google.common.collect.Iterables;
 import org.apache.log4j.Logger;
-import org.molgenis.compute.db.pilot.MolgenisPilotService;
 import org.molgenis.compute.runtime.ComputeRun;
 import org.molgenis.compute.runtime.ComputeTask;
 import org.molgenis.data.CrudRepository;
@@ -10,8 +8,6 @@ import org.molgenis.data.DataService;
 import org.molgenis.data.support.QueryImpl;
 import org.molgenis.security.runas.RunAsSystem;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import sun.util.logging.resources.logging;
 
 import java.util.List;
 
@@ -85,7 +81,7 @@ public class CloudExecutor
 			//String IP, String SSHPASS,
 			//String serverUsername,
 			//String script, String jobID
-			isSuccess = RemoteExecutor.transferScriptAndRun(server.getExternalIP(), cloudManager.getSshPass(),
+			isSuccess = RemoteExecutor.transferScriptAndRun(server.getFloatingIpExtern(), cloudManager.getSshPass(),
 															cloudManager.getServerUsername(),
 															script, computeTask.getName() + "_" + computeTask.getId());
 		}

@@ -19,11 +19,61 @@ public class CloudServer
 	private Backend backend = null;
 
 	private String id;
-	private String externalIP;
+	private String floatingIpExtern;
+	private String floatingIpTarget;
+
+	private String fixedIpExtern;
+	private String fixedIpTarget;
+
 	private String hostName;
 	private int currentJobID;
 	private boolean isInUse = false;
 	private List<String> finishedJobs = new ArrayList<String>();
+
+	public String getFloatingIpTarget()
+	{
+		return floatingIpTarget;
+	}
+
+	public void setFloatingIpTarget(String floatingIpTarget)
+	{
+		this.floatingIpTarget = floatingIpTarget;
+	}
+
+	public String getFixedIpExtern()
+	{
+		return fixedIpExtern;
+	}
+
+	public void setFixedIpExtern(String fixedIpExtern)
+	{
+		this.fixedIpExtern = fixedIpExtern;
+	}
+
+	public String getFixedIpTarget()
+	{
+		return fixedIpTarget;
+	}
+
+	public void setFixedIpTarget(String fixedIpTarget)
+	{
+		this.fixedIpTarget = fixedIpTarget;
+	}
+
+	public void setCurrentJobID(int currentJobID)
+	{
+		this.currentJobID = currentJobID;
+	}
+
+	public List<String> getFinishedJobs()
+	{
+		return finishedJobs;
+	}
+
+	public void setFinishedJobs(List<String> finishedJobs)
+	{
+		this.finishedJobs = finishedJobs;
+	}
 
 	public Backend getBackend()
 	{
@@ -45,14 +95,14 @@ public class CloudServer
 		this.id = id;
 	}
 
-	public String getExternalIP()
+	public String getFloatingIpExtern()
 	{
-		return externalIP;
+		return floatingIpExtern;
 	}
 
-	public void setExternalIP(String externalIP)
+	public void setFloatingIpExtern(String floatingIpExtern)
 	{
-		this.externalIP = externalIP;
+		this.floatingIpExtern = floatingIpExtern;
 	}
 
 	public String getHostName()
