@@ -479,14 +479,16 @@ public interface ServerAction extends Serializable {
 	public static final class AssociateFloatingIp implements ServerAction {
 	
 		private String address;
+		private String fixed_address;
 
 		public AssociateFloatingIp() {
 			super();
 			// TODO Auto-generated constructor stub
 		}
 
-		public AssociateFloatingIp(String address) {
+		public AssociateFloatingIp(String fixedAddress, String address) {
 			super();
+			this.fixed_address = fixedAddress;
 			this.address = address;
 		}
 
@@ -503,7 +505,16 @@ public interface ServerAction extends Serializable {
 		public void setAddress(String address) {
 			this.address = address;
 		}
-		
+
+		public String getFixed_address()
+		{
+			return fixed_address;
+		}
+
+		public void setFixed_address(String fixed_address)
+		{
+			this.fixed_address = fixed_address;
+		}
 	}
 	
 	@JsonRootName("removeFloatingIp")

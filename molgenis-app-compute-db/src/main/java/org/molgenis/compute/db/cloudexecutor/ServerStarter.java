@@ -33,8 +33,19 @@ public class ServerStarter
 	public static final String API_USER = "apiuser";
 	public static final String API_PASS = "apipass";
 
-	public static final String IP_POOL = "ippool";
+	public static final String IP_POOL_EXTERN = "ippool_extern";
+	public static final String IP_POOL_TARGET = "ippool_target";
+
+	public static final String FIXED_NETWORK_EXTERN_ID = "fixed_network_extern_id";
+	public static final String FIXED_NETWORK_TARGET_ID = "fixed_network_target_id";
+
+	public static final String FIXED_NETWORK_EXTERN_IP_PREFIX = "fixed_network_extern_ip_prefix";
+	public static final String FIXED_NETWORK_TARGET_IP_PREFIX = "fixed_network_target_ip_prefix";
+
+	public static final String NETWORK_STARTING_NUBMER = "network_start_number";
+
 	public static final String NUMBER_OF_SERVERS = "numberofservers";
+	public static final String MOUNT_TARGET_COMMAND = "mount_target";
 
 	public static final String SERVER_USERNAME = "serverusername";
 
@@ -45,13 +56,21 @@ public class ServerStarter
 	private String KEYSTONE_TENANT;
 	private String KEYSTONE_FLAVOR;
 	private String KEYSTONE_IMAGE;
-	private String KEYSTONE_IP_POOL;
+	private String KEYSTONE_IP_POOL_EXTERN;
+	private String KEYSTONE_IP_POOL_TARGET;
+	private String KEYSTONE_FIXED_NETWORK_EXTERN_ID;
+	private String KEYSTONE_FIXED_NETWORK_TARGET_ID;
+
+	private String KEYSTONE_FIXED_NETWORK_EXTERN_IP_PREFIX;
+	private String KEYSTONE_FIXED_NETWORK_TARGET_IP_PREFIX;
+
 	private String KEYSTONE_VOLUME;
 	private String COMPUTE_API_USER;
 	private String COMPUTE_API_PASS;
 	private String COMPUTE_SERVER_USERNAME;
 	private int numberToStart;
-
+	private int KEYSTONE_STARTING_IP;
+	private String KEYSTONE_MOUNT_TARGET_COMMAND;
 
 	private static final String SERVER_NAME = "MolgenisServer";
 
@@ -62,6 +81,9 @@ public class ServerStarter
 	private static final String DEVICE_NAME = "/dev/vdb";
 	private static final String MOUNT_COMMAND = "mount /dev/vdb/ /storage";
 
+	private int keystone_network_current_number;
+
+
 	private Nova novaClient = null;
 
 	@Autowired
@@ -70,15 +92,15 @@ public class ServerStarter
 	public void startServers()
 	{
 		String backendName = cloudManager.getBackendName();
-		startServers(backendName, numberToStart);
+		startServers(backendName);
 	}
 
-	public void startServers(String backendName, int numberOfServers)
+	public void startServers(String backendName)
 	{
 		//now, we have only one cloud, so we do not really need backendName
 		readUserProperties();
 
-		for(int i = 0; i < numberOfServers; i++)
+		for(int i = 0; i < numberToStart; i++)
 		{
 			CloudServer cloudServer = new CloudServer();
 			try
@@ -118,12 +140,25 @@ public class ServerStarter
 			KEYSTONE_TENANT = prop.getProperty(TENANT);
 			KEYSTONE_IMAGE = prop.getProperty(IMAGE);
 			KEYSTONE_FLAVOR = prop.getProperty(FLAVOR);
-			KEYSTONE_IP_POOL = prop.getProperty(IP_POOL);
 			KEYSTONE_VOLUME = prop.getProperty(VOLUME);
 			COMPUTE_API_USER = prop.getProperty(API_USER);
 			COMPUTE_API_PASS = prop.getProperty(API_PASS);
 			COMPUTE_SERVER_USERNAME = prop.getProperty(SERVER_USERNAME);
 			numberToStart =  Integer.parseInt(prop.getProperty(NUMBER_OF_SERVERS));
+			KEYSTONE_IP_POOL_EXTERN = prop.getProperty(IP_POOL_EXTERN);
+			KEYSTONE_IP_POOL_TARGET =prop.getProperty(IP_POOL_TARGET);
+			KEYSTONE_FIXED_NETWORK_EXTERN_ID = prop.getProperty(FIXED_NETWORK_EXTERN_ID);
+			KEYSTONE_FIXED_NETWORK_TARGET_ID = prop.getProperty(FIXED_NETWORK_TARGET_ID);
+
+			KEYSTONE_FIXED_NETWORK_EXTERN_IP_PREFIX = prop.getProperty(FIXED_NETWORK_EXTERN_IP_PREFIX);
+			KEYSTONE_FIXED_NETWORK_TARGET_IP_PREFIX = prop.getProperty(FIXED_NETWORK_TARGET_IP_PREFIX);
+
+			KEYSTONE_MOUNT_TARGET_COMMAND = prop.getProperty(MOUNT_TARGET_COMMAND);
+
+			KEYSTONE_STARTING_IP = Integer.parseInt(prop.getProperty(NETWORK_STARTING_NUBMER));
+
+			keystone_network_current_number = KEYSTONE_STARTING_IP;
+
 		}
 		catch (IOException ex)
 		{
@@ -174,13 +209,21 @@ public class ServerStarter
 				templateFlavor = flavor;
 		}
 
-
 		LOG.info("Booting instance");
 		ServerForCreate serverForCreate = new ServerForCreate();
 		serverForCreate.setName(SERVER_NAME);
 
 		serverForCreate.setImageRef(KEYSTONE_IMAGE);
 		serverForCreate.setFlavorRef(templateFlavor.getId());
+
+		String fixed_extern_ip = KEYSTONE_FIXED_NETWORK_EXTERN_IP_PREFIX + keystone_network_current_number;
+		String fixed_target_ip = KEYSTONE_FIXED_NETWORK_TARGET_IP_PREFIX + keystone_network_current_number;
+
+		serverForCreate.addNetworks(KEYSTONE_FIXED_NETWORK_EXTERN_ID, fixed_extern_ip);
+		serverForCreate.addNetworks(KEYSTONE_FIXED_NETWORK_TARGET_ID, fixed_target_ip);
+
+		keystone_network_current_number++;
+
 		Server server = novaClient.servers().boot(serverForCreate).execute();
 
 		String id = server.getId();
@@ -206,14 +249,14 @@ public class ServerStarter
 
 		LOG.info("server is started");
 
-		LOG.info("Take allocated floating IP");
+		LOG.info("Take allocated extern floating IP");
 		FloatingIp floatingIp = null;
 
 		FloatingIps ips = novaClient.floatingIps().list().execute();
 
 		for(FloatingIp ip : ips)
 		{
-			if(ip.getInstanceId() == null && ip.getPool().equalsIgnoreCase(KEYSTONE_IP_POOL))
+			if(ip.getInstanceId() == null && ip.getPool().equalsIgnoreCase(KEYSTONE_IP_POOL_EXTERN))
 			{
 				floatingIp = ip;
 				break;
@@ -223,12 +266,13 @@ public class ServerStarter
 		if(floatingIp != null)
 		{
 			ServersResource.AssociateFloatingIp associateFloatingIp =
-					novaClient.servers().associateFloatingIp(server.getId(), floatingIp.getIp());
+					novaClient.servers().associateFloatingIp(server.getId(), fixed_extern_ip,
+							floatingIp.getIp());
 			associateFloatingIp.execute();
 		}
 		else
 		{
-			LOG.error("No IP is available");
+			LOG.error("No extern IP is available");
 			return false;
 		}
 		ips = novaClient.floatingIps().list().execute();
@@ -242,14 +286,63 @@ public class ServerStarter
 						ip.getInstanceId().equalsIgnoreCase(id))
 				{
 					doNotHaveExternalIP = false;
-					cloudServer.setExternalIP(floatingIp.getIp());
+					cloudServer.setFixedIpExtern(fixed_extern_ip);
+					cloudServer.setFloatingIpExtern(floatingIp.getIp());
 				}
 				Thread.sleep(1000);
 			}
-			System.out.println("... assigning external IP");
+			System.out.println("... assigning extern IP");
 		}
 
-		LOG.info("external IP is assigned");
+		LOG.info("extern IP is assigned");
+
+		LOG.info("Take allocated target floating IP");
+		FloatingIp floatingIpTarget = null;
+
+		ips = novaClient.floatingIps().list().execute();
+
+		for(FloatingIp ip : ips)
+		{
+			if(ip.getInstanceId() == null && ip.getPool().equalsIgnoreCase(KEYSTONE_IP_POOL_TARGET))
+			{
+				floatingIpTarget = ip;
+				break;
+			}
+		}
+
+		if(floatingIpTarget != null)
+		{
+			ServersResource.AssociateFloatingIp associateFloatingIp =
+					novaClient.servers().associateFloatingIp(server.getId(),
+							fixed_target_ip, floatingIpTarget.getIp());
+			associateFloatingIp.execute();
+		}
+		else
+		{
+			LOG.error("No target IP is available");
+			return false;
+		}
+
+
+		ips = novaClient.floatingIps().list().execute();
+
+		boolean hasExternalTarget = true;
+		while(hasExternalTarget)
+		{
+			for(FloatingIp ip : ips)
+			{
+				if(ip.getIp().equalsIgnoreCase(floatingIpTarget.getIp()) &&
+						ip.getInstanceId().equalsIgnoreCase(id))
+				{
+					hasExternalTarget = false;
+					cloudServer.setFloatingIpTarget(fixed_target_ip);
+					cloudServer.setFloatingIpTarget(floatingIpTarget.getIp());
+				}
+				Thread.sleep(1000);
+			}
+			System.out.println("... waiting for target IP");
+		}
+
 
 		LOG.info("Attaching volume...");
 
@@ -293,10 +386,19 @@ public class ServerStarter
 
 		LOG.info("... volume is attached");
 
-		LOG.info("Mounting volume...");
+		LOG.info("Mounting volume >>>");
 		boolean notMounted = true;
 		while(notMounted)
-			notMounted = !RemoteExecutor.executeCommandRemote(cloudServer.getExternalIP(), SSHPASS, COMPUTE_SERVER_USERNAME, MOUNT_COMMAND);
+			notMounted = !RemoteExecutor.executeCommandRemote(cloudServer.getFloatingIpExtern(), SSHPASS, COMPUTE_SERVER_USERNAME, MOUNT_COMMAND);
+		LOG.info("... " + KEYSTONE_VOLUME + " is mounted");
+
+
+		LOG.info("Mounting target >>>");
+		notMounted = true;
+		while(notMounted)
+			notMounted = !RemoteExecutor.executeCommandRemote(cloudServer.getFloatingIpExtern(),
+					SSHPASS, COMPUTE_SERVER_USERNAME, KEYSTONE_MOUNT_TARGET_COMMAND);
+		LOG.info("... TARGET is mounted");
 
 		return true;
 	}
