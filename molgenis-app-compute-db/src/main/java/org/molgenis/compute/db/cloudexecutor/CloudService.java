@@ -76,7 +76,7 @@ public class CloudService
 
 		if (status.equalsIgnoreCase(STATUS_STARTED))
 		{
-			if(computeTask.getStatusCode().equalsIgnoreCase(MolgenisPilotService.TASK_RUNNING))
+			if(computeTask.getStatusCode().equalsIgnoreCase(MolgenisPilotService.TASK_SUBMITTED))
 			{
 
 				computeTask.setStatusCode(MolgenisPilotService.TASK_RUNNING);
@@ -91,7 +91,7 @@ public class CloudService
 		}
 		else if(status.equalsIgnoreCase(STATUS_FINISHED))
 		{
-			releaseServer(serverid);
+			releaseServer(serverid, jobid);
 
 			if(computeTask.getStatusCode().equalsIgnoreCase(MolgenisPilotService.TASK_RUNNING))
 			{
@@ -113,13 +113,14 @@ public class CloudService
 		}
 	}
 
-	private void releaseServer(String serverid)
+	private void releaseServer(String serverid, String jobid)
 	{
 		for(CloudServer server : cloudManager.getCloudServers())
 		{
 			if(server.getId().equalsIgnoreCase(serverid))
 			{
 				server.setInUse(false);
+				server.addFinishedJob(jobid);
 			}
 		}
 	}

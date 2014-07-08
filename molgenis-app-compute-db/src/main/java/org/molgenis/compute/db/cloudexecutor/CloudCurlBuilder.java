@@ -24,7 +24,7 @@ public class CloudCurlBuilder
 	private String curlFinishedTemplate = "curl -s -S -u ${"+ CloudManager.API_USER +"}:" +
 			"${"+ CloudManager.API_PASS +"} -F jobid=${" + JOB_ID + "} -F serverid=${serverid}" +
 			" -F status=" + CloudService.STATUS_FINISHED + " -F backend=${backend} " +
-			"-F log_file=log.log " +
+			"-F log_file=@log.log " +
 			"http://${IP}:8080/api/cloud\n";
 
 

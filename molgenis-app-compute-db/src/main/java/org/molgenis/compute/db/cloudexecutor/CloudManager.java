@@ -72,7 +72,8 @@ public class CloudManager
 		CloudThread executor = new CloudThread(run, cloudExecutor);
 
 		//now for testing to run it once
-		ScheduledFuture<?> future = taskScheduler.scheduleWithFixedDelay(executor, 50000000);
+		//remove 000
+		ScheduledFuture<?> future = taskScheduler.scheduleWithFixedDelay(executor, 50000);
 
 		scheduledJobs.put(run.getId(), future);
 	}

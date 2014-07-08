@@ -4,7 +4,7 @@ import org.molgenis.compute5.db.api.Backend;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import org.apache.log4j.Logger;
 /**
  * Created with IntelliJ IDEA.
  * User: hvbyelas
@@ -15,6 +15,8 @@ import java.util.List;
 
 public class CloudServer
 {
+	private static final Logger LOG = Logger.getLogger(CloudServer.class);
+
 
 	private Backend backend = null;
 
@@ -135,9 +137,16 @@ public class CloudServer
 		this.isInUse = isInUse;
 	}
 
-	public void addFinishedJob()
+	public void addFinishedJob(String jobID)
 	{
-		finishedJobs.add(currentJobID + "");
-		currentJobID = -1;
+		if(currentJobID == Integer.parseInt(jobID))
+		{
+			finishedJobs.add(currentJobID + "");
+			currentJobID = -1;
+		}
+		else
+		{
+			LOG.error("Job IDs are different [ " + currentJobID + " & " + jobID + " ] for server [ " + id + " ] " );
+		}
 	}
 }
