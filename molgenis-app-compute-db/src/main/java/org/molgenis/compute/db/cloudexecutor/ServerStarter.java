@@ -7,11 +7,15 @@ import com.woorea.openstack.nova.Nova;
 import com.woorea.openstack.nova.api.ServersResource;
 import com.woorea.openstack.nova.model.*;
 import org.apache.log4j.Logger;
+import org.molgenis.compute.runtime.ComputeTask;
+import org.molgenis.compute.runtime.ComputeVM;
+import org.molgenis.data.DataService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.Properties;
 
 /**
@@ -88,6 +92,9 @@ public class ServerStarter
 
 	@Autowired
 	private CloudManager cloudManager;
+
+	@Autowired
+	private DataService dataService;
 
 	public void startServers()
 	{
@@ -399,6 +406,13 @@ public class ServerStarter
 			notMounted = !RemoteExecutor.executeCommandRemote(cloudServer.getFloatingIpExtern(),
 					SSHPASS, COMPUTE_SERVER_USERNAME, KEYSTONE_MOUNT_TARGET_COMMAND);
 		LOG.info("... TARGET is mounted");
+
+		ComputeVM computeVM = new ComputeVM();
+		computeVM.setServerID(cloudServer.getId());
+		computeVM.setFloatingIpTarget(cloudServer.getFloatingIpTarget());
+		computeVM.setFloatingIpExtern(cloudServer.getFloatingIpExtern());
+		computeVM.setStartTime(new Date());
+		dataService.update(ComputeVM.ENTITY_NAME, computeVM);
 
 		return true;
 	}

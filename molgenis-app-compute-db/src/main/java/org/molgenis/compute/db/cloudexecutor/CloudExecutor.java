@@ -1,6 +1,7 @@
 package org.molgenis.compute.db.cloudexecutor;
 
 import org.apache.log4j.Logger;
+import org.molgenis.compute.db.pilot.MolgenisPilotService;
 import org.molgenis.compute.runtime.ComputeRun;
 import org.molgenis.compute.runtime.ComputeTask;
 import org.molgenis.data.CrudRepository;
@@ -38,13 +39,13 @@ public class CloudExecutor
 	{
 		Iterable<ComputeTask> generatedTasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
 				.eq(ComputeTask.COMPUTERUN, run).and()
-				.eq(ComputeTask.STATUSCODE, "generated"), ComputeTask.class);
+				.eq(ComputeTask.STATUSCODE, MolgenisPilotService.TASK_GENERATED), ComputeTask.class);
 
 		evaluateTasks(generatedTasks);
 
 		Iterable<ComputeTask> readyTasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
 				.eq(ComputeTask.COMPUTERUN, run).and()
-				.eq(ComputeTask.STATUSCODE, "ready"), ComputeTask.class);
+				.eq(ComputeTask.STATUSCODE, MolgenisPilotService.TASK_READY), ComputeTask.class);
 
 		for(ComputeTask computeTask : readyTasks)
 		{
@@ -85,10 +86,11 @@ public class CloudExecutor
 															cloudManager.getServerUsername(),
 															script, computeTask.getName() + "_" + computeTask.getId());
 		}
-
+		computeTask.setStatusCode(MolgenisPilotService.TASK_SUBMITTED);
+		dataService.update(ComputeTask.ENTITY_NAME, computeTask);
 		//here move result + clear server
-		server.setInUse(false);
-		server.addFinishedJob();
+		server.setInUse(true);
+
 
 	}
 
@@ -100,14 +102,14 @@ public class CloudExecutor
 			List<ComputeTask> prevSteps = task.getPrevSteps();
 			for (ComputeTask prev : prevSteps)
 			{
-				if (!prev.getStatusCode().equalsIgnoreCase("done")) isReady = false;
+				if (!prev.getStatusCode().equalsIgnoreCase(MolgenisPilotService.TASK_DONE)) isReady = false;
 			}
 
 			if (isReady)
 			{
 				LOG.info(">>> TASK [" + task.getName() + "] is ready for execution");
 
-				task.setStatusCode("ready");
+				task.setStatusCode(MolgenisPilotService.TASK_READY);
 				dataService.update(ComputeTask.ENTITY_NAME, task);
 				CrudRepository repo = dataService.getCrudRepository(ComputeTask.ENTITY_NAME);
 				repo.flush();
