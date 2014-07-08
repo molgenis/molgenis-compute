@@ -10,6 +10,7 @@
             <!--MolgenisEntityFormPlugin-->
             <plugin id="form.ComputeRun" name="Runs" url="form.ComputeRun"/>
             <plugin id="form.ComputeTask" name="Tasks" url="form.ComputeTask"/>
+            <plugin id="form.ComputeVM" name="VMHistory" url="form.ComputeVM"/>
            <menu name="ComputeTaskValueMenu" label="Parameters">
                 <plugin id="form.ComputeParameterValue" name="Parameters" url="form.ComputeParameterValue"/>
                 <plugin id="form.ComputeTaskHistory" name="History" url="form.ComputeTaskHistory"/>
