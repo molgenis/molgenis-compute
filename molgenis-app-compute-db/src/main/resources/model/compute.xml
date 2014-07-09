@@ -36,14 +36,14 @@
             <field name="newStatusCode" nillable="false" type="enum" enum_options="[generated,ready,running,failed,done,jobsubmitted,cancelled]"  description="current status of this task." />
       	</entity>
         <entity name="ComputeVM" implements="Autoid" description="this table contains history of VM usage">
-            <field name="serverID" type="text"/>
+            <field name="serverID" type="text" nillable="true"/>
             <field name="hostName" type="text" nillable="true" description="host of VMs name"/>
-            <field name="floatingIpExtern" type="text" description="IP open to internet"/>
-            <field name="floatingIpTarget" type="text" description="IP open to target environment"/>
-            <field name="computeTask" type="mref" xref_entity="ComputeTask" description="tasks, which are completed on this VM"/>
-            <field name="startTime" type="datetime" description="time, when VM is started" />
-            <field name="endTime" type="datetime" description="time, when VM is down" />
-            <field name="isInUse" type="boolean" default="false" description="indicate if compute tasks are currently executed on VM"/>
+            <field name="floatingIpExtern" type="text" nillable="true" description="IP open to internet"/>
+            <field name="floatingIpTarget" type="text" nillable="true" description="IP open to target environment"/>
+            <field name="computeTask" type="mref" nillable="true" xref_entity="ComputeTask" description="tasks, which are completed on this VM"/>
+            <field name="startTime" type="datetime" nillable="true" description="time, when VM is started" />
+            <field name="endTime" type="datetime" nillable="true" description="time, when VM is down" />
+            <field name="isInUse" type="boolean" nillable="true" default="false" description="indicate if compute tasks are currently executed on VM"/>
         </entity>
 		<entity name="ComputeParameterValue" implements="Nameable">
 			<description>Related to ComputeTask values

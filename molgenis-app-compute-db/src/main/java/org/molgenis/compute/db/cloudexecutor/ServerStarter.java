@@ -7,10 +7,17 @@ import com.woorea.openstack.nova.Nova;
 import com.woorea.openstack.nova.api.ServersResource;
 import com.woorea.openstack.nova.model.*;
 import org.apache.log4j.Logger;
+import org.molgenis.compute.db.pilot.MolgenisPilotService;
 import org.molgenis.compute.runtime.ComputeTask;
 import org.molgenis.compute.runtime.ComputeVM;
 import org.molgenis.data.DataService;
+import org.molgenis.data.support.QueryImpl;
+import org.molgenis.security.runas.RunAsSystem;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -21,6 +28,8 @@ import java.util.Properties;
 /**
  * Created by hvbyelas on 5/21/14.
  */
+
+
 public class ServerStarter
 {
 	private static final Logger LOG = Logger.getLogger(ServerStarter.class);
@@ -96,12 +105,14 @@ public class ServerStarter
 	@Autowired
 	private DataService dataService;
 
+	@RunAsSystem
 	public void startServers()
 	{
 		String backendName = cloudManager.getBackendName();
 		startServers(backendName);
 	}
 
+	@RunAsSystem
 	public void startServers(String backendName)
 	{
 		//now, we have only one cloud, so we do not really need backendName
@@ -187,11 +198,10 @@ public class ServerStarter
 		}
 	}
 
-
+	@RunAsSystem
 	private boolean launchNewServer(CloudServer cloudServer) throws InterruptedException
 	{
 		LOG.info("Start launching server");
-
 
 		System.out.println("Getting token");
 		Keystone keystone = new Keystone(KEYSTONE_AUTH);
@@ -412,9 +422,24 @@ public class ServerStarter
 		computeVM.setFloatingIpTarget(cloudServer.getFloatingIpTarget());
 		computeVM.setFloatingIpExtern(cloudServer.getFloatingIpExtern());
 		computeVM.setStartTime(new Date());
-		dataService.update(ComputeVM.ENTITY_NAME, computeVM);
+		dataService.add(ComputeVM.ENTITY_NAME, computeVM);
 
 		return true;
 	}
 
+	public void stopServers()
+	{
+		for(CloudServer cloudServer : cloudManager.getCloudServers())
+		{
+			int i = 0;
+			novaClient.servers().delete(cloudServer.getId()).execute();
+
+			ComputeVM computeVM = dataService.findOne(ComputeVM.ENTITY_NAME, new QueryImpl()
+					.eq(ComputeVM.SERVERID, cloudServer.getId()), ComputeVM.class);
+			computeVM.setEndTime(new Date());
+			dataService.update(ComputeVM.ENTITY_NAME, computeVM);
+		}
+
+		cloudManager.removeAllServers();
+	}
 }

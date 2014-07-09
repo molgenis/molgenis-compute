@@ -31,7 +31,6 @@ public class CloudExecutor
 	@Autowired
 	private CloudCurlBuilder builder;
 
-
 	private static final Logger LOG = Logger.getLogger(CloudThread.class);
 
 	@RunAsSystem
