@@ -2,6 +2,8 @@ package org.molgenis.compute.db.cloudexecutor;
 
 import org.apache.log4j.Logger;
 import org.molgenis.compute.runtime.ComputeRun;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Created with IntelliJ IDEA.
@@ -17,10 +19,14 @@ public class StarterThread implements Runnable
 
 	private ComputeRun run = null;
 	private ServerStarter starter = null;
+	private SecurityContext ctx = null;
 
-	public StarterThread(ServerStarter starter)
+	public StarterThread(ServerStarter starter, SecurityContext ctx)
 	{
 		this.starter = starter;
+		SecurityContextHolder.setContext(ctx);
+		this.ctx = SecurityContextHolder.getContext();
+		int i = 0;
 	}
 
 

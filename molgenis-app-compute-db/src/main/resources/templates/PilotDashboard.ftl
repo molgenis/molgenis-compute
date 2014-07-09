@@ -4,6 +4,7 @@
 <#assign js=[]>
 <@header css js/>
 
+
 <script type="text/javascript">
     function updateRunStatus(run) {
         $.ajax({
@@ -51,6 +52,7 @@
     $(function () {
         updateStatus();
     });
+
 </script>
 
 <#if error??>
@@ -98,6 +100,10 @@
                      <form action="/menu/Compute/dashboard/stop" class="form-inline" method="post">
                          <input type="hidden" name="run" value="${run.name}"/>
                          <button type="submit" class="btn">Stop</button>
+                     </form>
+                     <form action="/menu/Compute/dashboard/release" class="form-inline" method="post">
+                         <input type="hidden" name="run" value="${run.name}"/>
+                         <button type="submit" class="btn">Release VMs</button>
                      </form>
                  <#else>
                     <div class="text-info">Ready to run</div>

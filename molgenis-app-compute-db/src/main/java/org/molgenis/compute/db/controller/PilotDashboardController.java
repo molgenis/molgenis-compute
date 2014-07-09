@@ -80,6 +80,16 @@ public class PilotDashboardController extends MolgenisPluginController
 		return init(model);
 	}
 
+	@RequestMapping("/release")
+	public String release(@RequestParam("run")
+					   String runName, Model model)
+	{
+		LOG.debug(">> In PilotDashboardController:stop");
+		runService.release(runName);
+		return init(model);
+	}
+
+
 	@RequestMapping("/close")
 	public String close(@RequestParam("run")
 	String runName, Model model)

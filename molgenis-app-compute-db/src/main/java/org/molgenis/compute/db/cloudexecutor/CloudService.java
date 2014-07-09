@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import org.molgenis.compute.db.pilot.MolgenisPilotService;
 import org.molgenis.compute.runtime.ComputeRun;
 import org.molgenis.compute.runtime.ComputeTask;
+import org.molgenis.compute.runtime.ComputeVM;
 import org.molgenis.compute.runtime.Pilot;
 import org.molgenis.data.CrudRepository;
 import org.molgenis.data.DataService;
@@ -61,9 +62,6 @@ public class CloudService
 	{
 		LOG.debug(">> In handleRequest!");
 
-		//for testing temporary
-//		if(true)
-//			return;
 
 		ComputeTask computeTask = dataService.findOne(ComputeTask.ENTITY_NAME, new QueryImpl()
 				.eq(ComputeTask.ID, jobid), ComputeTask.class);
@@ -82,8 +80,6 @@ public class CloudService
 				computeTask.setStatusCode(MolgenisPilotService.TASK_RUNNING);
 				dataService.update(ComputeTask.ENTITY_NAME, computeTask);
 
-//				CrudRepository repo = dataService.getCrudRepository(ComputeTask.ENTITY_NAME);
-//				repo.flush();
 			}
 			else
 				LOG.warn("Compute Task [" + computeTask.getId() + " : " + computeTask.getName() + "] has a wrong status in started");

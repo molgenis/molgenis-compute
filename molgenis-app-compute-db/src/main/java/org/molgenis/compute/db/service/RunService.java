@@ -24,6 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 /**
@@ -212,8 +214,8 @@ public class RunService
 		{
 			run.setIsActive(true);
 			dataService.update(ComputeRun.ENTITY_NAME, run);
-
-			cloudManager.executeRun(run, username, password);
+			SecurityContext ctx = SecurityContextHolder.getContext();
+			cloudManager.executeRun(run, username, password, ctx);
 		}
 		else
 		{
@@ -251,6 +253,23 @@ public class RunService
 
 			run.setIsSubmittingPilots(false);
 			dataService.update(ComputeRun.ENTITY_NAME, run);
+		}
+	}
+
+	public void release(String runName)
+	{
+		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeRun.NAME, runName), ComputeRun.class);
+		if (run == null)
+		{
+			throw new ComputeDbException("Unknown run name [" + runName + "]");
+		}
+
+		if(run.getIsVMrun())
+		{
+			run.setIsActive(false);
+			//maybe later this will be stop servers used in a run
+			cloudManager.stopAllServers();
 		}
 	}
 
@@ -366,8 +385,12 @@ public class RunService
 	 */
 	public RunStatus getStatus(String runName)
 	{
+
 		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
 				.eq(ComputeRun.NAME, runName), ComputeRun.class);
+
+		SecurityContext ctx = SecurityContextHolder.getContext();
+
 		if (run == null)
 		{
 			throw new ComputeDbException("Unknown run name [" + runName + "]");

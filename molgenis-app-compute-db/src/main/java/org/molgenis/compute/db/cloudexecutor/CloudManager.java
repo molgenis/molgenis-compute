@@ -10,6 +10,9 @@ import org.apache.log4j.Logger;
 import org.molgenis.compute.runtime.ComputeRun;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 
 /**
  * Created with IntelliJ IDEA.
@@ -60,20 +63,21 @@ public class CloudManager
 		return SSHPASS;
 	}
 
-	public void executeRun(ComputeRun run, String username, String password)
+	public void executeRun(ComputeRun run, String username, String password, SecurityContext ctx)
 	{
 		KEYSTONE_USERNAME = username;
 		KEYSTONE_PASSWORD = password;
 
 		backendName = run.getComputeBackend().getName();
 
-		(new Thread(new StarterThread(serverStarter))).start();
+		SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
+		(new Thread(new StarterThread(serverStarter, ctx))).start();
 
 		CloudThread executor = new CloudThread(run, cloudExecutor);
 
 		//now for testing to run it once
 		//remove 000
-		ScheduledFuture<?> future = taskScheduler.scheduleWithFixedDelay(executor, 50000);
+		ScheduledFuture<?> future = taskScheduler.scheduleWithFixedDelay(executor, 60000);
 
 		scheduledJobs.put(run.getId(), future);
 	}
@@ -90,7 +94,7 @@ public class CloudManager
 
 	public void stopAllServers()
 	{
-
+		(new Thread(new StopperThread(serverStarter))).start();
 	}
 
 	private void stopServer(String serverID)
@@ -196,5 +200,10 @@ public class CloudManager
 	public String getKeyStonePass()
 	{
 		return KEYSTONE_PASSWORD;
+	}
+
+	public void removeAllServers()
+	{
+		servers.clear();
 	}
 }
