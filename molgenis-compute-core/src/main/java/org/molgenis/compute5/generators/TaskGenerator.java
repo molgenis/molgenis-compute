@@ -114,11 +114,6 @@ public class TaskGenerator
 				parameterHeader.append("\ninterval=\"").append(computeProperties.interval).append("\"");
 				parameterHeader.append("\npath=\"").append(computeProperties.path).append("\"");
 
-				parameterHeader.append("\n# Load parameters from previous steps\n")
-						.append(Parameters.SOURCE_COMMAND).append(" ")
-						.append(Parameters.ENVIRONMENT_DIR_VARIABLE).append(File.separator).append(Parameters.ENVIRONMENT)
-						.append("\n\n");
-
 				for (String previousStepName : step.getPreviousSteps())
 				{ // we have jobs on which we depend in this prev step
 					Step prevStep = workflow.getStep(previousStepName);
