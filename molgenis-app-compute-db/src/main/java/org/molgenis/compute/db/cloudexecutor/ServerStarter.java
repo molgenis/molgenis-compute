@@ -145,6 +145,9 @@ public class ServerStarter
 
 		try
 		{
+			LOG.info("Working Directory = " +
+					System.getProperty("user.dir"));
+
 			input = new FileInputStream(".openstack.properties");
 
 			// load a properties file
