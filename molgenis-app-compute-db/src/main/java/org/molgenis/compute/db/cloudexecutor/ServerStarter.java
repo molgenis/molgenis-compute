@@ -213,6 +213,9 @@ public class ServerStarter
 				.authenticate(new UsernamePassword(cloudManager.getKeyStoneUser(), cloudManager.getKeyStonePass()))
 				.withTenantName(KEYSTONE_TENANT)
 				.execute();
+
+		LOG.info(access.toString());
+
 		LOG.info("...done");
 
 		keystone.token(access.getToken().getId());
