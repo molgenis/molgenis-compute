@@ -4,13 +4,18 @@ import org.molgenis.compute.db.executor.ComputeExecutorPilotDB;
 import org.molgenis.compute.runtime.ComputeTask;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Hashtable;
+import java.util.Properties;
 
 /**
  * Created by hvbyelas on 5/19/14.
  */
 public class CloudCurlBuilder
 {
+	private static final String SERVER_IP = "server_ip";
 	@Autowired
 	private CloudManager cloudManager;
 
@@ -42,7 +47,7 @@ public class CloudCurlBuilder
 		String backend = task.getComputeRun().getComputeBackend().getName();
 		values.put("backend", backend);
 
-		String ip = ComputeExecutorPilotDB.getServerIP();
+		String ip = readServerIPProperty();
 		values.put("IP", ip);
 
 		String prefix = ComputeExecutorPilotDB.weaveFreemarker(curlStartedTemplate, values);
@@ -66,4 +71,42 @@ public class CloudCurlBuilder
 
 		return sb.toString();
 	}
+
+	private String readServerIPProperty()
+	{
+		String serverIP = null;
+
+		Properties prop = new Properties();
+		InputStream input = null;
+
+		try
+		{
+			input = new FileInputStream(".openstack.properties");
+			prop.load(input);
+			serverIP = prop.getProperty(SERVER_IP);
+
+		}
+		catch (IOException ex)
+		{
+			ex.printStackTrace();
+		}
+		finally
+		{
+			if (input != null)
+			{
+				try
+				{
+					input.close();
+				}
+				catch (IOException e)
+				{
+					e.printStackTrace();
+				}
+			}
+		}
+
+		return serverIP;
+	}
+
+
 }
