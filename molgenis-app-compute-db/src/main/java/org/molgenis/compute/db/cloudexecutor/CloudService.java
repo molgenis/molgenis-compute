@@ -60,7 +60,7 @@ public class CloudService
 											  HttpServletResponse response
 	) throws IOException
 	{
-		LOG.debug(">> In handleRequest!");
+		LOG.info(">> Callback from server [ " + serverid + " ] with running job [ " + jobid + " ] ");
 
 
 		ComputeTask computeTask = dataService.findOne(ComputeTask.ENTITY_NAME, new QueryImpl()
