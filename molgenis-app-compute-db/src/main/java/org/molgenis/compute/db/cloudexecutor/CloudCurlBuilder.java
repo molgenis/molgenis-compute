@@ -30,7 +30,8 @@ public class CloudCurlBuilder
 			"${"+ CloudManager.API_PASS +"} -F jobid=${" + JOB_ID + "} -F serverid=${serverid}" +
 			" -F status=" + CloudService.STATUS_FINISHED + " -F backend=${backend} " +
 			"-F log_file=@log.log " +
-			"http://${IP}:8080/api/cloud\n";
+			"http://${IP}:8080/api/cloud\n"+
+			"rm -f log.log\n";
 
 
 	public String buildScript(ComputeTask task, CloudServer server)
