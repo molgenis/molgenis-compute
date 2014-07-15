@@ -406,16 +406,22 @@ public class ServerStarter
 		LOG.info("Mounting volume >>>");
 		boolean notMounted = true;
 		while(notMounted)
+		{
 			notMounted = !RemoteExecutor.executeCommandRemote(cloudServer.getFloatingIpExtern(), SSHPASS, COMPUTE_SERVER_USERNAME, MOUNT_COMMAND);
-		LOG.info("... " + KEYSTONE_VOLUME + " is mounted");
+			Thread.sleep(1000);
+		}
+			LOG.info("... " + KEYSTONE_VOLUME + " is mounted");
 
 
 		LOG.info("Mounting target >>>");
 		notMounted = true;
 		while(notMounted)
+		{
 			notMounted = !RemoteExecutor.executeCommandRemote(cloudServer.getFloatingIpExtern(),
 					SSHPASS, COMPUTE_SERVER_USERNAME, KEYSTONE_MOUNT_TARGET_COMMAND);
-		LOG.info("... TARGET is mounted");
+			Thread.sleep(1000);
+		}
+			LOG.info("... TARGET is mounted");
 
 		ComputeVM computeVM = new ComputeVM();
 		computeVM.setServerID(cloudServer.getId());
