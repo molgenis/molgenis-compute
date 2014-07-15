@@ -105,18 +105,11 @@ public class ServerStarter
 	@Autowired
 	private DataService dataService;
 
-	@RunAsSystem
 	public void startServers()
 	{
-		String backendName = cloudManager.getBackendName();
-		startServers(backendName);
-	}
-
-	@RunAsSystem
-	public void startServers(String backendName)
-	{
-		//now, we have only one cloud, so we do not really need backendName
 		readUserProperties();
+
+		String backendName = cloudManager.getBackendName();
 
 		for(int i = 0; i < numberToStart; i++)
 		{
@@ -136,6 +129,7 @@ public class ServerStarter
 				e.printStackTrace();
 			}
 		}
+
 	}
 
 	private void readUserProperties()
