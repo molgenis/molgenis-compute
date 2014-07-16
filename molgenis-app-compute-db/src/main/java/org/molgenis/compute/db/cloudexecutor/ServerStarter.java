@@ -92,7 +92,7 @@ public class ServerStarter
 	public static final String VOLUME_STATUS_IN_USE = "in-use";
 
 	private static final String DEVICE_NAME = "/dev/vdb";
-	private static final String MOUNT_COMMAND = "mount /dev/vdb/ /storage";
+	private static final String MOUNT_COMMAND = "mount /storage";
 
 	private int keystone_network_current_number;
 
