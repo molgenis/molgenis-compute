@@ -87,7 +87,7 @@ public class Parameters
 	public static final String DATABASE_END = "database-end";
 	public static final String DATABASE_END_CMNDLINE_OPTION = "dbe";
 	public static final String PORT = "port";
-	public static final String PORT_DEFAULT = "8080";
+	public static final String PORT_DEFAULT = "80";
 	public static final String PORT_CMNDLINE_OPTION = "port";
 	public static final String INTERVAL = "interval";
 	public static final String INTERVAL_DEFAULT = "2000";
