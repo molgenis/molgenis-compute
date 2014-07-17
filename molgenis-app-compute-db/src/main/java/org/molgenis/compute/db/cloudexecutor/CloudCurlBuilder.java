@@ -16,6 +16,10 @@ import java.util.Properties;
 public class CloudCurlBuilder
 {
 	private static final String SERVER_IP = "server_ip";
+	private static final String SERVER_PORT = "server_port";
+
+	private String serverIP, serverPort;
+
 	@Autowired
 	private CloudManager cloudManager;
 
@@ -24,13 +28,13 @@ public class CloudCurlBuilder
 	private String curlStartedTemplate = "curl -s -S -u ${"+ CloudManager.API_USER +"}:" +
 			"${"+ CloudManager.API_PASS +"} -F jobid=${" + JOB_ID + "} -F serverid=${serverid}" +
 			" -F status=" + CloudService.STATUS_STARTED + " -F backend=${backend} " +
-			"http://${IP}:8080/api/cloud\n";
+			"http://${IP}:${PORT}/api/cloud\n";
 
 	private String curlFinishedTemplate = "curl -s -S -u ${"+ CloudManager.API_USER +"}:" +
 			"${"+ CloudManager.API_PASS +"} -F jobid=${" + JOB_ID + "} -F serverid=${serverid}" +
 			" -F status=" + CloudService.STATUS_FINISHED + " -F backend=${backend} " +
 			"-F log_file=@log.log " +
-			"http://${IP}:8080/api/cloud\n"+
+			"http://${IP}:${PORT}/api/cloud\n"+
 			"rm -f log.log\n";
 
 
@@ -48,8 +52,9 @@ public class CloudCurlBuilder
 		String backend = task.getComputeRun().getComputeBackend().getName();
 		values.put("backend", backend);
 
-		String ip = readServerIPProperty();
-		values.put("IP", ip);
+		readServerProperties();
+		values.put("IP", serverIP);
+		values.put("PORT", serverPort);
 
 		String prefix = ComputeExecutorPilotDB.weaveFreemarker(curlStartedTemplate, values);
 		String postfix = ComputeExecutorPilotDB.weaveFreemarker(curlFinishedTemplate, values);
@@ -73,10 +78,8 @@ public class CloudCurlBuilder
 		return sb.toString();
 	}
 
-	private String readServerIPProperty()
+	private void readServerProperties()
 	{
-		String serverIP = null;
-
 		Properties prop = new Properties();
 		InputStream input = null;
 
@@ -84,7 +87,9 @@ public class CloudCurlBuilder
 		{
 			input = new FileInputStream(".openstack.properties");
 			prop.load(input);
+
 			serverIP = prop.getProperty(SERVER_IP);
+			serverPort = prop.getProperty(SERVER_PORT);
 
 		}
 		catch (IOException ex)
@@ -105,8 +110,6 @@ public class CloudCurlBuilder
 				}
 			}
 		}
-
-		return serverIP;
 	}
 
 
