@@ -27,6 +27,9 @@ public class RemoteExecutor
 		LOG.info("execute command remotely");
 
 		try {
+
+			Thread.sleep(60000);
+
 			JSch jsch = new JSch();
 
 			String user = serverUserName;
@@ -68,8 +71,6 @@ public class RemoteExecutor
 			channelExec.disconnect();
 			session.disconnect();
 
-			Thread.sleep(60000);
-
 			LOG.info("done!");
 			return true;
 		}
@@ -95,6 +96,9 @@ public class RemoteExecutor
 		LOG.info("Submitting job " + jobID);
 
 		try {
+
+			Thread.sleep(60000);
+
 			JSch jsch = new JSch();
 
 			String user = serverUsername;
@@ -140,8 +144,6 @@ public class RemoteExecutor
 
 			channelExec.disconnect();
 			session.disconnect();
-
-			Thread.sleep(60000);
 
 			LOG.info("done!");
 			return true;
