@@ -68,6 +68,8 @@ public class RemoteExecutor
 			channelExec.disconnect();
 			session.disconnect();
 
+			Thread.sleep(60000);
+
 			LOG.info("done!");
 			return true;
 		}
@@ -76,6 +78,10 @@ public class RemoteExecutor
 			e.printStackTrace();
 		}
 		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		catch (InterruptedException e)
 		{
 			e.printStackTrace();
 		}
@@ -135,6 +141,8 @@ public class RemoteExecutor
 			channelExec.disconnect();
 			session.disconnect();
 
+			Thread.sleep(60000);
+
 			LOG.info("done!");
 			return true;
 
@@ -144,6 +152,10 @@ public class RemoteExecutor
 			e.printStackTrace();
 		}
 		catch (SftpException e)
+		{
+			e.printStackTrace();
+		}
+		catch (InterruptedException e)
 		{
 			e.printStackTrace();
 		}
