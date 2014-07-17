@@ -28,7 +28,7 @@ public class RemoteExecutor
 
 		try {
 
-			Thread.sleep(60000);
+			Thread.sleep(90000);
 
 			JSch jsch = new JSch();
 
@@ -97,7 +97,7 @@ public class RemoteExecutor
 
 		try {
 
-			Thread.sleep(60000);
+			Thread.sleep(90000);
 
 			JSch jsch = new JSch();
 
