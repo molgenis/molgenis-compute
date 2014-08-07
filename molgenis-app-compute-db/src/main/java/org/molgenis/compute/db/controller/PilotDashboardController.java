@@ -60,7 +60,7 @@ public class PilotDashboardController extends MolgenisPluginController
 		return VIEW_NAME;
 	}
 
-	@RequestMapping("/start")
+	@RequestMapping(value = "/start", method = RequestMethod.POST)
 	public String start(@RequestParam("run")
 	String runName, @RequestParam("username")
 	String username, @RequestParam("password")
@@ -71,7 +71,7 @@ public class PilotDashboardController extends MolgenisPluginController
 		return init(model);
 	}
 
-	@RequestMapping("/stop")
+	@RequestMapping(value = "/stop", method = RequestMethod.POST)
 	public String stop(@RequestParam("run")
 	String runName, Model model)
 	{
