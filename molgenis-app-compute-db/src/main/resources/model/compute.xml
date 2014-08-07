@@ -33,7 +33,7 @@
       		<field name="statusTime" type="datetime" auto="true" description="time of state change" />
       		<field name="runLog" nillable="true" type="text" description="field to show the content of the error file (only applicable on fail/done of a task)" />
             <field name="statusCode" nillable="true" type="enum" enum_options="[generated,ready,running,failed,done,cancelled]"  description="current status of this task." />
-            <field name="newStatusCode" nillable="false" type="enum" enum_options="[generated,ready,running,failed,done,jobsubmitted,cancelled]"  description="current status of this task." />
+            <field name="newStatusCode" nillable="false" type="enum" enum_options="[generated,ready,running,failed,done,submitted,cancelled]"  description="current status of this task." />
       	</entity>
         <entity name="ComputeVM" implements="Autoid" description="this table contains history of VM usage">
             <field name="serverID" type="text" nillable="true"/>

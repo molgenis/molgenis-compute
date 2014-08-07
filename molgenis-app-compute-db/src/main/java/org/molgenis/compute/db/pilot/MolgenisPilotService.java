@@ -48,7 +48,7 @@ public class MolgenisPilotService
 	public static final String TASK_FAILED = "failed";
 	public static final String TASK_DONE = "done";
 	public static final String TASK_CANCELLED = "cancelled";
-	public static final String TASK_SUBMITTED = "jobsubmitted";
+	public static final String TASK_SUBMITTED = "submitted";
 
 
 
