@@ -20,6 +20,7 @@ import org.molgenis.data.DataService;
 import org.molgenis.data.Query;
 import org.molgenis.data.support.QueryImpl;
 import org.molgenis.omx.auth.MolgenisUser;
+import org.molgenis.security.core.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
@@ -485,6 +486,11 @@ public class RunService
 
 	private int getTaskStatusCount(ComputeRun run, String status)
 	{
+//		System.out.println("security: " + SecurityContextHolder.getContext());
+//		System.out.println(SecurityUtils.getCurrentUsername());
+//		System.out.println(SecurityUtils.currentUserIsSu());
+//		System.out.println(SecurityUtils.currentUserHasRole("ROLE_SYSTEM"));
+
 		Iterable<ComputeTask> computeTasks =
 				dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl().eq(ComputeTask.COMPUTERUN, run).and()
 						.eq(ComputeTask.STATUSCODE, status), ComputeTask.class);
