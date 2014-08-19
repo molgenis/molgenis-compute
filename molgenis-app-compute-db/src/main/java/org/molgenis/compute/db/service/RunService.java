@@ -486,10 +486,7 @@ public class RunService
 
 	private int getTaskStatusCount(ComputeRun run, String status)
 	{
-//		System.out.println("security: " + SecurityContextHolder.getContext());
-//		System.out.println(SecurityUtils.getCurrentUsername());
-//		System.out.println(SecurityUtils.currentUserIsSu());
-//		System.out.println(SecurityUtils.currentUserHasRole("ROLE_SYSTEM"));
+
 
 		Iterable<ComputeTask> computeTasks =
 				dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl().eq(ComputeTask.COMPUTERUN, run).and()
