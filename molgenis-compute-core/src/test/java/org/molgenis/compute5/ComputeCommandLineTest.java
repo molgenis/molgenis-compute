@@ -264,6 +264,97 @@ public class ComputeCommandLineTest
 	}
 
 	@Test
+	public void testFilesCreatedSlurm() throws Exception
+	{
+		System.out.println("--- Start TestCommandLineParametersComputePropertiesFilesCreated ---");
+
+		File f = new File(outputDir);
+		FileUtils.deleteDirectory(f);
+		Assert.assertFalse(f.exists());
+
+		f = new File(".compute.properties");
+		FileUtils.deleteQuietly(f);
+		Assert.assertFalse(f.exists());
+
+		ComputeCommandLine.main(new String[]{
+				"--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark/workflow.csv",
+				"--defaults", "src/main/resources/workflows/benchmark/workflow.defaults.csv",
+				"--parameters","src/main/resources/workflows/benchmark/parameters.csv",
+				"--rundir",outputDir,
+				"--backend","slurm",
+				"--database","none"
+		});
+
+
+		System.out.println("--- Test Compute Properties ---");
+		String resultProperties =  getFileAsString(".compute.properties");
+
+		if(!resultProperties.contains("rundir=" + outputDir))
+		{
+			Assert.fail("rundir parameter is failed");
+		}
+
+		if(!resultProperties.contains("defaults=./src/main/resources/workflows/benchmark/workflow.defaults.csv"))
+		{
+			Assert.fail("defaults parameter is failed");
+		}
+
+		if(!resultProperties.contains("workflow=./src/main/resources/workflows/benchmark/workflow.csv"))
+		{
+			Assert.fail("workflow parameter is failed");
+		}
+
+		if(!resultProperties.contains("parameters=./src/main/resources/workflows/benchmark/parameters.csv"))
+		{
+			Assert.fail("parameters parameter is failed");
+		}
+
+		if(!resultProperties.contains("backend=slurm"))
+		{
+			Assert.fail("backend parameter is failed");
+		}
+
+		System.out.println("--- Test Created Files ---");
+
+		File file = new File(outputDir + "/step1_0.sh");
+		if (!file.exists())
+		{
+			Assert.fail("step1_0.sh is not generated");
+		}
+
+		file = new File(outputDir + "/step1_1.sh");
+		if (!file.exists())
+		{
+			Assert.fail("step1_1.sh is not generated");
+		}
+
+		file = new File(outputDir + "/step2_0.sh");
+		if (!file.exists())
+		{
+			Assert.fail("step2_0.sh is not generated");
+		}
+
+		file = new File(outputDir + "/submit.sh");
+		if (!file.exists())
+		{
+			Assert.fail("submit.sh is not generated");
+		}
+
+		file = new File(outputDir + "/user.env");
+		if (!file.exists())
+		{
+			Assert.fail("user.env is not generated");
+		}
+
+		System.out.println("--- Test correct headers insertion ---");
+
+		String script = getFileAsString(outputDir+"/step1_0.sh");
+
+		System.out.println("--- Test correct data management ---");
+	}
+
+
+	@Test
 	public void testPropertiesFilesCreatedLocal() throws Exception
 	{
 		System.out.println("--- Start TestCommandLineParametersComputePropertiesFilesCreated ---");
