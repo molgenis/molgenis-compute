@@ -74,6 +74,7 @@ public class CloudService
 
 		if (status.equalsIgnoreCase(STATUS_STARTED))
 		{
+			LOG.info(">> Job [ " + jobid + " ] is started");
 			if(computeTask.getStatusCode().equalsIgnoreCase(MolgenisPilotService.TASK_SUBMITTED))
 			{
 
@@ -87,6 +88,7 @@ public class CloudService
 		}
 		else if(status.equalsIgnoreCase(STATUS_FINISHED))
 		{
+			LOG.info(">> Job [ " + jobid + " ] is finished");
 			releaseServer(serverid, jobid);
 
 			if(computeTask.getStatusCode().equalsIgnoreCase(MolgenisPilotService.TASK_RUNNING))
