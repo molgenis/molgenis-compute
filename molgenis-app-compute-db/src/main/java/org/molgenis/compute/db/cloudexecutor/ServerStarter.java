@@ -130,7 +130,6 @@ public class ServerStarter
 				e.printStackTrace();
 			}
 		}
-
 	}
 
 	private void readUserProperties()
@@ -147,8 +146,6 @@ public class ServerStarter
 
 			// load a properties file
 			prop.load(input);
-
-			// get the property value and print it out
 
 			SSHPASS = prop.getProperty(KEYPASS);
 			KEYSTONE_AUTH = prop.getProperty(AUTH);;
@@ -315,54 +312,6 @@ public class ServerStarter
 
 		LOG.info("extern IP is assigned");
 
-		LOG.info("Take allocated target floating IP");
-		FloatingIp floatingIpTarget = null;
-
-		ips = novaClient.floatingIps().list().execute();
-
-		for(FloatingIp ip : ips)
-		{
-			if(ip.getInstanceId() == null && ip.getPool().equalsIgnoreCase(KEYSTONE_IP_POOL_TARGET))
-			{
-				floatingIpTarget = ip;
-				break;
-			}
-		}
-
-		if(floatingIpTarget != null)
-		{
-			ServersResource.AssociateFloatingIp associateFloatingIp =
-					novaClient.servers().associateFloatingIp(server.getId(),
-							fixed_target_ip, floatingIpTarget.getIp());
-			associateFloatingIp.execute();
-		}
-		else
-		{
-			LOG.error("No target IP is available");
-			return false;
-		}
-
-
-		ips = novaClient.floatingIps().list().execute();
-
-		boolean hasExternalTarget = true;
-		while(hasExternalTarget)
-		{
-			for(FloatingIp ip : ips)
-			{
-				if(ip.getIp().equalsIgnoreCase(floatingIpTarget.getIp()) &&
-						ip.getInstanceId().equalsIgnoreCase(id))
-				{
-					hasExternalTarget = false;
-					cloudServer.setFloatingIpTarget(fixed_target_ip);
-					cloudServer.setFloatingIpTarget(floatingIpTarget.getIp());
-				}
-				Thread.sleep(1000);
-			}
-			System.out.println("... waiting for target IP");
-		}
-
-
 		LOG.info("Attaching volume...");
 
 		Volumes volumes = novaClient.volumes().list(true).execute();
@@ -409,25 +358,14 @@ public class ServerStarter
 		boolean notMounted = true;
 		while(notMounted)
 		{
-			notMounted = !RemoteExecutor.executeCommandRemote(cloudServer.getFloatingIpExtern(), SSHPASS, COMPUTE_SERVER_USERNAME, MOUNT_COMMAND);
+			notMounted = !RemoteExecutor.executeCommandRemote(cloudServer.getFloatingIpExtern(),
+					SSHPASS, COMPUTE_SERVER_USERNAME, MOUNT_COMMAND);
 			Thread.sleep(1000);
 		}
 			LOG.info("... " + KEYSTONE_VOLUME + " is mounted");
 
-
-		LOG.info("Mounting target >>>");
-		notMounted = true;
-		while(notMounted)
-		{
-			notMounted = !RemoteExecutor.executeCommandRemote(cloudServer.getFloatingIpExtern(),
-					SSHPASS, COMPUTE_SERVER_USERNAME, KEYSTONE_MOUNT_TARGET_COMMAND);
-			Thread.sleep(1000);
-		}
-			LOG.info("... TARGET is mounted");
-
 		ComputeVM computeVM = new ComputeVM();
 		computeVM.setServerID(cloudServer.getId());
-		computeVM.setFloatingIpTarget(cloudServer.getFloatingIpTarget());
 		computeVM.setFloatingIpExtern(cloudServer.getFloatingIpExtern());
 		computeVM.setStartTime(new Date());
 		dataService.add(ComputeVM.ENTITY_NAME, computeVM);
@@ -439,7 +377,6 @@ public class ServerStarter
 	{
 		for(CloudServer cloudServer : cloudManager.getCloudServers())
 		{
-			int i = 0;
 			novaClient.servers().delete(cloudServer.getId()).execute();
 
 			ComputeVM computeVM = dataService.findOne(ComputeVM.ENTITY_NAME, new QueryImpl()
