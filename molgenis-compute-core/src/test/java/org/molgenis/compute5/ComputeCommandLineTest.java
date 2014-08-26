@@ -1417,6 +1417,67 @@ public class ComputeCommandLineTest
 
 	}
 
+	@Test
+	public void testGenerate5SLURM() throws Exception
+	{
+		System.out.println("--- Start TestRunLocally ---");
+
+		File f = new File(outputDir);
+		FileUtils.deleteDirectory(f);
+		Assert.assertFalse(f.exists());
+
+		f = new File(".compute.properties");
+		FileUtils.deleteQuietly(f);
+		Assert.assertFalse(f.exists());
+
+		ComputeCommandLine.main(new String[]{
+				"--generate",
+				"--workflow",
+				"src/main/resources/workflows/benchmark.5.1/workflow.csv",
+				"--defaults",
+				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv",
+				"--parameters",
+				"src/main/resources/workflows/benchmark.5.1/parameters.csv",
+				"--parameters",
+				"src/main/resources/workflows/benchmark.5.1/sysparameters.csv",
+				"--rundir",
+				"target/test/benchmark/run",
+				"--backend","slurm"
+		});
+
+		String script = getFileAsString(outputDir + "/submit.sh");
+
+		String stepDependencies = "# Skip this step if step finished already successfully\n" +
+				"if [ -f step2_0.sh.finished ]; then\n" +
+				"skip step2_0.sh\n" +
+				"echo \"Skipped step2_0.sh\"\n" +
+				"else\n" +
+				"# Build dependency string\n" +
+				"dependenciesExist=false\n" +
+				"dependencies=\"--dependency=afterok\"\n" +
+				"    if [[ -n \"$step1_1\" ]]; then\n" +
+				"    dependenciesExist=true\n" +
+				"    dependencies=\"${dependencies}:$step1_1\"\n" +
+				"    fi\n" +
+				"    if [[ -n \"$step1_0\" ]]; then\n" +
+				"    dependenciesExist=true\n" +
+				"    dependencies=\"${dependencies}:$step1_0\"\n" +
+				"    fi\n" +
+				"if ! $dependenciesExist; then\n" +
+				"unset dependencies\n" +
+				"fi\n" +
+				"dirty=$(sbatch $dependencies step2_0.sh)\n" +
+				"step2_0=${dirty##\"Submitted batch job \"}\n" +
+				"echo $step2_0\n" +
+				"fi";
+
+		if(!script.contains(stepDependencies))
+		{
+			Assert.fail("SLURM dependencies is not generated correctly");
+		}
+
+	}
+
 	@Test(expectedExceptions = Exception.class)
 	public void testGenerateUnknownBackend() throws Exception
 	{
