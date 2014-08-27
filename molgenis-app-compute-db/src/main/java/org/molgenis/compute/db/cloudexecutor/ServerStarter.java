@@ -7,22 +7,18 @@ import com.woorea.openstack.nova.Nova;
 import com.woorea.openstack.nova.api.ServersResource;
 import com.woorea.openstack.nova.model.*;
 import org.apache.log4j.Logger;
-import org.molgenis.compute.db.pilot.MolgenisPilotService;
-import org.molgenis.compute.runtime.ComputeTask;
 import org.molgenis.compute.runtime.ComputeVM;
 import org.molgenis.data.DataService;
 import org.molgenis.data.support.QueryImpl;
 import org.molgenis.security.runas.RunAsSystem;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Controller;
-import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -62,6 +58,10 @@ public class ServerStarter
 
 	public static final String SERVER_USERNAME = "serverusername";
 
+	public static final String CLEAN_COMMAND = "clean_command";
+	public static final String UMOUNT_COMMAND = "umount_command";
+
+
 	private String SSHPASS;
 
 	private String KEYSTONE_AUTH;
@@ -94,6 +94,10 @@ public class ServerStarter
 	private static final String DEVICE_NAME = "/dev/vdb";
 	private static final String MOUNT_STORAGE_COMMAND = "mount_storage";
 	private String MOUNT_COMMAND;
+
+	private String COMPUTE_STORAGE_CLEAN_COMMAND;
+	private String COMPUTE_STORAGE_UMOUNT_COMMAND;
+
 
 	private int keystone_network_current_number;
 
@@ -170,6 +174,8 @@ public class ServerStarter
 
 			KEYSTONE_STARTING_IP = Integer.parseInt(prop.getProperty(NETWORK_STARTING_NUBMER));
 			MOUNT_COMMAND = prop.getProperty(MOUNT_STORAGE_COMMAND);
+			COMPUTE_STORAGE_CLEAN_COMMAND = prop.getProperty(CLEAN_COMMAND);
+			COMPUTE_STORAGE_UMOUNT_COMMAND = prop.getProperty(UMOUNT_COMMAND);
 
 			keystone_network_current_number = KEYSTONE_STARTING_IP;
 
@@ -377,6 +383,8 @@ public class ServerStarter
 	{
 		for(CloudServer cloudServer : cloudManager.getCloudServers())
 		{
+			cleanUmountServerStorage(cloudServer);
+
 			novaClient.servers().delete(cloudServer.getId()).execute();
 
 			ComputeVM computeVM = dataService.findOne(ComputeVM.ENTITY_NAME, new QueryImpl()
@@ -386,5 +394,23 @@ public class ServerStarter
 		}
 
 		cloudManager.removeAllServers();
+	}
+
+
+	private void cleanUmountServerStorage(CloudServer server)
+	{
+		boolean isSuccess = false;
+
+		List<String> commands = new ArrayList <String>();
+		commands.add(COMPUTE_STORAGE_CLEAN_COMMAND);
+		commands.add(COMPUTE_STORAGE_UMOUNT_COMMAND);
+
+		while(!isSuccess)
+		{
+			RemoteExecutor.executeCommandsRemote(server.getFixedIpExtern(),
+					cloudManager.getSshPass(),
+					cloudManager.getServerUsername(),
+					commands);
+		}
 	}
 }
