@@ -23,6 +23,7 @@ import javax.servlet.http.Part;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -66,9 +67,19 @@ public class CloudService
 		ComputeTask computeTask = dataService.findOne(ComputeTask.ENTITY_NAME, new QueryImpl()
 				.eq(ComputeTask.ID, jobid), ComputeTask.class);
 
+		ComputeVM computeVM = dataService.findOne(ComputeVM.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeVM.ID, serverid), ComputeVM.class);
+
+
 		if(computeTask == null)
 		{
 			LOG.warn("Compute Task with ID [" + jobid + "] does not exist in database");
+			return;
+		}
+
+		if(computeVM == null)
+		{
+			LOG.warn("Compute VM with ID [" + serverid + "] does not exist in database");
 			return;
 		}
 
@@ -103,6 +114,12 @@ public class CloudService
 
 				computeTask.setRunLog(logFileContent);
 				dataService.update(ComputeTask.ENTITY_NAME, computeTask);
+
+				//add finished task to the list
+				List<ComputeTask> tasks = computeVM.getComputeTask();
+				tasks.add(computeTask);
+				computeVM.setComputeTask(tasks);
+				dataService.update(ComputeVM.ENTITY_NAME, computeVM);
 
 			}
 			else

@@ -5,6 +5,7 @@ import com.jcraft.jsch.Logger;
 import org.apache.log4j.*;
 
 import java.io.*;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -65,10 +66,80 @@ public class RemoteExecutor
 
 			while ((line = reader.readLine()) != null)
 			{
-				System.out.println(++index + " : " + line);
+				LOG.info(++index + " : " + line);
 			}
 
 			channelExec.disconnect();
+			session.disconnect();
+
+			LOG.info("done!");
+			return true;
+		}
+		catch (JSchException e)
+		{
+			e.printStackTrace();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		catch (InterruptedException e)
+		{
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public static boolean executeCommandsRemote(String IP, String SSHPASS, String serverUserName, List<String> commands)
+	{
+		LOG.info("execute command remotely");
+
+		try {
+
+			Thread.sleep(90000);
+
+			JSch jsch = new JSch();
+
+			String user = serverUserName;
+			String host = IP;
+			int port = 22;
+			String privateKey = ".ssh/id_rsa";
+
+			jsch.addIdentity(privateKey, SSHPASS);
+			LOG.info("identity added ");
+
+			Session session = jsch.getSession(user, host, port);
+			LOG.info("session created.");
+
+			java.util.Properties config = new java.util.Properties();
+			config.put("StrictHostKeyChecking", "no");
+			session.setConfig(config);
+
+			session.connect();
+			LOG.info("session connected.....");
+
+			LOG.info("execute commands ...");
+			ChannelExec channelExec = (ChannelExec)session.openChannel("exec");
+
+			InputStream in = channelExec.getInputStream();
+
+			for(String command : commands)
+			{
+				LOG.info(command);
+				channelExec.setCommand(command);
+				channelExec.connect();
+
+				BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+				String line;
+				int index = 0;
+
+				while ((line = reader.readLine()) != null)
+				{
+					LOG.info(++index + " : " + line);
+				}
+
+				channelExec.disconnect();
+			}
 			session.disconnect();
 
 			LOG.info("done!");
