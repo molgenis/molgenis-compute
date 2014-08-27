@@ -8,5 +8,9 @@
 #SBATCH --mem-per-cpu ${mem}
 #SBATCH --nodes ${nodes}
 
+ENVIRONMENT_DIR="."
+
 # For bookkeeping how long your task takes
 MOLGENIS_START=$(date +%s)
+
+touch ${taskId}.sh.started

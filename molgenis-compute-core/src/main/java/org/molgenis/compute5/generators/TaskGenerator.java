@@ -365,7 +365,6 @@ public class TaskGenerator
 								String rowIndexString = rowIndexObject.toString();
 								line += "echo \"" + step.getName() + Parameters.STEP_PARAM_SEP_SCRIPT + p + "["
 										+ rowIndexString + "]=\\\"${" + p + "[" + i + "]}\\\"\" >> " + myEnvironmentFile + "\n";
-								int iii = 0;
 							}
 
 							script += line;
