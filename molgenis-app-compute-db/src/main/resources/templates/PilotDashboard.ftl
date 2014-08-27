@@ -92,6 +92,12 @@
                 </div>
              <#if run.complete>
                 <div class="text-success">Completed</div>
+                 <#if run.vmrun>
+                     <form action="/menu/Compute/dashboard/release" class="form-inline" method="post">
+                         <input type="hidden" name="run" value="${run.name}"/>
+                         <button type="submit" class="btn">Release VMs</button>
+                     </form>
+                 </#if>
              <#elseif run.cancelled>
                 <div class="text-error">Cancelled</div>
              <#elseif run.vmrun>
