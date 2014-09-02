@@ -29,7 +29,6 @@ public class StarterThread implements Runnable
 		int i = 0;
 	}
 
-
 	@Override
 	public void run()
 	{

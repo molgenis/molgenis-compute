@@ -68,7 +68,7 @@ public class CloudService
 				.eq(ComputeTask.ID, jobid), ComputeTask.class);
 
 		ComputeVM computeVM = dataService.findOne(ComputeVM.ENTITY_NAME, new QueryImpl()
-				.eq(ComputeVM.ID, serverid), ComputeVM.class);
+				.eq(ComputeVM.SERVERID, serverid), ComputeVM.class);
 
 
 		if(computeTask == null)
