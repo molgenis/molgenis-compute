@@ -6,8 +6,7 @@ errorExit()
     curl -s -S -u ${apiuser}:${apipass} -F jobid=${jobid} -F serverid=${serverid} \
     -F status=failed -F backend=${backend} -F log_file=@log.log http://${IP}:${PORT}/api/cloud
 
-    rm -f *
-    exit 1
+     exit 1
 }
 
 cleanEverything()
