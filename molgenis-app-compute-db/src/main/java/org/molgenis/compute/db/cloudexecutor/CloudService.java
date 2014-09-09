@@ -42,6 +42,7 @@ public class CloudService
 
 	public static final String STATUS_STARTED = "started";
 	public static final String STATUS_FINISHED = "finished";
+	public static final String STATUS_FAILED = "failed";
 
 
 	@Autowired
@@ -106,26 +107,74 @@ public class CloudService
 			{
 				computeTask.setStatusCode(MolgenisPilotService.TASK_DONE);
 
-				InputStream inputStream = log_file.getInputStream();
+				String logFileContent = readLog(log_file);
 
-				StringWriter writer = new StringWriter();
-				IOUtils.copy(inputStream, writer, "UTF-8");
-				String logFileContent = writer.toString();
+				if(logFileContent != null)
+				{
+					computeTask.setRunLog(logFileContent);
+					dataService.update(ComputeTask.ENTITY_NAME, computeTask);
+				}
 
-				computeTask.setRunLog(logFileContent);
-				dataService.update(ComputeTask.ENTITY_NAME, computeTask);
+				updateRunHistory(computeTask, computeVM, status);
+			}
+			else if(status.equalsIgnoreCase(STATUS_FAILED))
+			{
+				LOG.info(">> Job [ " + jobid + " ] is failed");
+				releaseServer(serverid, jobid);
 
-				//add finished task to the list
-				List<ComputeTask> tasks = computeVM.getComputeTask();
-				tasks.add(computeTask);
-				computeVM.setComputeTask(tasks);
-				dataService.update(ComputeVM.ENTITY_NAME, computeVM);
+				if(computeTask.getStatusCode().equalsIgnoreCase(MolgenisPilotService.TASK_RUNNING))
+				{
+					computeTask.setStatusCode(MolgenisPilotService.TASK_DONE);
 
+					String logFileContent = readLog(log_file);
+
+					if(logFileContent != null)
+					{
+						computeTask.setFailedLog(logFileContent);
+						dataService.update(ComputeTask.ENTITY_NAME, computeTask);
+					}
+
+					updateRunHistory(computeTask, computeVM, status);
+				}
 			}
 			else
 				LOG.warn("Compute Task [" + computeTask.getId() + " : " + computeTask.getName() + "] has a wrong status in finished");
-
 		}
+	}
+
+	private String readLog(Part log_file)
+	{
+		InputStream inputStream = null;
+		try
+		{
+			inputStream = log_file.getInputStream();
+			StringWriter writer = new StringWriter();
+			IOUtils.copy(inputStream, writer, "UTF-8");
+			return writer.toString();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	private void updateRunHistory(ComputeTask computeTask, ComputeVM computeVM, String status)
+	{
+		if(status.equalsIgnoreCase(STATUS_FINISHED))
+		{
+			List<ComputeTask> tasks = computeVM.getFinishedComputeTask();
+			tasks.add(computeTask);
+			computeVM.setFinishedComputeTask(tasks);
+		}
+		else if(status.equalsIgnoreCase(STATUS_FAILED))
+		{
+			List<ComputeTask> tasks = computeVM.getFailedComputeTask();
+			tasks.add(computeTask);
+			computeVM.setFailedComputeTask(tasks);
+		}
+		dataService.update(ComputeVM.ENTITY_NAME, computeVM);
+
 	}
 
 	private void releaseServer(String serverid, String jobid)

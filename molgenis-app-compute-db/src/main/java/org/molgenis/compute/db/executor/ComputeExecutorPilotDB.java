@@ -6,7 +6,6 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
-import java.util.Collection;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.UUID;
@@ -115,8 +114,8 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 						//generate unique pilot and its submission command
 						String pilotID = String.valueOf(UUID.randomUUID());
 
-						InputStream inStreamJDL = getClass().getClassLoader().getResourceAsStream("templates/maverick.jdl.ftl");
-						InputStream inStreamSH = getClass().getClassLoader().getResourceAsStream("templates/maverick.sh.ftl");
+						InputStream inStreamJDL = getClass().getClassLoader().getResourceAsStream("templates/grid/glite/maverick.jdl.ftl");
+						InputStream inStreamSH = getClass().getClassLoader().getResourceAsStream("templates/grid/glite/maverick.sh.ftl");
 
 						StringWriter writer = new StringWriter();
 						IOUtils.copy(inStreamJDL, writer);

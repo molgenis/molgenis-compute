@@ -1,5 +1,6 @@
 package org.molgenis.compute.db.cloudexecutor;
 
+import org.apache.commons.io.IOUtils;
 import org.molgenis.compute.db.executor.ComputeExecutorPilotDB;
 import org.molgenis.compute.runtime.ComputeTask;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.Hashtable;
 import java.util.Properties;
 
@@ -25,21 +27,13 @@ public class CloudCurlBuilder
 
 	private static final String JOB_ID = "jobid";
 
-	private String curlStartedTemplate = "curl -s -S -u ${"+ CloudManager.API_USER +"}:" +
-			"${"+ CloudManager.API_PASS +"} -F jobid=${" + JOB_ID + "} -F serverid=${serverid}" +
-			" -F status=" + CloudService.STATUS_STARTED + " -F backend=${backend} " +
-			"http://${IP}:${PORT}/api/cloud\n";
-
-	private String curlFinishedTemplate = "curl -s -S -u ${"+ CloudManager.API_USER +"}:" +
-			"${"+ CloudManager.API_PASS +"} -F jobid=${" + JOB_ID + "} -F serverid=${serverid}" +
-			" -F status=" + CloudService.STATUS_FINISHED + " -F backend=${backend} " +
-			"-F log_file=@log.log " +
-			"http://${IP}:${PORT}/api/cloud\n"+
-			"rm -f log.log\n";
-
+	private String curlHeaderTemplate;
+	private String curlFooterTemplate;
 
 	public String buildScript(ComputeTask task, CloudServer server)
 	{
+		readTemplates();
+
 		StringBuilder sb = new StringBuilder();
 
 		Hashtable<String, String> values = new Hashtable<String, String>();
@@ -56,8 +50,8 @@ public class CloudCurlBuilder
 		values.put("IP", serverIP);
 		values.put("PORT", serverPort);
 
-		String prefix = ComputeExecutorPilotDB.weaveFreemarker(curlStartedTemplate, values);
-		String postfix = ComputeExecutorPilotDB.weaveFreemarker(curlFinishedTemplate, values);
+		String prefix = ComputeExecutorPilotDB.weaveFreemarker(curlHeaderTemplate, values);
+		String postfix = ComputeExecutorPilotDB.weaveFreemarker(curlFooterTemplate, values);
 
 		//for testing
 		sb.append(prefix);
@@ -68,6 +62,28 @@ public class CloudCurlBuilder
 		sb.append(postfix);
 
 		return sb.toString();
+	}
+
+	private void readTemplates()
+	{
+		InputStream inStreamHeader = getClass().getClassLoader().getResourceAsStream("templates/cloud/openstack/header.ftl");
+		InputStream inStreamFooter = getClass().getClassLoader().getResourceAsStream("templates/cloud/openstack/footer.ftl");
+
+		StringWriter writer = new StringWriter();
+		try
+		{
+			IOUtils.copy(inStreamHeader, writer);
+			curlHeaderTemplate = writer.toString();
+
+			writer = new StringWriter();
+			IOUtils.copy(inStreamFooter, writer);
+			curlFooterTemplate = writer.toString();
+
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
 	}
 
 	private void readServerProperties()
