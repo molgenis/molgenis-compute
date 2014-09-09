@@ -40,7 +40,8 @@
             <field name="hostName" type="text" nillable="true" description="host of VMs name"/>
             <field name="floatingIpExtern" type="text" nillable="true" description="IP open to internet"/>
             <field name="floatingIpTarget" type="text" nillable="true" description="IP open to target environment"/>
-            <field name="computeTask" type="mref" nillable="true" xref_entity="ComputeTask" description="tasks, which are completed on this VM"/>
+            <field name="finishedComputeTask" type="mref" nillable="true" xref_entity="ComputeTask" description="tasks, which are completed on this VM"/>
+            <field name="failedComputeTask" type="mref" nillable="true" xref_entity="ComputeTask" description="tasks, which are failed on this VM"/>
             <field name="startTime" type="datetime" nillable="true" description="time, when VM is started" />
             <field name="endTime" type="datetime" nillable="true" description="time, when VM is down" />
             <field name="isInUse" type="boolean" nillable="true" default="false" description="indicate if compute tasks are currently executed on VM"/>
