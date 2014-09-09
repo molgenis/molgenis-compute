@@ -92,34 +92,50 @@
                 </div>
              <#if run.complete>
                 <div class="text-success">Completed</div>
-                 <#if run.vmrun>
-                     <form action="/menu/Compute/dashboard/release" class="form-inline" method="post">
-                         <input type="hidden" name="run" value="${run.name}"/>
-                         <button type="submit" class="btn">Release VMs</button>
-                     </form>
-                 </#if>
+                    <#if run.vmrun>
+                        <form action="/menu/Compute/dashboard/release" class="form-inline" method="post">
+                            <input type="hidden" name="run" value="${run.name}"/>
+                            <button type="submit" class="btn">Release VMs</button>
+                        </form>
+                    </#if>
              <#elseif run.cancelled>
                 <div class="text-error">Cancelled</div>
              <#elseif run.vmrun>
                  <#if run.running>
                     <div class="text-success">Running</div>
-                     <form action="/menu/Compute/dashboard/stop" class="form-inline" method="post">
-                         <input type="hidden" name="run" value="${run.name}"/>
-                         <button type="submit" class="btn">Stop</button>
-                     </form>
-                     <form action="/menu/Compute/dashboard/release" class="form-inline" method="post">
-                         <input type="hidden" name="run" value="${run.name}"/>
-                         <button type="submit" class="btn">Release VMs</button>
-                     </form>
-                 <#else>
+                         <form action="/menu/Compute/dashboard/stop" class="form-inline" method="post">
+                             <input type="hidden" name="run" value="${run.name}"/>
+                             <button type="submit" class="btn">Stop</button>
+                         </form>
+                     <#if run.hasFailed>
+                            <form id="resubmitFailedTasksForm_${run.name}" action="/menu/Compute/dashboard/resubmit" class="form-inline" method="post">
+                                <input type="hidden" name="run" value="${run.name}"/>
+                                <button type="submit" class="btn resubmit-btn">Resubmit failed</button>
+                            </form>
+                     </#if>
+                        <form action="/menu/Compute/dashboard/release" class="form-inline" method="post" style="margin-top:10px;">
+                            <input type="hidden" name="run" value="${run.name}"/>
+                            <button type="submit" class="btn">Release VMs</button>
+                        </form>
+                  <#else>
                     <div class="text-info">Ready to run</div>
-                     <form name="cloudsubmit" action="/menu/Compute/dashboard/start" class="form-inline" method="post">
-                         <input type="hidden" name="run" value="${run.name}"/>
-                         <input type="text" name="username" id="inputUsername" placeholder="Username"/>
-                         <input type="password" name="password" id="inputPassword" placeholder="Password"/>
-                         <button type="submit" class="btn">Start</button>
-                     </form>
-                 </#if>
+                        <form name="cloudsubmit" action="/menu/Compute/dashboard/start" class="form-inline" method="post">
+                            <input type="hidden" name="run" value="${run.name}"/>
+                            <input type="text" name="username" id="inputUsername" placeholder="Username"/>
+                            <input type="password" name="password" id="inputPassword" placeholder="Password"/>
+                            <button type="submit" class="btn">Start</button>
+                        </form>
+                        <#if run.hasFailed>
+                            <form action="/menu/Compute/dashboard/resubmit" class="form-inline" method="post">
+                                <input type="hidden" name="run" value="${run.name}"/>
+                                <button type="submit" class="btn resubmit-btn">Resubmit failed</button>
+                            </form>
+                        </#if>
+                        <form action="/menu/Compute/dashboard/release" class="form-inline" method="post" style="margin-top:10px;">
+                            <input type="hidden" name="run" value="${run.name}"/>
+                            <button type="submit" class="btn">Release VMs</button>
+                        </form>
+                </#if>
              <#else>
                 <#if run.owned>
                     <#if run.running>
@@ -153,7 +169,7 @@
                 <form id="resubmitFailedTasksForm_${run.name}" action="/menu/Compute/dashboard/resubmit" class="form-inline"
                           method="post">
                     <input type="hidden" name="run" value="${run.name}"/>
-                    <button type="submit" class="btn resubmit-btn">Resubmit failed jobs</button>
+                    <button type="submit" class="btn resubmit-btn">Resubmit failed</button>
                 </form>
                 <form id="cancel_${run.name}" action="/menu/Compute/dashboard/cancel" class="form-inline"
                           method="post">
