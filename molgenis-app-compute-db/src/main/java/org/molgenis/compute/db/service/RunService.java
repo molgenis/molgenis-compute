@@ -417,12 +417,17 @@ public class RunService
 
 		boolean status = false;
 
+		if(failed > 0)
+			run.setHasFailedJobs(true);
+
 		if ((generated == 0) && (ready == 0) && (running == 0) && (failed == 0) && (cancelled == 0))
 		{
 			status = true;
 			run.setIsDone(true);
-			dataService.update(ComputeRun.ENTITY_NAME, run);
 		}
+		dataService.update(ComputeRun.ENTITY_NAME, run);
+
+
 		return new RunStatus(generated, ready, running, failed, done, cancelled, jobsubmitted, submitted, started, status);
 	}
 

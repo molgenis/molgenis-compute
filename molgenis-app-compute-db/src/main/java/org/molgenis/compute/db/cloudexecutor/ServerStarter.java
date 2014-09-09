@@ -57,8 +57,6 @@ public class ServerStarter
 	public static final String MOUNT_TARGET_COMMAND = "mount_target";
 
 	public static final String SERVER_USERNAME = "serverusername";
-
-	public static final String CLEAN_COMMAND = "clean_command";
 	public static final String UMOUNT_COMMAND = "umount_command";
 
 
@@ -95,7 +93,6 @@ public class ServerStarter
 	private static final String MOUNT_STORAGE_COMMAND = "mount_storage";
 	private String MOUNT_COMMAND;
 
-	private String COMPUTE_STORAGE_CLEAN_COMMAND;
 	private String COMPUTE_STORAGE_UMOUNT_COMMAND;
 
 
@@ -174,7 +171,6 @@ public class ServerStarter
 
 			KEYSTONE_STARTING_IP = Integer.parseInt(prop.getProperty(NETWORK_STARTING_NUBMER));
 			MOUNT_COMMAND = prop.getProperty(MOUNT_STORAGE_COMMAND);
-			COMPUTE_STORAGE_CLEAN_COMMAND = prop.getProperty(CLEAN_COMMAND);
 			COMPUTE_STORAGE_UMOUNT_COMMAND = prop.getProperty(UMOUNT_COMMAND);
 
 			keystone_network_current_number = KEYSTONE_STARTING_IP;
@@ -402,7 +398,6 @@ public class ServerStarter
 		boolean isSuccess = false;
 
 		List<String> commands = new ArrayList <String>();
-		commands.add(COMPUTE_STORAGE_CLEAN_COMMAND);
 		commands.add(COMPUTE_STORAGE_UMOUNT_COMMAND);
 
 		while(!isSuccess)
