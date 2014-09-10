@@ -84,6 +84,9 @@ public class TaskGenerator
 					map.put("WORKDIR", "UNDEFINED");
 				// remember parameter values
 
+				if(computeProperties.errorMailAddr != null)
+					map.put(Parameters.ERROR_MESSAGE_ADDR, computeProperties.errorMailAddr);
+
 				task.setParameters(map);
 
 				// for this step: store which target-ids go into which job

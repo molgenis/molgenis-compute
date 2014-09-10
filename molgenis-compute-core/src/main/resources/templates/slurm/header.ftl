@@ -10,6 +10,24 @@
 
 ENVIRONMENT_DIR="."
 
+set -e
+
+errorExit()
+{
+    if [ "${errorAddr}" = "none" ]; then
+        echo "mail is not specified"
+        exit 1
+    fi
+
+    if [ ! -f errorMessageSent.flag ]; then
+        echo "script $0 from directory $(pwd) reports failure" | mail -s "ERROR OCCURS" ${errorAddr}
+        touch errorMessageSent.flag
+    fi
+    exit 1
+}
+
+trap "errorExit" ERR
+
 # For bookkeeping how long your task takes
 MOLGENIS_START=$(date +%s)
 

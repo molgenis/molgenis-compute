@@ -68,6 +68,7 @@ public class ComputeProperties
 
 
 	private Options options = null;
+	public String errorMailAddr = null;
 
 	public ComputeProperties(String[] args)
 	{
@@ -295,6 +296,10 @@ public class ComputeProperties
 
 
 			this.parametersToOverwrite = cmd.getOptionValue(Parameters.PARAMETERS_TO_OVERWRITE_CMDLINE_OPTION);
+			this.errorMailAddr = cmd.getOptionValue(Parameters.ERROR_MESSAGE_ADDR_OPTION);
+
+			if(errorMailAddr == null)
+				errorMailAddr = Parameters.DEFAULT_ERROR_ADDRESS;
 
 			if(parametersToOverwrite != null)
 			{
@@ -562,6 +567,15 @@ public class ComputeProperties
 				.hasArg()
 				.withLongOpt(Parameters.PARAMETERS_TO_OVERWRITE_CMDLINE)
 				.create(Parameters.PARAMETERS_TO_OVERWRITE_CMDLINE_OPTION));
+
+
+		options.addOption(OptionBuilder
+				.withDescription(
+						"Specify address, where email will be sent in case error occurs per project")
+				.hasArg()
+				.withLongOpt(Parameters.ERROR_MESSAGE_ADDR)
+				.create(Parameters.ERROR_MESSAGE_ADDR_OPTION));
+
 
 
 		return options;
