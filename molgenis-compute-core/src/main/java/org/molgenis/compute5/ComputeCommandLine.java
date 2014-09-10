@@ -235,19 +235,6 @@ public class ComputeCommandLine
 		compute.setParametersContainer(parametersContainer);
 		compute.setParameters(parameters);
 
-		// add command line parameters:
-		for (MapEntity t : compute.getParameters().getValues())
-		{
-			t.set(Parameters.PATH_COLUMN, computeProperties.path);
-			t.set(Parameters.WORKFLOW_COLUMN, computeProperties.workFlow);
-			t.set(Parameters.DEFAULTS_COLUMN, computeProperties.defaults);
-			t.set(Parameters.PARAMETER_COLUMN, Joiner.on(",").join(computeProperties.parameters));
-			t.set(Parameters.RUNDIR_COLUMN, new File(computeProperties.runDir).getAbsolutePath());
-			t.set(Parameters.RUNID_COLUMN, computeProperties.runId);
-			t.set(Parameters.BACKEND_COLUMN, computeProperties.backend);
-			t.set(Parameters.DATABASE_COLUMN, computeProperties.database);
-		}
-
 		System.out.println("Starting script generation...");
 		// create outputdir
 		File dir = new File(computeProperties.runDir);

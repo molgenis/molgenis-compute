@@ -282,7 +282,8 @@ public class ComputeCommandLineTest
 				"--parameters","src/main/resources/workflows/benchmark/parameters.csv",
 				"--rundir",outputDir,
 				"--backend","slurm",
-				"--database","none"
+				"--database","none",
+				"--errorAddr", "none"
 		});
 
 
@@ -1442,7 +1443,8 @@ public class ComputeCommandLineTest
 				"src/main/resources/workflows/benchmark.5.1/sysparameters.csv",
 				"--rundir",
 				"target/test/benchmark/run",
-				"--backend","slurm"
+				"--backend","slurm",
+				"--errorAddr", "none"
 		});
 
 		String script = getFileAsString(outputDir + "/submit.sh");
@@ -1477,6 +1479,47 @@ public class ComputeCommandLineTest
 		}
 
 	}
+
+	@Test
+	public void testGenerate5ErrorMail() throws Exception
+	{
+		System.out.println("--- Start TestRunLocally ---");
+
+		File f = new File(outputDir);
+		FileUtils.deleteDirectory(f);
+		Assert.assertFalse(f.exists());
+
+		f = new File(".compute.properties");
+		FileUtils.deleteQuietly(f);
+		Assert.assertFalse(f.exists());
+
+		ComputeCommandLine.main(new String[]{
+				"--generate",
+				"--workflow",
+				"src/main/resources/workflows/benchmark.5.1/workflow.csv",
+				"--defaults",
+				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv",
+				"--parameters",
+				"src/main/resources/workflows/benchmark.5.1/parameters.csv",
+				"--parameters",
+				"src/main/resources/workflows/benchmark.5.1/sysparameters.csv",
+				"--rundir",
+				"target/test/benchmark/run",
+				"--backend","slurm",
+				"--errorAddr", "testMail@testServer"
+		});
+
+		String script = getFileAsString(outputDir + "/step0_0.sh");
+
+		String mailAddress = "testMail@testServer";
+
+		if(!script.contains(mailAddress))
+		{
+			Assert.fail("Sending error message is not generated correctly");
+		}
+
+	}
+
 
 	@Test(expectedExceptions = Exception.class)
 	public void testGenerateUnknownBackend() throws Exception

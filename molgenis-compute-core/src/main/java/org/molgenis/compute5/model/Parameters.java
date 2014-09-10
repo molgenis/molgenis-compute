@@ -120,6 +120,8 @@ public class Parameters
 
 	public static final String WEAVE = "weave";
 	public static final String WEB = "web";
+	public static final String ERROR_MESSAGE_ADDR = "errorAddr";
+	public static final String ERROR_MESSAGE_ADDR_OPTION = "e";
 
 	public static String ENVIRONMENT_FULLPATH = null; // to be set
 
