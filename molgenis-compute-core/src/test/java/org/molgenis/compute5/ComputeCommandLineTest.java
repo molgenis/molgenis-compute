@@ -1443,8 +1443,7 @@ public class ComputeCommandLineTest
 				"src/main/resources/workflows/benchmark.5.1/sysparameters.csv",
 				"--rundir",
 				"target/test/benchmark/run",
-				"--backend","slurm",
-				"--errorAddr", "none"
+				"--backend","slurm"
 		});
 
 		String script = getFileAsString(outputDir + "/submit.sh");

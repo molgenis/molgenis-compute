@@ -298,6 +298,9 @@ public class ComputeProperties
 			this.parametersToOverwrite = cmd.getOptionValue(Parameters.PARAMETERS_TO_OVERWRITE_CMDLINE_OPTION);
 			this.errorMailAddr = cmd.getOptionValue(Parameters.ERROR_MESSAGE_ADDR_OPTION);
 
+			if(errorMailAddr == null)
+				errorMailAddr = Parameters.DEFAULT_ERROR_ADDRESS;
+
 			if(parametersToOverwrite != null)
 			{
 				try
