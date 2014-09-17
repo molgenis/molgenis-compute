@@ -62,7 +62,8 @@ public class CloudService
 											  HttpServletResponse response
 	) throws IOException
 	{
-		LOG.info(">> Callback from server [ " + serverid + " ] with running job [ " + jobid + " ] ");
+		LOG.info(">> Callback from server [ " + serverid + " ] with running job [ " + jobid + " ] " +
+				"and status [" + status + "]");
 
 
 		ComputeTask computeTask = dataService.findOne(ComputeTask.ENTITY_NAME, new QueryImpl()
@@ -117,29 +118,29 @@ public class CloudService
 
 				updateRunHistory(computeTask, computeVM, status);
 			}
-			else if(status.equalsIgnoreCase(STATUS_FAILED))
-			{
-				LOG.info(">> Job [ " + jobid + " ] is failed");
-				releaseServer(serverid, jobid);
-
-				if(computeTask.getStatusCode().equalsIgnoreCase(MolgenisPilotService.TASK_RUNNING))
-				{
-					computeTask.setStatusCode(MolgenisPilotService.TASK_DONE);
-
-					String logFileContent = readLog(log_file);
-
-					if(logFileContent != null)
-					{
-						computeTask.setFailedLog(logFileContent);
-						dataService.update(ComputeTask.ENTITY_NAME, computeTask);
-					}
-
-					updateRunHistory(computeTask, computeVM, status);
-				}
-			}
-			else
-				LOG.warn("Compute Task [" + computeTask.getId() + " : " + computeTask.getName() + "] has a wrong status in finished");
 		}
+		else if(status.equalsIgnoreCase(STATUS_FAILED))
+		{
+			LOG.info(">> Job [ " + jobid + " ] is failed");
+			releaseServer(serverid, jobid);
+
+			if (computeTask.getStatusCode().equalsIgnoreCase(MolgenisPilotService.TASK_RUNNING))
+			{
+				computeTask.setStatusCode(MolgenisPilotService.TASK_FAILED);
+
+				String logFileContent = readLog(log_file);
+
+				if (logFileContent != null)
+				{
+					computeTask.setFailedLog(logFileContent);
+				}
+				dataService.update(ComputeTask.ENTITY_NAME, computeTask);
+				updateRunHistory(computeTask, computeVM, status);
+			}
+		}
+		else
+			LOG.warn("Compute Task [" + computeTask.getId() + " : " + computeTask.getName() + "] has a wrong status in finished");
+
 	}
 
 	private String readLog(Part log_file)
