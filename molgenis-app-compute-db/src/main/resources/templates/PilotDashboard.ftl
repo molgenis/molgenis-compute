@@ -90,16 +90,36 @@
                     <span class="host-name">${run.name}@${run.backendUrl}</span>
                     <span class="creation-time">(${run.creationTime?string("yyyy-MM-dd HH:mm:ss")})</span>
                 </div>
-             <#if run.complete>
-                <div class="text-success">Completed</div>
+             <#if (run.complete && run.hasFailed)>
+                <div class="text-error">Failed</div>
+                    <#if run.hasFailed>
+                        <form id="resubmitFailedTasksForm_${run.name}" action="/menu/Compute/dashboard/resubmit" class="form-inline" method="post">
+                            <input type="hidden" name="run" value="${run.name}"/>
+                            <button type="submit" class="btn resubmit-btn">Resubmit failed</button>
+                        </form>
+                    </#if>
                     <#if run.vmrun>
                         <form action="/menu/Compute/dashboard/release" class="form-inline" method="post">
+                             <input type="hidden" name="run" value="${run.name}"/>
+                             <button type="submit" class="btn">Release VMs</button>
+                        </form>
+                    </#if>
+              <#elseif run.complete>
+                     <div class="text-success">Completed</div>
+                     <#if run.vmrun>
+                         <form action="/menu/Compute/dashboard/release" class="form-inline" method="post">
+                            <input type="hidden" name="run" value="${run.name}"/>
+                            <button type="submit" class="btn">Release VMs</button>
+                        </form>
+                     </#if>
+              <#elseif run.cancelled>
+                    <div class="text-error">Cancelled</div>
+                    <#if run.vmrun>
+                         <form action="/menu/Compute/dashboard/release" class="form-inline" method="post">
                             <input type="hidden" name="run" value="${run.name}"/>
                             <button type="submit" class="btn">Release VMs</button>
                         </form>
                     </#if>
-             <#elseif run.cancelled>
-                <div class="text-error">Cancelled</div>
              <#elseif run.vmrun>
                  <#if run.running>
                     <div class="text-success">Running</div>
@@ -232,4 +252,10 @@
         </div>
     </div>
 </#list>
+<div>
+<form action="/menu/Compute/dashboard/enableLightpath" class="form-inline" method="post">
+    <input type="hidden" name="enableLightpath" value="start"/>
+    <button type="submit" class="btn">Enable Lightpath</button>
+</form>
+</div>
 <@footer/>

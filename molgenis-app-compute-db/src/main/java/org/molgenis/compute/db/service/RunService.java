@@ -468,6 +468,12 @@ public class RunService
 
 		dataService.update(ComputeTask.ENTITY_NAME, tasks);
 
+		run.setIsActive(false);
+		run.setIsDone(false);
+		run.setHasFailedJobs(false);
+		run.setIsSubmittingPilots(false);
+		dataService.update(ComputeRun.ENTITY_NAME, run);
+
 		return numberOfTasks;
 	}
 
