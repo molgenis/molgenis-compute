@@ -16,7 +16,7 @@ errorExit()
 
 cleanEverything()
 {
-    #rm -f *
+    rm -f *
     touch attachedStorage.flag
     exit 0
 }
