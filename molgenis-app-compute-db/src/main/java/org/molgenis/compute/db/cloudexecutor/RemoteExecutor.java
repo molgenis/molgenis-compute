@@ -17,7 +17,7 @@ import java.util.List;
 public class RemoteExecutor
 {
 	public static final String EXECUTION_DIR = "/storage";
-	public static String SUBMIT_COMMAND = "bash " + EXECUTION_DIR + "/script.sh > " + EXECUTION_DIR + "/log.log &";
+	public static String SUBMIT_COMMAND = "bash " + EXECUTION_DIR + "/script.sh 2>&1 | tee -a " + EXECUTION_DIR + "/log.log &";
 //	public static String SUBMIT_COMMAND = "bash -l " + EXECUTION_DIR + "/script.sh 2>&1 | tee -a " + EXECUTION_DIR + "/log.log &";
 
 	private static final org.apache.log4j.Logger LOG = org.apache.log4j.Logger.getLogger(RemoteExecutor.class);
