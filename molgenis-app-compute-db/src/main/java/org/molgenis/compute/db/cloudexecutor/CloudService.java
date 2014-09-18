@@ -124,7 +124,8 @@ public class CloudService
 			LOG.info(">> Job [ " + jobid + " ] is failed");
 			releaseServer(serverid, jobid);
 
-			if (computeTask.getStatusCode().equalsIgnoreCase(MolgenisPilotService.TASK_RUNNING))
+			if (computeTask.getStatusCode().equalsIgnoreCase(MolgenisPilotService.TASK_RUNNING) ||
+					computeTask.getStatusCode().equalsIgnoreCase(MolgenisPilotService.TASK_SUBMITTED))
 			{
 				computeTask.setStatusCode(MolgenisPilotService.TASK_FAILED);
 
@@ -145,17 +146,19 @@ public class CloudService
 
 	private String readLog(Part log_file)
 	{
-		InputStream inputStream = null;
-		try
+		if(log_file != null)
 		{
-			inputStream = log_file.getInputStream();
-			StringWriter writer = new StringWriter();
-			IOUtils.copy(inputStream, writer, "UTF-8");
-			return writer.toString();
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
+			try
+			{
+				InputStream inputStream = log_file.getInputStream();
+				StringWriter writer = new StringWriter();
+				IOUtils.copy(inputStream, writer, "UTF-8");
+				return writer.toString();
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
 		}
 		return null;
 	}
