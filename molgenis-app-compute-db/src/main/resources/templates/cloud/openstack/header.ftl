@@ -26,11 +26,11 @@ trap "errorExit" ERR
 
 cd /storage
 
-$ENVIRONMENT_DIR="."
+ENVIRONMENT_DIR="."
 
 curl -s -S -u ${apiuser}:${apipass} -F jobid=${jobid} -F serverid=${serverid} \
 -F status=started -F backend=${backend} http://${IP}:${PORT}/api/cloud
 
-touch ${taskId}.sh.started
+touch $0.started
 
 MOLGENIS_START=$(date +%s)
