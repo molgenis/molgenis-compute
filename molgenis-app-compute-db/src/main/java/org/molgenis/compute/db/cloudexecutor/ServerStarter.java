@@ -400,9 +400,10 @@ public class ServerStarter
 		List<String> commands = new ArrayList <String>();
 		commands.add(COMPUTE_STORAGE_UMOUNT_COMMAND);
 
+		RemoteExecutor executor = new RemoteExecutor();
 		while(!isSuccess)
 		{
-			RemoteExecutor.executeCommandsRemote(server.getFixedIpExtern(),
+			executor.executeCommandsRemote(server.getFixedIpExtern(),
 					cloudManager.getSshPass(),
 					cloudManager.getServerUsername(),
 					commands);

@@ -6,6 +6,7 @@ import org.apache.log4j.*;
 
 import java.io.*;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * Created with IntelliJ IDEA.
@@ -16,12 +17,18 @@ import java.util.List;
  */
 public class RemoteExecutor
 {
-	public static final String EXECUTION_DIR = "/storage";
-	public static String SUBMIT_COMMAND = "bash " + EXECUTION_DIR + "/script.sh 2>&1 | tee -a " + EXECUTION_DIR + "/log.log &";
-//	public static String SUBMIT_COMMAND = "bash -l " + EXECUTION_DIR + "/script.sh 2>&1 | tee -a " + EXECUTION_DIR + "/log.log &";
+	public static final String EXECUTION_DIR_FLAG = "exec_dir";
+	public String EXECUTION_DIR = null;
+	public static final String SUBMIT_COMMAND_FLAG = "submit_command";
+
+	public String SUBMIT_COMMAND = null;
 
 	private static final org.apache.log4j.Logger LOG = org.apache.log4j.Logger.getLogger(RemoteExecutor.class);
 
+	public RemoteExecutor()
+	{
+		readUserProperties();
+	}
 
 	public static boolean executeCommandRemote(String IP, String SSHPASS, String serverUserName, String command)
 	{
@@ -90,7 +97,7 @@ public class RemoteExecutor
 		return false;
 	}
 
-	public static boolean executeCommandsRemote(String IP, String SSHPASS, String serverUserName, List<String> commands)
+	public boolean executeCommandsRemote(String IP, String SSHPASS, String serverUserName, List<String> commands)
 	{
 		LOG.info("execute command remotely");
 
@@ -160,7 +167,7 @@ public class RemoteExecutor
 		return false;
 	}
 
-	public static boolean transferScriptAndRun(String IP, String SSHPASS,
+	public boolean transferScriptAndRun(String IP, String SSHPASS,
 											   String serverUsername,
 									  		   String script, String jobID)
 	{
@@ -238,9 +245,47 @@ public class RemoteExecutor
 	//temporary for testing
 	public static void main(String[] args)
 	{
-		transferScriptAndRun("makeit", "makeit",
+		new RemoteExecutor().transferScriptAndRun("makeit", "makeit",
 				"makeit", "echo LALA \n" +
 				"sleep 60", "testManual");
+	}
+
+	private void readUserProperties()
+	{
+		Properties prop = new Properties();
+		InputStream input = null;
+
+		try
+		{
+			LOG.info("Working Directory = " +
+					System.getProperty("user.dir"));
+
+			input = new FileInputStream(".openstack.properties");
+
+			// load a properties file
+			prop.load(input);
+
+			EXECUTION_DIR = prop.getProperty(EXECUTION_DIR_FLAG);
+			SUBMIT_COMMAND = prop.getProperty(SUBMIT_COMMAND_FLAG);
+		}
+		catch (IOException ex)
+		{
+			ex.printStackTrace();
+		}
+		finally
+		{
+			if (input != null)
+			{
+				try
+				{
+					input.close();
+				}
+				catch (IOException e)
+				{
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 
 
