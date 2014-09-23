@@ -76,12 +76,14 @@ public class CloudExecutor
 
 		script = script.replaceAll("\r", "");
 
+
+		RemoteExecutor executor = new RemoteExecutor();
 		while(!isSuccess)
 		{
 			//String IP, String SSHPASS,
 			//String serverUsername,
 			//String script, String jobID
-			isSuccess = RemoteExecutor.transferScriptAndRun(server.getFloatingIpExtern(), cloudManager.getSshPass(),
+			isSuccess = executor.transferScriptAndRun(server.getFloatingIpExtern(), cloudManager.getSshPass(),
 															cloudManager.getServerUsername(),
 															script, computeTask.getName() + "_" + computeTask.getId());
 		}
