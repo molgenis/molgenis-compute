@@ -48,7 +48,8 @@ public class PilotDashboardController extends MolgenisPluginController
 
 
 	@Autowired
-	public PilotDashboardController(DataService database, RunService runService, TestLightpathService testLightpathService)
+	public PilotDashboardController(DataService database, RunService runService)
+//	public PilotDashboardController(DataService database, RunService runService, TestLightpathService testLightpathService)
 	{
 		super(URI);
 		
