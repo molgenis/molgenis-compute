@@ -270,7 +270,7 @@ public class RunService
 		{
 			run.setIsActive(false);
 			//maybe later this will be stop servers used in a run
-			cloudManager.stopAllServers();
+			cloudManager.stopAllServers(runName);
 		}
 	}
 

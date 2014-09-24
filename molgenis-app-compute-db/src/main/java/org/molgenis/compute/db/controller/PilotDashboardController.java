@@ -13,6 +13,7 @@ import org.apache.log4j.Logger;
 import org.elasticsearch.search.suggest.Suggest;
 import org.molgenis.compute.db.ComputeDbException;
 import org.molgenis.compute.db.service.RunService;
+import org.molgenis.compute.db.service.TestLightpathService;
 import org.molgenis.compute.runtime.ComputeRun;
 import org.molgenis.compute5.db.api.RunStatus;
 import org.molgenis.data.DataService;
@@ -41,16 +42,19 @@ public class PilotDashboardController extends MolgenisPluginController
 	private static final String VIEW_NAME = "PilotDashboard";
 	private final DataService database;
 	private final RunService runService;
+//	private final TestLightpathService testLightpathService;
+
 	private static final Logger LOG = Logger.getLogger(PilotDashboardController.class);
 
 
 	@Autowired
-	public PilotDashboardController(DataService database, RunService runService)
+	public PilotDashboardController(DataService database, RunService runService, TestLightpathService testLightpathService)
 	{
 		super(URI);
 		
 		this.database = database;
 		this.runService = runService;
+//		this.testLightpathService = testLightpathService;
 	}
 
 	@RequestMapping(method = RequestMethod.GET)
@@ -80,12 +84,20 @@ public class PilotDashboardController extends MolgenisPluginController
 		return init(model);
 	}
 
-	@RequestMapping("/release")
+	@RequestMapping(value="/release", method = RequestMethod.POST)
 	public String release(@RequestParam("run")
 					   String runName, Model model)
 	{
-		LOG.debug(">> In PilotDashboardController:stop");
+		LOG.debug(">> In PilotDashboardController:release");
 		runService.release(runName);
+		return init(model);
+	}
+
+	@RequestMapping("/enableLightpath")
+	public String enableLightpath(Model model)
+	{
+		System.out.println("Here to enable lightpath");
+//		testLightpathService.est();
 		return init(model);
 	}
 

@@ -71,7 +71,7 @@ public class CloudManager
 		backendName = run.getComputeBackend().getName();
 
 		SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
-		(new Thread(new StarterThread(serverStarter, ctx))).start();
+		(new Thread(new StarterThread(serverStarter, ctx, run))).start();
 
 		CloudThread executor = new CloudThread(run, cloudExecutor);
 
@@ -92,9 +92,9 @@ public class CloudManager
 		}
 	}
 
-	public void stopAllServers()
+	public void stopAllServers(String runName)
 	{
-		(new Thread(new StopperThread(serverStarter))).start();
+		(new Thread(new StopperThread(serverStarter, runName))).start();
 	}
 
 	private void stopServer(String serverID)
@@ -205,5 +205,27 @@ public class CloudManager
 	public void removeAllServers()
 	{
 		servers.clear();
+	}
+
+	public CloudServer getCloudServerByIp(String floatingIpExtern)
+	{
+		for(CloudServer server : servers)
+		{
+			if(server.getFloatingIpExtern().equalsIgnoreCase(floatingIpExtern))
+				return server;
+		}
+		return null;
+	}
+
+	public void removeServer(String id)
+	{
+		for(CloudServer server : servers)
+		{
+			if(server.getId().equalsIgnoreCase(id))
+			{
+				servers.remove(server);
+				break;
+			}
+		}
 	}
 }
