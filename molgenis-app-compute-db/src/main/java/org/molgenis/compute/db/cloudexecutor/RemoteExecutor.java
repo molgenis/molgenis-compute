@@ -130,9 +130,12 @@ public class RemoteExecutor
 
 			InputStream in = channelExec.getInputStream();
 
+			System.out.println("IP " + IP);
+			System.out.println("USER " + serverUserName);
+
 			for(String command : commands)
 			{
-				LOG.info(command);
+				LOG.info("Remote command [" + command + "]");
 				channelExec.setCommand(command);
 				channelExec.connect();
 

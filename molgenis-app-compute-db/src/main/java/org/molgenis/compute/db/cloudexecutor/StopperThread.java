@@ -15,18 +15,19 @@ public class StopperThread implements Runnable
 {
 	private static final Logger LOG = Logger.getLogger(StopperThread.class);
 
-	private ComputeRun run = null;
+	private String runName = null;
 	private ServerStarter starter = null;
 
-	public StopperThread(ServerStarter starter)
+	public StopperThread(ServerStarter starter, String runName)
 	{
 		this.starter = starter;
+		this.runName = runName;
 	}
 
 
 	@Override
 	public void run()
 	{
-		starter.stopServers();
+		starter.stopServers(runName);
 	}
 }

@@ -21,17 +21,17 @@ public class StarterThread implements Runnable
 	private ServerStarter starter = null;
 	private SecurityContext ctx = null;
 
-	public StarterThread(ServerStarter starter, SecurityContext ctx)
+	public StarterThread(ServerStarter starter, SecurityContext ctx, ComputeRun run)
 	{
 		this.starter = starter;
 		SecurityContextHolder.setContext(ctx);
 		this.ctx = SecurityContextHolder.getContext();
-		int i = 0;
+		this.run = run;
 	}
 
 	@Override
 	public void run()
 	{
-		starter.startServers();
+		starter.startServers(run);
 	}
 }

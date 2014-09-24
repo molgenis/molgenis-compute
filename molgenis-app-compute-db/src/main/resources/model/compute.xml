@@ -45,6 +45,7 @@
             <field name="startTime" type="datetime" nillable="true" description="time, when VM is started" />
             <field name="endTime" type="datetime" nillable="true" description="time, when VM is down" />
             <field name="isInUse" type="boolean" nillable="true" default="false" description="indicate if compute tasks are currently executed on VM"/>
+            <field name="computeRun" type="xref" xref_entity="ComputeRun" description="This VM is used for this run" nillable="false" />
         </entity>
 		<entity name="ComputeParameterValue" implements="Nameable">
 			<description>Related to ComputeTask values

@@ -7,6 +7,9 @@ import com.woorea.openstack.nova.Nova;
 import com.woorea.openstack.nova.api.ServersResource;
 import com.woorea.openstack.nova.model.*;
 import org.apache.log4j.Logger;
+import org.molgenis.compute.db.pilot.MolgenisPilotService;
+import org.molgenis.compute.runtime.ComputeRun;
+import org.molgenis.compute.runtime.ComputeTask;
 import org.molgenis.compute.runtime.ComputeVM;
 import org.molgenis.data.DataService;
 import org.molgenis.data.support.QueryImpl;
@@ -107,7 +110,7 @@ public class ServerStarter
 	@Autowired
 	private DataService dataService;
 
-	public void startServers()
+	public void startServers(ComputeRun run)
 	{
 		readUserProperties();
 
@@ -121,7 +124,7 @@ public class ServerStarter
 				boolean isSuccess = false;
 				while(!isSuccess)
 				{
-					isSuccess = launchNewServer(cloudServer);
+					isSuccess = launchNewServer(cloudServer, run);
 					cloudManager.addNewServer(cloudServer);
 
 				}
@@ -197,7 +200,7 @@ public class ServerStarter
 	}
 
 	@RunAsSystem
-	private boolean launchNewServer(CloudServer cloudServer) throws InterruptedException
+	private boolean launchNewServer(CloudServer cloudServer, ComputeRun run) throws InterruptedException
 	{
 		LOG.info("Start launching server");
 
@@ -370,30 +373,39 @@ public class ServerStarter
 		computeVM.setServerID(cloudServer.getId());
 		computeVM.setFloatingIpExtern(cloudServer.getFloatingIpExtern());
 		computeVM.setStartTime(new Date());
+		computeVM.setComputeRun(run);
 		dataService.add(ComputeVM.ENTITY_NAME, computeVM);
 
 		return true;
 	}
 
-	public void stopServers()
+	public void stopServers(String runName)
 	{
-		for(CloudServer cloudServer : cloudManager.getCloudServers())
+		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeRun.NAME, runName), ComputeRun.class);
+
+
+		Iterable<ComputeVM> computeVMs = dataService.findAll(ComputeVM.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeVM.COMPUTERUN, run), ComputeVM.class);
+
+		for(ComputeVM computeVM : computeVMs)
 		{
-			cleanUmountServerStorage(cloudServer);
+			cleanUmountServerStorage(computeVM);
+			CloudServer cloudServer = cloudManager.getCloudServerByIp(computeVM.getFloatingIpExtern());
 
+			LOG.info("Terminating server " + cloudServer.getId() + " on ip : " + computeVM.getFloatingIpExtern());
 			novaClient.servers().delete(cloudServer.getId()).execute();
+			LOG.info("... server is terminated");
 
-			ComputeVM computeVM = dataService.findOne(ComputeVM.ENTITY_NAME, new QueryImpl()
-					.eq(ComputeVM.SERVERID, cloudServer.getId()), ComputeVM.class);
 			computeVM.setEndTime(new Date());
 			dataService.update(ComputeVM.ENTITY_NAME, computeVM);
-		}
 
-		cloudManager.removeAllServers();
+			cloudManager.removeServer(cloudServer.getId());
+		}
 	}
 
 
-	private void cleanUmountServerStorage(CloudServer server)
+	private void cleanUmountServerStorage(ComputeVM server)
 	{
 		boolean isSuccess = false;
 
@@ -403,7 +415,7 @@ public class ServerStarter
 		RemoteExecutor executor = new RemoteExecutor();
 		while(!isSuccess)
 		{
-			executor.executeCommandsRemote(server.getFixedIpExtern(),
+			isSuccess = executor.executeCommandsRemote(server.getFloatingIpExtern(),
 					cloudManager.getSshPass(),
 					cloudManager.getServerUsername(),
 					commands);
