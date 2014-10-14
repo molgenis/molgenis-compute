@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.*;
 
 import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.molgenis.compute5.db.api.*;
@@ -123,7 +124,8 @@ public class ComputeCommandLine
 				if (computeProperties.list)
 				{
 					// list *.sh files in rundir
-					File[] scripts = new File(computeProperties.runDir).listFiles(new FilenameFilter()
+					File[] scripts = new File(computeProperties.runDir).listFiles(
+							new FilenameFilter()
 					{
 						public boolean accept(File dir, String filename)
 						{
@@ -145,13 +147,28 @@ public class ComputeCommandLine
 			{
 				String runName = computeProperties.runId;
 
+				String backendUrl = computeProperties.backendUrl;
 				String backendName = computeProperties.backend;
 				Long pollInterval = Long.parseLong(computeProperties.interval);
 
 				List<Task> tasks = compute.getTasks();
+				String submitScript = "none";
+				if(backendName.equalsIgnoreCase(Parameters.SCHEDULER_PBS) ||
+						backendName.equalsIgnoreCase(Parameters.SCHEDULER_SLURM))
+				{
+					for(Task task: tasks)
+					{
+						String name = task.getName();
+						String wrappedScript = FileUtils.readFileToString(new File(computeProperties.runDir + "/" + name + ".sh"));
+						task.setScript(wrappedScript);
+					}
+					submitScript =  FileUtils.readFileToString(new File(computeProperties.runDir + "/submit.sh"));
+				}
+
 				String environment = compute.getUserEnvironment();
 
-				CreateRunRequest createRunRequest = new CreateRunRequest(runName, backendName, pollInterval, tasks, environment, userName);
+				CreateRunRequest createRunRequest = new CreateRunRequest(runName, backendUrl, pollInterval,
+						tasks, environment, userName, submitScript);
 
 				dbApiClient.createRun(createRunRequest);
 

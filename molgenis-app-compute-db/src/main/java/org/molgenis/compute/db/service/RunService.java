@@ -54,14 +54,14 @@ public class RunService
 	@Autowired
 	private DataService dataService;
 
-	public ComputeRun create(String name, String backendName, Long pollDelay,
-							 List<Task> tasks, String userEnvironment, String userName)
+	public ComputeRun create(String name, String backendUrl, Long pollDelay,
+							 List<Task> tasks, String userEnvironment, String userName, String submitScript)
 	{
 		Iterable<ComputeBackend> backends = dataService.findAll(ComputeBackend.ENTITY_NAME, new QueryImpl()
-				.eq(ComputeBackend.NAME, backendName), ComputeBackend.class);
+				.eq(ComputeBackend.BACKENDURL, backendUrl), ComputeBackend.class);
 		if (!backends.iterator().hasNext())
 		{
-			throw new ComputeDbException("Unknown backend with name [" + backendName + "]");
+			throw new ComputeDbException("Unknown backend with name [" + backendUrl + "]");
 		}
 
 		ComputeBackend backend = backends.iterator().next();
@@ -91,9 +91,10 @@ public class RunService
 		run.setPollDelay(pollDelay == null ? DEFAULT_POLL_DELAY : pollDelay);
 		run.setUserEnvironment(userEnvironment);
 		run.setOwner(user);
+		run.setSubmitScript(submitScript);
 
-		if(backendType.equalsIgnoreCase(BACKEND_TYPE_CLOUD))
-			run.setIsVMrun(true);
+//		if(backendType.equalsIgnoreCase(BACKEND_TYPE_CLOUD))
+//			run.setIsVMrun(true);
 
 		dataService.add(ComputeRun.ENTITY_NAME, run);
 
@@ -211,13 +212,19 @@ public class RunService
 			throw new ComputeDbException("Unknown run name [" + runName + "]");
 		}
 
-		if(run.getIsVMrun())
+		if(run.getComputeBackend().getHostType().equalsIgnoreCase("CLOUD"))
 		{
 			run.setIsActive(true);
 			dataService.update(ComputeRun.ENTITY_NAME, run);
 			SecurityContext ctx = SecurityContextHolder.getContext();
 			cloudManager.executeRun(run, username, password, ctx);
 		}
+		else if(run.getComputeBackend().getHostType().equalsIgnoreCase("CLUSTER"))
+		{
+			SecurityContext ctx = SecurityContextHolder.getContext();
+			cloudManager.executeRun(run, username, password, ctx);
+		}
+		//grid pilot-job execution
 		else
 		{
 			run.setIsSubmittingPilots(true);
@@ -240,7 +247,9 @@ public class RunService
 			throw new ComputeDbException("Unknown run name [" + runName + "]");
 		}
 
-		if(run.getIsVMrun())
+		//if(run.getIsVMrun())
+		if(run.getComputeBackend().getHostType().equalsIgnoreCase("CLOUD"))
+
 		{
 			run.setIsActive(false);
 			cloudManager.stopExecutingRun(run);
@@ -266,7 +275,9 @@ public class RunService
 			throw new ComputeDbException("Unknown run name [" + runName + "]");
 		}
 
-		if(run.getIsVMrun())
+		//if(run.getIsVMrun())
+		if(run.getComputeBackend().getHostType().equalsIgnoreCase("CLOUD"))
+
 		{
 			run.setIsActive(false);
 			//maybe later this will be stop servers used in a run
@@ -409,7 +420,8 @@ public class RunService
 		int started = 0;
 
 
-		if(!run.getIsVMrun())
+		//if(!run.getIsVMrun())
+		if(run.getComputeBackend().getHostType().equalsIgnoreCase("CLOUD"))
 		{
 			submitted = run.getPilotsSubmitted();
 			started = run.getPilotsStarted();

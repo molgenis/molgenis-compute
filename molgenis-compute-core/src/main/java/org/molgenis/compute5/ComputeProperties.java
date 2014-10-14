@@ -69,6 +69,7 @@ public class ComputeProperties
 
 	private Options options = null;
 	public String errorMailAddr = null;
+	public String backendUrl = null;
 
 	public ComputeProperties(String[] args)
 	{
@@ -297,6 +298,10 @@ public class ComputeProperties
 
 			this.parametersToOverwrite = cmd.getOptionValue(Parameters.PARAMETERS_TO_OVERWRITE_CMDLINE_OPTION);
 			this.errorMailAddr = cmd.getOptionValue(Parameters.ERROR_MESSAGE_ADDR_OPTION);
+			this.backendUrl = cmd.getOptionValue(Parameters.BACKEND_URL);
+
+			if(backendUrl == null)
+				backendUrl = Parameters.DEFAULT_BACKEND_URL;
 
 			if(errorMailAddr == null)
 				errorMailAddr = Parameters.DEFAULT_ERROR_ADDRESS;
@@ -576,6 +581,12 @@ public class ComputeProperties
 				.withLongOpt(Parameters.ERROR_MESSAGE_ADDR)
 				.create(Parameters.ERROR_MESSAGE_ADDR_OPTION));
 
+		options.addOption(OptionBuilder
+				.withDescription(
+						"Backend address, where ComputeRun will be executed")
+				.hasArg()
+				.withLongOpt(Parameters.BACKEND_URL)
+				.create(Parameters.BACKEND_URL_OPTION));
 
 
 		return options;

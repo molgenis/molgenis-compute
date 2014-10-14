@@ -187,7 +187,7 @@ public class PilotDashboardController extends MolgenisPluginController
                     runService.isComplete(run.getName()),
 					runService.isCancelled(run.getName()),
 					isSame,
-					run.getIsVMrun(),
+					run.getComputeBackend().getHostType(),
 					run.getHasFailedJobs(),
                     run.getComputeBackend().getBackendUrl(),
 					run.getCreationTime(),

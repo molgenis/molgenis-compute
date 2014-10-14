@@ -34,9 +34,9 @@ dependencies="--dependency=afterok"
 if ! $dependenciesExist; then
 unset dependencies
 fi
-dirty=$(sbatch $dependencies ${t.name}.sh)
-${t.name}=<#noparse>${dirty##"Submitted batch job "}</#noparse>
-echo $${t.name}
+output=$(sbatch $dependencies ${t.name}.sh)
+submitted=<#noparse>${output##"Submitted batch job "}</#noparse>
+echo "${t.name}:$submitted"
 fi
 
 </#foreach>

@@ -1467,9 +1467,9 @@ public class ComputeCommandLineTest
 				"if ! $dependenciesExist; then\n" +
 				"unset dependencies\n" +
 				"fi\n" +
-				"dirty=$(sbatch $dependencies step2_0.sh)\n" +
-				"step2_0=${dirty##\"Submitted batch job \"}\n" +
-				"echo $step2_0\n" +
+				"output=$(sbatch $dependencies step2_0.sh)\n" +
+				"submitted=${output##\"Submitted batch job \"}\n" +
+				"echo \"step2_0:$submitted\"\n" +
 				"fi";
 
 		if(!script.contains(stepDependencies))

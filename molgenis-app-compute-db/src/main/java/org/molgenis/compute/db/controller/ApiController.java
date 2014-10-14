@@ -157,8 +157,8 @@ public class ApiController
 		ApiResponse response = new ApiResponse();
 		try
 		{
-			runService.create(request.getRunName(), request.getBackendName(), request.getPollDelay(),
-					request.getTasks(), request.getEnvironment(), request.getUserName());
+			runService.create(request.getRunName(), request.getBackendUrl(), request.getPollDelay(),
+					request.getTasks(), request.getEnvironment(), request.getUserName(), request.getSubmitScript());
 		}
 		catch (Exception e)
 		{
