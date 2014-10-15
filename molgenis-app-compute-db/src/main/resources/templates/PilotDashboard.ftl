@@ -218,14 +218,6 @@ ${message}
                 <button type="submit" class="btn resubmit-btn">Resubmit failed</button>
             </form>
             </#if>
-        <form action="/menu/Compute/dashboard/release" class="form-inline" method="post" style="margin-top:10px;">
-            <input type="hidden" name="run" value="${run.name}"/>
-            <button type="submit" class="btn">Release VMs</button>
-        </form>
-        <form action="/menu/Compute/dashboard/terminate" class="form-inline" method="post">
-            <input type="hidden" name="run" value="${run.name}"/>
-            <button type="submit" class="btn">Terminate VMs</button>
-        </form>
         <#else>
         <div class="text-info">Ready to run</div>
          <form name="cloudsubmit" role="form" action="/menu/Compute/dashboard/start" method="post"
@@ -317,7 +309,7 @@ ${message}
                 <td class="text-error">Jobs cancelled</td>
                 <td class="cancelled text-error"></td>
             </tr>
-            <#if run.backendType != "CLOUD">
+            <#if run.backendType == "GRID">
                 <tr>
                     <td class="text-info">Pilots submitted</td>
                     <td class="submitted text-info"></td>

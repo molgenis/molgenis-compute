@@ -8,6 +8,7 @@ import com.google.common.collect.Iterables;
 import org.apache.log4j.Logger;
 import org.molgenis.compute.db.ComputeDbException;
 import org.molgenis.compute.db.cloudexecutor.CloudManager;
+import org.molgenis.compute.db.clusterexecutor.ClusterManager;
 import org.molgenis.compute.db.executor.Scheduler;
 import org.molgenis.compute.db.pilot.MolgenisPilotService;
 import org.molgenis.compute.runtime.ComputeBackend;
@@ -50,6 +51,9 @@ public class RunService
 
 	@Autowired
 	private CloudManager cloudManager;
+
+	@Autowired
+	private ClusterManager clusterManager;
 
 	@Autowired
 	private DataService dataService;
@@ -212,17 +216,19 @@ public class RunService
 			throw new ComputeDbException("Unknown run name [" + runName + "]");
 		}
 
+		SecurityContext ctx = SecurityContextHolder.getContext();
+
 		if(run.getComputeBackend().getHostType().equalsIgnoreCase("CLOUD"))
 		{
 			run.setIsActive(true);
 			dataService.update(ComputeRun.ENTITY_NAME, run);
-			SecurityContext ctx = SecurityContextHolder.getContext();
 			cloudManager.executeRun(run, username, password, ctx);
 		}
 		else if(run.getComputeBackend().getHostType().equalsIgnoreCase("CLUSTER"))
 		{
-			SecurityContext ctx = SecurityContextHolder.getContext();
-			cloudManager.executeRun(run, username, password, ctx);
+			run.setIsActive(true);
+			dataService.update(ComputeRun.ENTITY_NAME, run);
+			clusterManager.executeRun(run, username, password, ctx);
 		}
 		//grid pilot-job execution
 		else
@@ -247,7 +253,6 @@ public class RunService
 			throw new ComputeDbException("Unknown run name [" + runName + "]");
 		}
 
-		//if(run.getIsVMrun())
 		if(run.getComputeBackend().getHostType().equalsIgnoreCase("CLOUD"))
 
 		{
@@ -256,6 +261,13 @@ public class RunService
 			dataService.update(ComputeRun.ENTITY_NAME, run);
 
 		}
+		else if(run.getComputeBackend().getHostType().equalsIgnoreCase("CLUSTER"))
+		{
+			run.setIsActive(false);
+			clusterManager.cancelRunJobs(run);
+			dataService.update(ComputeRun.ENTITY_NAME, run);
+		}
+		//grid pilot-job execution
 		else
 		{
 			LOG.debug(">> In RunService:stop");

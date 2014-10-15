@@ -115,11 +115,6 @@ public class CloudManager
 		return null;
 	}
 
-	public void setRunCompleted(Integer runID)
-	{
-		//evaluate here if servers are still needed
-	}
-
 	private void readUserProperties()
 	{
 		Properties prop = new Properties();
