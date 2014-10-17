@@ -508,7 +508,10 @@ public class TaskGenerator
 
 	private String appendToEnv(String script, String string, String thisFile)
 	{
-		String appendString = "echo \"" + string + "\" >> " + thisFile;
+		String appendString = "echo \"" + string + "\" >> " + thisFile +"\n" +
+				"chmod 755 " + thisFile +"\n";
+
+
 
 		return script + "\n" + appendString;
 	}

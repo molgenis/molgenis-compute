@@ -35,8 +35,9 @@ if ! $dependenciesExist; then
 unset dependencies
 fi
 output=$(sbatch $dependencies ${t.name}.sh)
-submitted=<#noparse>${output##"Submitted batch job "}</#noparse>
-echo "${t.name}:$submitted"
+id=${t.name}
+${t.name}=<#noparse>${output##"Submitted batch job "}</#noparse>
+echo "$id:$${t.name}"
 fi
 
 </#foreach>
