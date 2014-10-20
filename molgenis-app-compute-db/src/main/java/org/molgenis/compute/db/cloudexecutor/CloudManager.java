@@ -41,6 +41,10 @@ public class CloudManager
 	private String COMPUTE_API_PASS;
 	private String COMPUTE_SERVER_USERNAME;
 
+	public static final String SERVER_IP = "server_ip";
+	public static final String SERVER_PORT = "server_port";
+
+
 	@Autowired
 	private CloudExecutor cloudExecutor;
 

@@ -1,9 +1,19 @@
 package org.molgenis.compute.db.clusterexecutor;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Part;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.molgenis.compute.db.cloudexecutor.CloudManager;
 import org.molgenis.compute.db.cloudexecutor.CloudServer;
+import org.molgenis.compute.db.cloudexecutor.CloudService;
 import org.molgenis.compute.db.pilot.MolgenisPilotService;
 import org.molgenis.compute.runtime.ComputeTask;
 import org.molgenis.compute.runtime.ComputeVM;
@@ -16,14 +26,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.Part;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.util.List;
-
 /**
  * Created with IntelliJ IDEA.
  * User: hvbyelas
@@ -34,14 +36,10 @@ import java.util.List;
 
 
 @Controller
-@RequestMapping("/api/cloud")
+@RequestMapping("/api/cluster")
 public class ClusterService
 {
 	private static final Logger LOG = Logger.getLogger(ClusterService.class);
-
-	public static final String STATUS_STARTED = "started";
-	public static final String STATUS_FINISHED = "finished";
-	public static final String STATUS_FAILED = "failed";
 
 
 	@Autowired
@@ -57,7 +55,8 @@ public class ClusterService
 											  @RequestParam String status,
 											  @RequestParam String serverid,
 											  @RequestParam String backend,
-											  @RequestParam(required = false) Part log_file,
+											  @RequestParam(required = false) Part out_log_file,
+											  @RequestParam(required = false) Part err_log_file,
 											  HttpServletResponse response
 	) throws IOException
 	{
@@ -68,9 +67,6 @@ public class ClusterService
 		ComputeTask computeTask = dataService.findOne(ComputeTask.ENTITY_NAME, new QueryImpl()
 				.eq(ComputeTask.ID, jobid), ComputeTask.class);
 
-		ComputeVM computeVM = dataService.findOne(ComputeVM.ENTITY_NAME, new QueryImpl()
-				.eq(ComputeVM.SERVERID, serverid), ComputeVM.class);
-
 
 		if(computeTask == null)
 		{
@@ -78,16 +74,13 @@ public class ClusterService
 			return;
 		}
 
-		if(computeVM == null)
-		{
-			LOG.warn("Compute VM with ID [" + serverid + "] does not exist in database");
-			return;
-		}
-
-		if (status.equalsIgnoreCase(STATUS_STARTED))
+		if (status.equalsIgnoreCase(CloudService.STATUS_STARTED))
 		{
 			LOG.info(">> Job [ " + jobid + " ] is started");
-			if(computeTask.getStatusCode().equalsIgnoreCase(MolgenisPilotService.TASK_SUBMITTED))
+
+			//here, task can call back, when DB is not updated yet
+			if(computeTask.getStatusCode().equalsIgnoreCase(MolgenisPilotService.TASK_SUBMITTED) ||
+					computeTask.getStatusCode().equalsIgnoreCase(MolgenisPilotService.TASK_GENERATED))
 			{
 
 				computeTask.setStatusCode(MolgenisPilotService.TASK_RUNNING);
@@ -98,44 +91,28 @@ public class ClusterService
 				LOG.warn("Compute Task [" + computeTask.getId() + " : " + computeTask.getName() + "] has a wrong status in started");
 
 		}
-		else if(status.equalsIgnoreCase(STATUS_FINISHED))
+		else if(status.equalsIgnoreCase(CloudService.STATUS_FINISHED))
 		{
 			LOG.info(">> Job [ " + jobid + " ] is finished");
-			releaseServer(serverid, jobid);
 
 			if(computeTask.getStatusCode().equalsIgnoreCase(MolgenisPilotService.TASK_RUNNING))
 			{
 				computeTask.setStatusCode(MolgenisPilotService.TASK_DONE);
 
-				String logFileContent = readLog(log_file);
+				String logFileContent = readLog(out_log_file);
+				String errFileContent = readLog(err_log_file);
 
 				if(logFileContent != null)
 				{
 					computeTask.setRunLog(logFileContent);
-					dataService.update(ComputeTask.ENTITY_NAME, computeTask);
 				}
 
-				updateRunHistory(computeTask, computeVM, status);
-			}
-		}
-		else if(status.equalsIgnoreCase(STATUS_FAILED))
-		{
-			LOG.info(">> Job [ " + jobid + " ] is failed");
-			releaseServer(serverid, jobid);
-
-			if (computeTask.getStatusCode().equalsIgnoreCase(MolgenisPilotService.TASK_RUNNING) ||
-					computeTask.getStatusCode().equalsIgnoreCase(MolgenisPilotService.TASK_SUBMITTED))
-			{
-				computeTask.setStatusCode(MolgenisPilotService.TASK_FAILED);
-
-				String logFileContent = readLog(log_file);
-
-				if (logFileContent != null)
+				if(errFileContent != null)
 				{
-					computeTask.setFailedLog(logFileContent);
+					computeTask.setFailedLog(errFileContent);
 				}
 				dataService.update(ComputeTask.ENTITY_NAME, computeTask);
-				updateRunHistory(computeTask, computeVM, status);
+
 			}
 		}
 		else
@@ -160,36 +137,6 @@ public class ClusterService
 			}
 		}
 		return null;
-	}
-
-	private void updateRunHistory(ComputeTask computeTask, ComputeVM computeVM, String status)
-	{
-		if(status.equalsIgnoreCase(STATUS_FINISHED))
-		{
-			List<ComputeTask> tasks = computeVM.getFinishedComputeTask();
-			tasks.add(computeTask);
-			computeVM.setFinishedComputeTask(tasks);
-		}
-		else if(status.equalsIgnoreCase(STATUS_FAILED))
-		{
-			List<ComputeTask> tasks = computeVM.getFailedComputeTask();
-			tasks.add(computeTask);
-			computeVM.setFailedComputeTask(tasks);
-		}
-		dataService.update(ComputeVM.ENTITY_NAME, computeVM);
-
-	}
-
-	private void releaseServer(String serverid, String jobid)
-	{
-		for(CloudServer server : cloudManager.getCloudServers())
-		{
-			if(server.getId().equalsIgnoreCase(serverid))
-			{
-				server.setInUse(false);
-				server.addFinishedJob(jobid);
-			}
-		}
 	}
 
 }

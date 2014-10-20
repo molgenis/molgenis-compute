@@ -209,7 +209,7 @@ ${message}
         <div class="text-success">Running</div>
         <form action="/menu/Compute/dashboard/stop" class="form-inline" method="post">
             <input type="hidden" name="run" value="${run.name}"/>
-            <button type="submit" class="btn">Stop</button>
+            <button type="submit" class="btn">Cancel</button>
         </form>
             <#if run.hasFailed>
             <form id="resubmitFailedTasksForm_${run.name}" action="/menu/Compute/dashboard/resubmit"
@@ -299,7 +299,7 @@ ${message}
                 <td class="failed text-error"></td>
             </tr>
             <tr>
-                <#if run.backendType != "CLOUD">
+                <#if run.backendType == "GRID">
                     <td class="text-warning">Jobs running</td>
                     <td class="running text-info"></td>
                 <#else>

@@ -253,19 +253,22 @@ public class RunService
 			throw new ComputeDbException("Unknown run name [" + runName + "]");
 		}
 
+		SecurityContext ctx = SecurityContextHolder.getContext();
+
+
 		if(run.getComputeBackend().getHostType().equalsIgnoreCase("CLOUD"))
 
 		{
 			run.setIsActive(false);
-			cloudManager.stopExecutingRun(run);
 			dataService.update(ComputeRun.ENTITY_NAME, run);
+			cloudManager.stopExecutingRun(run);
 
 		}
 		else if(run.getComputeBackend().getHostType().equalsIgnoreCase("CLUSTER"))
 		{
 			run.setIsActive(false);
-			clusterManager.cancelRunJobs(run);
 			dataService.update(ComputeRun.ENTITY_NAME, run);
+			clusterManager.cancelRunJobs(run, ctx);
 		}
 		//grid pilot-job execution
 		else

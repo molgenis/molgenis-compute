@@ -31,6 +31,9 @@ public class ClusterExecutor
 	@Autowired
 	private DataService dataService;
 
+	@Autowired
+	private ClusterCurlBuilder builder;
+
 	private ComputeRun run = null;
 
 	public boolean submitRun(ComputeRun run, String username, String password)
@@ -45,7 +48,6 @@ public class ClusterExecutor
 
 		boolean prepared = prepareRun(run, username, password, runDir);
 
-//		return prepared;
 		if(prepared)
 		{
 			boolean submitted = submit(run, username, password, runDir);
@@ -62,7 +64,8 @@ public class ClusterExecutor
 	{
 		LOG.info("Prepare Run: " + run.getName());
 
-		try {
+		try
+		{
 			Thread.sleep(90000);
 
 			JSch jsch = new JSch();
@@ -118,7 +121,8 @@ public class ClusterExecutor
 			for(ComputeTask task : generatedTasks)
 			{
 				String taskName = task.getName();
-				is = new ByteArrayInputStream(task.getComputeScript().getBytes());
+				String builtScript = builder.buildScript(task);
+				is = new ByteArrayInputStream(builtScript.getBytes());
 				channelSftp.put(is, runDir + "/" + taskName +".sh");
 			}
 
@@ -170,7 +174,8 @@ public class ClusterExecutor
 
 	public boolean submit(ComputeRun run, String username, String password, String runDir)
 	{
-		try {
+		try
+		{
 			Thread.sleep(90000);
 
 			JSch jsch = new JSch();
@@ -206,7 +211,6 @@ public class ClusterExecutor
 
 			LOG.info("submitting ...");
 
-			TimeUnit.SECONDS.sleep(1);
 			String command = "cd " + runDir + "; sh submit.sh";
 			channelExec.setCommand(command);
 			channelExec.connect();
@@ -259,7 +263,9 @@ public class ClusterExecutor
 						.eq(ComputeTask.NAME, idJob), ComputeTask.class);
 
 				task.setSubmittedID(idSub);
-				task.setStatusCode(MolgenisPilotService.TASK_SUBMITTED);
+
+				if(task.getStatusCode().equalsIgnoreCase(MolgenisPilotService.TASK_GENERATED))
+					task.setStatusCode(MolgenisPilotService.TASK_SUBMITTED);
 
 				dataService.update(ComputeTask.ENTITY_NAME, task);
 
@@ -270,11 +276,90 @@ public class ClusterExecutor
 
 	public boolean cancelRun(ComputeRun run, String username, String password)
 	{
-		System.out.println("CANCEL");
-		System.out.println("Run :" + run.getName());
-		System.out.println("User:" + username);
-		System.out.println("Pass:" + password);
-		return true;
+		System.out.println("Canceling Run [" + run.getName() + "]");
+
+		try
+		{
+			Thread.sleep(90000);
+
+			JSch jsch = new JSch();
+
+			String user = username;
+			String host = run.getComputeBackend().getBackendUrl();
+			int port = 22;
+			String privateKey = ".ssh/id_rsa";
+
+			jsch.addIdentity(privateKey, password);
+			LOG.info("identity added ");
+
+			Session session = jsch.getSession(user, host, port);
+
+			LOG.info("session created.");
+
+			java.util.Properties config = new java.util.Properties();
+			config.put("StrictHostKeyChecking", "no");
+			session.setConfig(config);
+
+			session.connect();
+			LOG.info("session connected.....");
+
+			Channel channel = session.openChannel("sftp");
+			channel.setInputStream(System.in);
+			channel.setOutputStream(System.out);
+			channel.connect();
+			LOG.info("shell channel connected....");
+
+			ChannelExec channelExec = (ChannelExec)session.openChannel("exec");
+
+			InputStream answer = channelExec.getInputStream();
+
+			LOG.info("cancelling jobs ...");
+
+			Iterable<ComputeTask> tasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
+					.eq(ComputeTask.COMPUTERUN, run), ComputeTask.class);
+
+			for(ComputeTask task : tasks)
+			{
+
+				String command = "scancel " + task.getSubmittedID();
+
+				channelExec.setCommand(command);
+				channelExec.connect();
+
+				BufferedReader reader = new BufferedReader(new InputStreamReader(answer));
+				String line;
+
+				while ((line = reader.readLine()) != null)
+				{
+					LOG.info(line);
+				}
+
+				task.setStatusCode(MolgenisPilotService.TASK_CANCELLED);
+				dataService.update(ComputeTask.ENTITY_NAME, task);
+			}
+
+			channelExec.disconnect();
+			session.disconnect();
+
+			updateDatabaseWithTaskIDs(idList);
+
+			LOG.info("run [" + run.getName() + "] is cancelled");
+			return true;
+		}
+		catch (JSchException e)
+		{
+			e.printStackTrace();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		catch (InterruptedException e)
+		{
+			e.printStackTrace();
+		}
+		return false;
+
 	}
 
 	private void readUserProperties()
