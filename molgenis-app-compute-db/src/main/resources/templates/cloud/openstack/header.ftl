@@ -15,7 +15,7 @@ errorExit()
     exit 1
 }
 
-clearup()
+cleanup()
 {
     echo "exit" >> log.log
     rm -rf *
