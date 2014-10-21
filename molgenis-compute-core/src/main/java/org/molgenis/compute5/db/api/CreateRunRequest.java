@@ -8,20 +8,23 @@ import org.molgenis.compute5.model.Task;
 public class CreateRunRequest
 {
 	private final String runName;
-	private final String backendName;
+	private final String backendUrl;
 	private final Long pollDelay;
 	private final List<Task> tasks;
 	private final String environment;
 	private final String userName;
+	private final String submitScript;
 
-	public CreateRunRequest(String runName, String backendName, Long pollDelay, List<Task> tasks, String environment, String userName)
+	public CreateRunRequest(String runName, String backendUrl, Long pollDelay, List<Task> tasks, String environment,
+							String userName, String submitScript)
 	{
 		this.runName = runName;
-		this.backendName = backendName;
+		this.backendUrl = backendUrl;
 		this.pollDelay = pollDelay;
 		this.tasks = tasks;
 		this.environment = environment;
 		this.userName = userName;
+		this.submitScript = submitScript;
 	}
 
 	public String getRunName()
@@ -29,9 +32,9 @@ public class CreateRunRequest
 		return runName;
 	}
 
-	public String getBackendName()
+	public String getBackendUrl()
 	{
-		return backendName;
+		return backendUrl;
 	}
 
 	public Long getPollDelay()
@@ -53,4 +56,9 @@ public class CreateRunRequest
     {
         return userName;
     }
+
+	public String getSubmitScript()
+	{
+		return submitScript;
+	}
 }

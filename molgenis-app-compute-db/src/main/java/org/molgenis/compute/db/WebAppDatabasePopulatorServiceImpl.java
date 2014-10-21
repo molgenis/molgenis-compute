@@ -73,6 +73,14 @@ public class WebAppDatabasePopulatorServiceImpl implements WebAppDatabasePopulat
 		openStackCloud.setCommand("none");
 		dataService.add(ComputeBackend.ENTITY_NAME, openStackCloud);
 
+		ComputeBackend cluster2 = new ComputeBackend();
+		cluster2.setName("umcg.hpc.rug.nl");
+		cluster2.setBackendUrl("umcg.hpc.rug.nl");
+		cluster2.setHostType("CLUSTER");
+		cluster2.setCommand("sh submit.sh");
+		dataService.add(ComputeBackend.ENTITY_NAME, cluster2);
+
+
 	}
 
 	@Override

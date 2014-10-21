@@ -24,7 +24,9 @@
 			<field name="prevSteps" type="mref" xref_entity="ComputeTask" nillable="true" description="To keep track of calculation dependencies" />
 			<field name="statusCode" nillable="false" type="enum" enum_options="[generated,ready,running,failed,done,jobsubmitted,cancelled]" default="generated"
 				description="Last known status of this task. See compute history for details. NB 'ready' means ready for running (cf. 'done')." />
-			<unique fields="name,computeRun" />
+            <field name="submittedID" type="text" nillable="true"
+                   description="ID received from the scheduler after submission; used only in clusters"/>
+            <unique fields="name,computeRun" />
 		</entity>
         <entity name="ComputeTaskHistory" implements="Autoid" xref_label="ComputeTask">
       		<description>Keep track of the compute history of a task, including resubmissions.
@@ -59,12 +61,13 @@
       		<field name="showInDashboard" type="boolean" label="Show in dashboard" default="true" description="Show this run in the dashboard" />
       		<field name="computeBackend" type="xref" label="Backend" xref_entity="ComputeBackend" nillable="false" description="Backend where run will be executed" />
             <field name="userEnvironment" type="text" label="User environment" nillable="true" description="Environment vars provided by the user" />
+            <field name="submitScript" type="text" nillable="true" description="The generated submit.sh to use only in the cluster scheduler environment" />
             <field name="pollDelay" type="long" nillable="false" label="Poll delay" description="Delay between two database ComputeTask polls" />
             <field name="isActive" type="boolean" nillable="false" default="false" label="flag, if the run is active for execution" />
             <field name="isSubmittingPilots" type="boolean" nillable="false" default="false" label="flag, if pilots are submitting for this run"/>
             <field name="isDone" type="boolean" nillable="false" default="false" label="flag, showing that run is completed"/>
             <field name="isCancelled" type="boolean" nillable="false" default="false" label="flag, showing that run is cancelled"/>
-            <field name="isVMrun" type="boolean" nillable="false" default="false" label="flag, showing that run should be executed in VM"/>
+            <field name="interpreter" type="enum" nillable="true" enum_options="[bash,R]" description="the interpreter used to run this command. For example 'shellTemplate'" />
             <field name="hasFailedJobs" type="boolean" nillable="false" default="false" label="flag, showing that run contains jobs that failed"/>
             <field name="owner" type="xref" xref_entity="MolgenisUser" nillable="false" />
             <field name="pilotsSubmitted" type="int" nillable="false" label="number of pilots submitted to backend" default="0"/>

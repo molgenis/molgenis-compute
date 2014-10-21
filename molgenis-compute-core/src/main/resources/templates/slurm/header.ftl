@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=${taskId}
-#SBATCH --output=${taskId}-%j.out
-#SBATCH --error=${taskId}-%j.err
+#SBATCH --output=${taskId}.out
+#SBATCH --error=${taskId}.err
 #SBATCH --partition=${queue}
 #SBATCH --time=${walltime}
 #SBATCH --cpus-per-task ${ppn}
@@ -9,8 +9,9 @@
 #SBATCH --nodes ${nodes}
 
 ENVIRONMENT_DIR="."
-
 set -e
+
+#-%j
 
 errorExit()
 {

@@ -15,7 +15,7 @@ errorExit()
     exit 1
 }
 
-cleanEverything()
+cleanup()
 {
     echo "exit" >> log.log
     rm -rf *
@@ -23,7 +23,7 @@ cleanEverything()
     exit 0
 }
 
-trap "cleanEverything" EXIT
+trap "cleanup" EXIT
 trap "errorExit" ERR
 
 cd /storage

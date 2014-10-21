@@ -182,7 +182,8 @@ public class BackendGenerator
 	{
 		String dir = cp.backend;
 
-		if(cp.database == Parameters.DATABASE_DEFAULT)
+		if(!cp.database.equalsIgnoreCase(Parameters.BACKEND_TYPE_GRID) ||
+				!cp.database.equalsIgnoreCase(Parameters.BACKEND_TYPE_CLOUD))
 		{
 			this.setHeaderTemplate(readInClasspath("templates/"+ dir +"/header.ftl", dir));
 			this.setFooterTemplate(readInClasspath("templates/"+ dir +"/footer.ftl", dir));

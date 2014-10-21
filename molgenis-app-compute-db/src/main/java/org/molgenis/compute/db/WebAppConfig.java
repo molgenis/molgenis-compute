@@ -5,6 +5,9 @@ import org.molgenis.compute.db.cloudexecutor.CloudCurlBuilder;
 import org.molgenis.compute.db.cloudexecutor.CloudExecutor;
 import org.molgenis.compute.db.cloudexecutor.CloudManager;
 import org.molgenis.compute.db.cloudexecutor.ServerStarter;
+import org.molgenis.compute.db.clusterexecutor.ClusterCurlBuilder;
+import org.molgenis.compute.db.clusterexecutor.ClusterExecutor;
+import org.molgenis.compute.db.clusterexecutor.ClusterManager;
 import org.molgenis.compute.db.executor.ComputeExecutor;
 import org.molgenis.compute.db.executor.PilotManager;
 import org.molgenis.compute.db.executor.Scheduler;
@@ -88,10 +91,30 @@ public class WebAppConfig extends MolgenisWebAppConfig
 	}
 
 	@Bean
+	public ClusterManager clusterManager()
+	{
+		return new ClusterManager();
+	}
+
+	@Bean
+	public ClusterExecutor clusterExecutor()
+	{
+		return new ClusterExecutor();
+	}
+
+
+	@Bean
 	public CloudCurlBuilder cloudCurlBuilder()
 	{
 		return new CloudCurlBuilder();
 	}
+
+	@Bean
+	public ClusterCurlBuilder clusterCurlBuilder()
+	{
+		return new ClusterCurlBuilder();
+	}
+
 
 	@Bean
 	public ServerStarter serverStarter()

@@ -35,8 +35,9 @@ else
 		unset dependencies
 	fi
 
+	id=${t.name}
 	${t.name}=$(qsub -N ${t.name} $dependencies ${t.name}.sh)
-	echo $${t.name}
+	echo "$id:$${t.name}"
 	sleep 0
 fi
 

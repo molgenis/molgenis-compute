@@ -124,6 +124,17 @@ public class Parameters
 	public static final String ERROR_MESSAGE_ADDR_OPTION = "e";
 	public static final String DEFAULT_ERROR_ADDRESS = "none";
 
+	public static final String BACKEND_URL = "url";
+	public static final String BACKEND_URL_OPTION = "u";
+	public static final String DEFAULT_BACKEND_URL = "none";
+
+	public static final String BACKEND_TYPE_CLOUD = "cloud";
+	public static final String BACKEND_TYPE_GRID = "grid";
+
+	public static final String SCHEDULER_PBS = "pbs";
+	public static final String SCHEDULER_SLURM = "slurm";
+
+
 	public static String ENVIRONMENT_FULLPATH = null; // to be set
 
 	//table with all the values

@@ -17,8 +17,6 @@ import java.util.Properties;
  */
 public class CloudCurlBuilder
 {
-	private static final String SERVER_IP = "server_ip";
-	private static final String SERVER_PORT = "server_port";
 
 	private String serverIP, serverPort;
 
@@ -96,8 +94,8 @@ public class CloudCurlBuilder
 			input = new FileInputStream(".openstack.properties");
 			prop.load(input);
 
-			serverIP = prop.getProperty(SERVER_IP);
-			serverPort = prop.getProperty(SERVER_PORT);
+			serverIP = prop.getProperty(CloudManager.SERVER_IP);
+			serverPort = prop.getProperty(CloudManager.SERVER_PORT);
 
 		}
 		catch (IOException ex)

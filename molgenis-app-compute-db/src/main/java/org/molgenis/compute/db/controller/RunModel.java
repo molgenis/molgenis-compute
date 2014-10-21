@@ -10,15 +10,16 @@ public class RunModel
     private final boolean complete;
 	private final boolean owned;
 	private final boolean cancelled;
-	private final boolean vmrun;
 	private final boolean hasFailed;
 	private final String backendUrl;
 	private final Date creationTime;
 	private final String owner;
+	private final String backendType;
 
     public RunModel(String name, boolean running, boolean submitting,
 					boolean complete, boolean cancelled, boolean owned,
-					boolean vmrun, boolean hasFailed,
+					String backendType,
+					boolean hasFailed,
 					String backendUrl, Date creationTime, String owner)
 	{
 		this.name = name;
@@ -26,7 +27,7 @@ public class RunModel
         this.submitting = submitting;
         this.complete = complete;
 		this.owned = owned;
-		this.vmrun = vmrun;
+		this.backendType = backendType;
 		this.hasFailed = hasFailed;
 		this.backendUrl = backendUrl;
 		this.creationTime = creationTime;
@@ -64,9 +65,10 @@ public class RunModel
 	{
 		return hasFailed;
 	}
-	public boolean isVmrun()
+
+	public String getBackendType()
 	{
-		return vmrun;
+		return backendType;
 	}
 
 	public String getBackendUrl()
