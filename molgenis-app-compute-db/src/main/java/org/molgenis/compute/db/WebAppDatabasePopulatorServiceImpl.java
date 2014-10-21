@@ -15,6 +15,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
 @Service
 public class WebAppDatabasePopulatorServiceImpl implements WebAppDatabasePopulatorService
 {
@@ -22,6 +28,14 @@ public class WebAppDatabasePopulatorServiceImpl implements WebAppDatabasePopulat
 
 	private static final String USERNAME_ADMIN = "admin";
 	private static final String USERNAME_USER = "user";
+
+	private static final String NAME = "name";
+	private static final String BACKEND_URL = "backendUrl";
+	private static final String HOST_TYPE = "hostType";
+	private static final String COMMAND = "command";
+	private static final String SCHEDULER = "scheduler";
+
+	private static final String SERVERS_DIR = ".servers";
 
 	private final DataService dataService;
 
@@ -52,36 +66,65 @@ public class WebAppDatabasePopulatorServiceImpl implements WebAppDatabasePopulat
 
 	private void insertBackends()
 	{
-		ComputeBackend localhost = new ComputeBackend();
-		localhost.setName("localhost");
-		localhost.setBackendUrl("localhost");
-		localhost.setHostType("LOCALHOST");
-		localhost.setCommand("sh src/main/shell/local/maverick.sh");
-		dataService.add(ComputeBackend.ENTITY_NAME, localhost);
+		final File folder = new File(SERVERS_DIR);
 
-		ComputeBackend grid = new ComputeBackend();
-		grid.setName("ui.grid.sara.nl");
-		grid.setBackendUrl("ui.grid.sara.nl");
-		grid.setHostType("GRID");
-		grid.setCommand("glite-wms-job-submit  -d $USER -o pilot-one $HOME/maverick/maverick${pilotid}.jdl");
-		dataService.add(ComputeBackend.ENTITY_NAME, grid);
-
-		ComputeBackend openStackCloud = new ComputeBackend();
-		openStackCloud.setName("gcc.open.stack.cloud");
-		openStackCloud.setBackendUrl("openstack01.gcc.rug.nl");
-		openStackCloud.setHostType("CLOUD");
-		openStackCloud.setCommand("none");
-		dataService.add(ComputeBackend.ENTITY_NAME, openStackCloud);
-
-		ComputeBackend cluster2 = new ComputeBackend();
-		cluster2.setName("umcg.hpc.rug.nl");
-		cluster2.setBackendUrl("umcg.hpc.rug.nl");
-		cluster2.setHostType("CLUSTER");
-		cluster2.setCommand("sh submit.sh");
-		dataService.add(ComputeBackend.ENTITY_NAME, cluster2);
-
-
+		for (final File fileEntry : folder.listFiles())
+		{
+			if (!fileEntry.isDirectory())
+			{
+				logger.info("Inserting backend [" + fileEntry.getName() + "]");
+				ComputeBackend backend = readUserProperties(SERVERS_DIR + System.getProperty("file.separator") + fileEntry.getName());
+				if(backend != null)
+					dataService.add(ComputeBackend.ENTITY_NAME, backend);
+			}
+		}
 	}
+
+	private ComputeBackend readUserProperties(String name)
+	{
+		Properties prop = new Properties();
+		InputStream input = null;
+
+		ComputeBackend backend = new ComputeBackend();
+
+		try
+		{
+			input = new FileInputStream(name);
+
+			// load a properties file
+			prop.load(input);
+
+			backend.setName(prop.getProperty(NAME));
+			backend.setBackendUrl(prop.getProperty(BACKEND_URL));
+			backend.setHostType(prop.getProperty(HOST_TYPE));
+			backend.setCommand(prop.getProperty(COMMAND));
+			backend.setScheduler(prop.getProperty(SCHEDULER));
+
+			return backend;
+
+		}
+		catch (IOException ex)
+		{
+			ex.printStackTrace();
+		}
+		finally
+		{
+			if (input != null)
+			{
+				try
+				{
+					input.close();
+				}
+				catch (IOException e)
+				{
+					e.printStackTrace();
+				}
+			}
+		}
+		return null;
+	}
+
+
 
 	@Override
 	@Transactional
