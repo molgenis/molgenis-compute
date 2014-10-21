@@ -1469,14 +1469,15 @@ public class ComputeCommandLineTest
 				"unset dependencies\n" +
 				"fi\n" +
 				"output=$(sbatch $dependencies step2_0.sh)\n" +
-				"submitted=${output##\"Submitted batch job \"}\n" +
-				"echo \"step2_0:$submitted\"\n" +
-				"fi";
+				"id=step2_0\n" +
+				"step2_0=${output##\"Submitted batch job \"}\n" +
+				"echo \"$id:$step2_0\"\n" +
+				"fi\n";
 
-//		if(!script.contains(stepDependencies))
-//		{
-//			Assert.fail("SLURM dependencies is not generated correctly");
-//		}
+		if(!script.contains(stepDependencies))
+		{
+			Assert.fail("SLURM dependencies is not generated correctly");
+		}
 
 	}
 
