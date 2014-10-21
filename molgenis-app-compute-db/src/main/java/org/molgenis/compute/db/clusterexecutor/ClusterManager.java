@@ -42,6 +42,7 @@ public class ClusterManager
 		else
 		{
 			//read default from parameters file
+			readUserProperties();
 			(new Thread(new ClusterThread(clusterExecutor, run, defUser,
 					defPass, ClusterThread.CANCEL, ctx))).start();
 		}
