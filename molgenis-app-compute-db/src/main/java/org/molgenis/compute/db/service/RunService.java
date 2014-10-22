@@ -264,9 +264,11 @@ public class RunService
 			cloudManager.stopExecutingRun(run);
 
 		}
+		//here stop == cancel, because of the whole run cancelling
 		else if(run.getComputeBackend().getHostType().equalsIgnoreCase("CLUSTER"))
 		{
 			run.setIsActive(false);
+			run.setIsCancelled(true);
 			dataService.update(ComputeRun.ENTITY_NAME, run);
 			clusterManager.cancelRunJobs(run, ctx);
 		}
@@ -447,7 +449,11 @@ public class RunService
 		if(failed > 0)
 			run.setHasFailedJobs(true);
 
-		if ((generated == 0) && (ready == 0) && (running == 0) && (failed == 0) && (cancelled == 0))
+
+		int all = Iterables.size(dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl().
+				eq(ComputeTask.COMPUTERUN, run), ComputeTask.class));
+
+		if(all == done)
 		{
 			status = true;
 			run.setIsDone(true);
@@ -464,26 +470,29 @@ public class RunService
 	 * @param runName
 	 * @return the number of resubmitted failed tasks
 	 */
-	public int resubmitFailedTasks(String runName)
+	public int resubmitFailedCancelledTasks(String runName)
 	{
 		LOG.info("Resubmit failed tasks for run [" + runName + "]");
 
 		ComputeRun run = dataService.findOne(ComputeRun.ENTITY_NAME, new QueryImpl()
 				.eq(ComputeRun.NAME, runName), ComputeRun.class);
 
-		Iterable<ComputeTask> tasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
+		Iterable<ComputeTask> tasksFailed = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
 				.eq(ComputeTask.STATUSCODE, MolgenisPilotService.TASK_FAILED).and()
 				.eq(ComputeTask.COMPUTERUN, run), ComputeTask.class);
 
-		if (!tasks.iterator().hasNext())
+		Iterable<ComputeTask> tasksCancelled = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
+				.eq(ComputeTask.STATUSCODE, MolgenisPilotService.TASK_CANCELLED).and()
+				.eq(ComputeTask.COMPUTERUN, run), ComputeTask.class);
+
+
+		if (!tasksFailed.iterator().hasNext() && !tasksCancelled.iterator().hasNext())
 		{
 			return 0;
 		}
 
-		int numberOfTasks = 0;
-		for (ComputeTask task : tasks)
+		for (ComputeTask task : tasksFailed)
 		{
-			numberOfTasks++;
 			// mark job as generated
 			// entry to history is added by ComputeTaskDecorator
 			task.setStatusCode("generated");
@@ -493,15 +502,30 @@ public class RunService
 			LOG.info("Task [" + task.getName() + "] changed from failed to generated");
 		}
 
-		dataService.update(ComputeTask.ENTITY_NAME, tasks);
+		for (ComputeTask task : tasksCancelled)
+		{
+			// mark job as generated
+			// entry to history is added by ComputeTaskDecorator
+			task.setStatusCode("generated");
+			task.setRunLog(null);
+			task.setRunInfo(null);
+
+			LOG.info("Task [" + task.getName() + "] changed from cancelled to generated");
+		}
+
+
+		dataService.update(ComputeTask.ENTITY_NAME, tasksFailed);
+		dataService.update(ComputeTask.ENTITY_NAME, tasksCancelled);
 
 		run.setIsActive(false);
 		run.setIsDone(false);
 		run.setHasFailedJobs(false);
 		run.setIsSubmittingPilots(false);
+		run.setIsCancelled(false);
+
 		dataService.update(ComputeRun.ENTITY_NAME, run);
 
-		return numberOfTasks;
+		return Iterables.size(tasksFailed) + Iterables.size(tasksCancelled);
 	}
 
 	/**
@@ -524,8 +548,6 @@ public class RunService
 
 	private int getTaskStatusCount(ComputeRun run, String status)
 	{
-
-
 		Iterable<ComputeTask> computeTasks =
 				dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl().eq(ComputeTask.COMPUTERUN, run).and()
 						.eq(ComputeTask.STATUSCODE, status), ComputeTask.class);

@@ -133,6 +133,14 @@ ${message}
                 <button type="submit" class="btn">Terminate VMs</button>
             </form>
         </#if>
+        <#if run.backendType == "CLUSTER">
+            <div>
+                <form action="/menu/Compute/dashboard/resubmit" class="form-inline" method="post">
+                <input type="hidden" name="run" value="${run.name}"/>
+                <button type="submit" class="btn btn-default btn-sm">Resubmit failed and cancelled</button>
+                </form>
+            </div>
+        </#if>
     <#elseif run.backendType == "CLOUD">
         <#if run.running>
             <div class="text-success">Running</div>
@@ -211,7 +219,7 @@ ${message}
             <input type="hidden" name="run" value="${run.name}"/>
             <button type="submit" class="btn">Cancel</button>
         </form>
-            <#if run.hasFailed>
+            <#if run.hasFailed || run.cancelled>
             <form id="resubmitFailedTasksForm_${run.name}" action="/menu/Compute/dashboard/resubmit"
                   class="form-inline" method="post">
                 <input type="hidden" name="run" value="${run.name}"/>

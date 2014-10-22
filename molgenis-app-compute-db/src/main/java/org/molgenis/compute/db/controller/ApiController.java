@@ -211,7 +211,7 @@ public class ApiController
 		ResubmitFailedTasksResponse response = new ResubmitFailedTasksResponse();
 		try
 		{
-			int count = runService.resubmitFailedTasks(request.getRunName());
+			int count = runService.resubmitFailedCancelledTasks(request.getRunName());
 			response.setNrOfResubmittedTasks(count);
 		}
 		catch (Exception e)
