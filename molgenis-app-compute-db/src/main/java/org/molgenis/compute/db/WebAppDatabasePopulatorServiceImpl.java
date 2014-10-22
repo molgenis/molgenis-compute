@@ -34,6 +34,7 @@ public class WebAppDatabasePopulatorServiceImpl implements WebAppDatabasePopulat
 	private static final String HOST_TYPE = "hostType";
 	private static final String COMMAND = "command";
 	private static final String SCHEDULER = "scheduler";
+	private static final String ROOT_DIR = "rootDir";
 
 	private static final String SERVERS_DIR = ".servers";
 
@@ -99,6 +100,7 @@ public class WebAppDatabasePopulatorServiceImpl implements WebAppDatabasePopulat
 			backend.setHostType(prop.getProperty(HOST_TYPE));
 			backend.setCommand(prop.getProperty(COMMAND));
 			backend.setScheduler(prop.getProperty(SCHEDULER));
+			backend.setRootDir(prop.getProperty(ROOT_DIR));
 
 			return backend;
 
