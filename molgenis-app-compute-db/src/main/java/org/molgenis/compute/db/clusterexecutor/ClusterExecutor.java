@@ -27,7 +27,7 @@ public class ClusterExecutor
 	private static final String PBS_CANCEL = "qdel ";
 
 	public static final String SLURM = "slurm";
-	private static final String PBS = "pbs";
+	public static final String PBS = "pbs";
 
 	private List<String> idList = new ArrayList<String>();
 
