@@ -88,7 +88,8 @@
             <field name="backendUrl" type="string" nillable="false" label="Backend url" description="Backend host" />
       		<field name="hostType" type="enum" nillable="false" label="Host type" enum_options="[CLUSTER,GRID,LOCALHOST,CLOUD]" description="type of the host" />
       		<field name="command" nillable="true" label="Command" description="Command to be executed" />
-            <field name="scheduler" nillable="true" label="Command" enum_options="[PBS,SLURM]" description="Command to be executed" />
+            <field name="scheduler" nillable="true" label="Scheduler" enum_options="[PBS,SLURM]" description="scheduler, that is used in backend" />
+            <field name="rootDir" nillable="true" label="Root Directory" type="string" description="root directory for all analyses" />
             <unique fields="name" />
         </entity>
 	</module>

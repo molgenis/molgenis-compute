@@ -23,8 +23,11 @@ public class ClusterExecutor
 {
 	private static final org.apache.log4j.Logger LOG = org.apache.log4j.Logger.getLogger(ClusterManager.class);
 
-	private static final String CLUSTER_DIR = "cluster_dir";
-	private String CLUSTER_ROOT_DIR;
+	private static final String SLURM_CANCEL = "scancel ";
+	private static final String PBS_CANCEL = "qdel ";
+
+	public static final String SLURM = "slurm";
+	public static final String PBS = "pbs";
 
 	private List<String> idList = new ArrayList<String>();
 
@@ -41,10 +44,9 @@ public class ClusterExecutor
 		System.out.println("SUBMIT Run :" + run.getName());
 		this.run = run;
 
-		readUserProperties();
-
 		String runName = run.getName();
-		String runDir = CLUSTER_ROOT_DIR + runName;
+		String clusterRoot = run.getComputeBackend().getRootDir();
+		String runDir = clusterRoot + runName;
 
 		boolean prepared = prepareRun(run, username, password, runDir);
 
@@ -318,10 +320,17 @@ public class ClusterExecutor
 			Iterable<ComputeTask> tasks = dataService.findAll(ComputeTask.ENTITY_NAME, new QueryImpl()
 					.eq(ComputeTask.COMPUTERUN, run), ComputeTask.class);
 
+			String schedulerType = run.getComputeBackend().getScheduler();
+
 			for(ComputeTask task : tasks)
 			{
-
-				String command = "scancel " + task.getSubmittedID();
+				String command ="";
+				if(schedulerType.equalsIgnoreCase(SLURM))
+					command = SLURM_CANCEL + task.getSubmittedID();
+				else if(schedulerType.equalsIgnoreCase(PBS))
+					command = PBS_CANCEL + task.getSubmittedID();
+				else
+				    LOG.error("Unsupported scheduler type [" + schedulerType + "]");
 
 				channelExec.setCommand(command);
 				channelExec.connect();
@@ -360,39 +369,5 @@ public class ClusterExecutor
 		}
 		return false;
 
-	}
-
-	private void readUserProperties()
-	{
-		Properties prop = new Properties();
-		InputStream input = null;
-
-		try
-		{
-			input = new FileInputStream(".cluster.properties");
-
-			// load a properties file
-			prop.load(input);
-
-			CLUSTER_ROOT_DIR = prop.getProperty(CLUSTER_DIR);
-		}
-		catch (IOException ex)
-		{
-			ex.printStackTrace();
-		}
-		finally
-		{
-			if (input != null)
-			{
-				try
-				{
-					input.close();
-				}
-				catch (IOException e)
-				{
-					e.printStackTrace();
-				}
-			}
-		}
 	}
 }
