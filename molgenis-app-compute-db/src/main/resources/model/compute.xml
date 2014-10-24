@@ -62,7 +62,7 @@
       		<field name="computeBackend" type="xref" label="Backend" xref_entity="ComputeBackend" nillable="false" description="Backend where run will be executed" />
             <field name="userEnvironment" type="text" label="User environment" nillable="true" description="Environment vars provided by the user" />
             <field name="submitScript" type="text" nillable="true" description="The generated submit.sh to use only in the cluster scheduler environment" />
-            <field name="pollDelay" type="long" nillable="false" label="Poll delay" description="Delay between two database ComputeTask polls" />
+            <field name="pollDelay" type="long" nillable="true" label="Poll delay" description="Delay between two database ComputeTask polls" />
             <field name="isActive" type="boolean" nillable="false" default="false" label="flag, if the run is active for execution" />
             <field name="isSubmittingPilots" type="boolean" nillable="false" default="false" label="flag, if pilots are submitting for this run"/>
             <field name="isDone" type="boolean" nillable="false" default="false" label="flag, showing that run is completed"/>

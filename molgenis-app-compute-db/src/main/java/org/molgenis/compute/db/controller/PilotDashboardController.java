@@ -137,10 +137,10 @@ public class PilotDashboardController extends MolgenisPluginController
 
 
 	@RequestMapping("/resubmit")
-	public String resubmitFailedTasks(@RequestParam("run")
+	public String resubmitFailedCancelledTasks(@RequestParam("run")
 	String runName, Model model)
 	{
-		int count = runService.resubmitFailedTasks(runName);
+		int count = runService.resubmitFailedCancelledTasks(runName);
 		model.addAttribute("message", "Resubmitted " + count + " failed tasks for '" + runName + "'");
 		return init(model);
 	}
