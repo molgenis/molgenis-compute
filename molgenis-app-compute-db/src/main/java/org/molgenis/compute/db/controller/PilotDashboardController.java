@@ -13,7 +13,7 @@ import org.apache.log4j.Logger;
 import org.elasticsearch.search.suggest.Suggest;
 import org.molgenis.compute.db.ComputeDbException;
 import org.molgenis.compute.db.service.RunService;
-import org.molgenis.compute.db.service.TestLightpathService;
+//import org.molgenis.compute.db.service.TestLightpathService;
 import org.molgenis.compute.runtime.ComputeRun;
 import org.molgenis.compute5.db.api.RunStatus;
 import org.molgenis.data.DataService;
