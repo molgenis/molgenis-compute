@@ -24,7 +24,7 @@
 			<field name="prevSteps" type="mref" xref_entity="ComputeTask" nillable="true" description="To keep track of calculation dependencies" />
 			<field name="statusCode" nillable="false" type="enum" enum_options="[generated,ready,running,failed,done,jobsubmitted,cancelled]" default="generated"
 				description="Last known status of this task. See compute history for details. NB 'ready' means ready for running (cf. 'done')." />
-            <field name="submittedID" type="text" nillable="true"
+            <field name="submittedID" type="string" nillable="true"
                    description="ID received from the scheduler after submission; used only in clusters"/>
             <unique fields="name,computeRun" />
 		</entity>
