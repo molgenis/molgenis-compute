@@ -84,14 +84,14 @@ ${message}
     </#if>
 
 <div class="well well-small">
-<div class="row-fluid">
-<div class="span5">
+<div class="row">
+<div class="col-md-5">
     <div class="host-header">
         <span class="host-name">${run.name}@${run.backendUrl}</span>
         <span class="creation-time">(${run.creationTime?string("yyyy-MM-dd HH:mm:ss")})</span>
     </div>
     <#if (run.complete && run.hasFailed)>
-        <div class="text-error">Failed</div>
+        <div class="text-danger">Failed</div>
         <#if run.hasFailed>
             <form id="resubmitFailedTasksForm_${run.name}" action="/menu/Compute/dashboard/resubmit" class="form-inline"
                   method="post">
@@ -122,7 +122,7 @@ ${message}
             </form>
         </#if>
     <#elseif run.cancelled>
-        <div class="text-error">Cancelled</div>
+        <div class="text-danger">Cancelled</div>
         <#if run.backendType == "CLOUD">
             <form action="/menu/Compute/dashboard/release" class="form-inline" method="post">
                 <input type="hidden" name="run" value="${run.name}"/>
@@ -255,7 +255,7 @@ ${message}
                     <button type="submit" class="btn inactivate-btn">Inactivate</button>
                 </form>
             <#else>
-                <div class="text-error">Not active</div>
+                <div class="text-danger">Not active</div>
                 <form action="/menu/Compute/dashboard/activate" class="form-inline" method="post">
                     <input type="hidden" name="run" value="${run.name}"/>
                     <button type="submit" class="btn activate-btn">Activate</button>
@@ -291,7 +291,7 @@ ${message}
         </#if>
     </#if>
 </div>
-<div class="span5 status">
+<div class="col-md-5 status">
     <div class="status-table">
         <table id="${run.name}" class="table table-condensed table-hover">
             <tr>
@@ -303,8 +303,8 @@ ${message}
             <tr>
                 <td class="text-info">Jobs ready</td>
                 <td class="ready text-warning"></td>
-                <td class="text-error">Jobs failed</td>
-                <td class="failed text-error"></td>
+                <td class="text-danger">Jobs failed</td>
+                <td class="failed text-danger"></td>
             </tr>
             <tr>
                 <#if run.backendType == "GRID">
@@ -314,8 +314,8 @@ ${message}
                     <td class="text-warning">Jobs submitted</td>
                     <td class="jobsubmitted text-warning"></td>
                 </#if>
-                <td class="text-error">Jobs cancelled</td>
-                <td class="cancelled text-error"></td>
+                <td class="text-danger">Jobs cancelled</td>
+                <td class="cancelled text-danger"></td>
             </tr>
             <#if run.backendType == "GRID">
                 <tr>
@@ -333,7 +333,8 @@ ${message}
         </table>
     </div>
 </div>
-<div class="span1">
+<div class="col-md-1"></div>
+<div class="col-md-offset-1 col-md-1">
     <#if run.owned>
         <a href="/menu/Compute/dashboard/close?run=${run.name}" title="Remove from dashboard"
            class="close">&times;</a>
