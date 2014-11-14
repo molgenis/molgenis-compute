@@ -13,12 +13,10 @@ import org.molgenis.compute.db.executor.PilotManager;
 import org.molgenis.compute.db.executor.Scheduler;
 import org.molgenis.compute.db.pilot.ScriptBuilder;
 import org.molgenis.data.DataService;
-import org.molgenis.elasticsearch.config.EmbeddedElasticSearchConfig;
+import org.molgenis.data.elasticsearch.config.EmbeddedElasticSearchConfig;
 import org.molgenis.omx.OmxConfig;
 import org.molgenis.omx.config.DataExplorerConfig;
-import org.molgenis.search.SearchSecurityConfig;
 import org.molgenis.ui.MolgenisWebAppConfig;
-import org.springframework.beans.factory.annotation.Autowire;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -38,8 +36,8 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @EnableScheduling
 @ComponentScan("org.molgenis")
 @Import(
-		{ WebAppSecurityConfig.class, DatabaseConfig.class, OmxConfig.class, EmbeddedElasticSearchConfig.class,
-				DataExplorerConfig.class, SearchSecurityConfig.class })
+{ WebAppSecurityConfig.class, DatabaseConfig.class, OmxConfig.class, EmbeddedElasticSearchConfig.class,
+		DataExplorerConfig.class })
 public class WebAppConfig extends MolgenisWebAppConfig
 {
 	@Autowired
@@ -102,7 +100,6 @@ public class WebAppConfig extends MolgenisWebAppConfig
 		return new ClusterExecutor();
 	}
 
-
 	@Bean
 	public CloudCurlBuilder cloudCurlBuilder()
 	{
@@ -114,7 +111,6 @@ public class WebAppConfig extends MolgenisWebAppConfig
 	{
 		return new ClusterCurlBuilder();
 	}
-
 
 	@Bean
 	public ServerStarter serverStarter()
@@ -130,6 +126,5 @@ public class WebAppConfig extends MolgenisWebAppConfig
 
 		return scheduler;
 	}
-
 
 }

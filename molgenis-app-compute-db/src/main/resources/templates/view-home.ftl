@@ -7,6 +7,6 @@
            Welcome to Molgenis Compute5db Platinum Grid Edition
     </h2>
     <br>
-    <img src="img/compute5db.png"/>
+    <img src="/img/compute5db.png"/>
 </div>
 <@footer/>

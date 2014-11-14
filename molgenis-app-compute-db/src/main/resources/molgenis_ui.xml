@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <molgenis name="compute" label="Compute Testing">
-    <menu name="mainmenu" label="Main">
+    <menu label="Home" name="main">
         <plugin id="home" name="Home" url="home"/>
         <!--plugin id="extra" name="Extra" url="extra"/>
         <plugin id="editor" name="Editor" url="editor"/-->
         <menu name="Compute" label="Compute">
-            <plugin id="dashboard" name="Pilot dashboard"
-                    url="dashboard"/>
+            <plugin id="dashboard" name="Pilot dashboard" url="dashboard"/>
+            <plugin id="worksheetupload" name="Worksheet upload" url="worksheetupload"/>
             <!--MolgenisEntityFormPlugin-->
             <plugin id="form.ComputeRun" name="Runs" url="form.ComputeRun"/>
             <plugin id="form.ComputeTask" name="Tasks" url="form.ComputeTask"/>

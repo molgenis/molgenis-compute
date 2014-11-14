@@ -26,9 +26,9 @@ public class ComputeTaskDecorator extends CrudRepositoryDecorator
 	}
 
 	@Override
-	public void add(Iterable<? extends Entity> entities)
+	public Integer add(Iterable<? extends Entity> entities)
 	{
-		super.add(entities);
+		Integer count = super.add(entities);
 
 		DataService dataService = ApplicationContextProvider.getApplicationContext().getBean(DataService.class);
 
@@ -42,6 +42,7 @@ public class ComputeTaskDecorator extends CrudRepositoryDecorator
 			dataService.add(ComputeTaskHistory.ENTITY_NAME, history);
 		}
 
+		return count;
 	}
 
 	@Override
@@ -49,25 +50,25 @@ public class ComputeTaskDecorator extends CrudRepositoryDecorator
 	{
 		DataService dataService = ApplicationContextProvider.getApplicationContext().getBean(DataService.class);
 
-		for (Entity e: entities)
+		for (Entity e : entities)
+		{
+			ComputeTask task = (ComputeTask) e;
+			ComputeTask old = dataService.findOne(ComputeTask.ENTITY_NAME,
+					new QueryImpl().eq(ComputeTask.NAME, task.getName()), ComputeTask.class);
+
+			if ((old != null) && !old.getStatusCode().equalsIgnoreCase(task.getStatusCode()))
 			{
-				ComputeTask task = (ComputeTask) e;
-				ComputeTask old = dataService.findOne(ComputeTask.ENTITY_NAME,
-						new QueryImpl().eq(ComputeTask.NAME, task.getName()), ComputeTask.class);
+				ComputeTaskHistory history = new ComputeTaskHistory();
+				history.setComputeTask(task);
+				history.setRunLog(task.getRunLog());
+				history.setStatusTime(new Date());
+				history.setStatusCode(old.getStatusCode());
+				history.setNewStatusCode(task.getStatusCode());
 
-				if ((old != null) && !old.getStatusCode().equalsIgnoreCase(task.getStatusCode()))
-				{
-					ComputeTaskHistory history = new ComputeTaskHistory();
-					history.setComputeTask(task);
-					history.setRunLog(task.getRunLog());
-					history.setStatusTime(new Date());
-					history.setStatusCode(old.getStatusCode());
-					history.setNewStatusCode(task.getStatusCode());
-
-					dataService.add(ComputeTaskHistory.ENTITY_NAME, history);
-				}
-
+				dataService.add(ComputeTaskHistory.ENTITY_NAME, history);
 			}
+
+		}
 
 		super.update(entities);
 	}

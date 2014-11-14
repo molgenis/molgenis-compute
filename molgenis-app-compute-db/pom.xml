@@ -2,7 +2,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <properties>
-        <molgenis.version>1.0.0</molgenis.version>
+        <molgenis.version>1.2.0</molgenis.version>
         <client.version>3.2.1</client.version>
     </properties>
     <parent>
@@ -16,8 +16,8 @@
         <resources>
             <resource>
                 <directory>${project.basedir}/src/main/resources</directory>
+                <filtering>true</filtering>
                 <excludes>
-                    <exclude>molgenis.properties</exclude>
                     <exclude>**git.properties</exclude>
                     <exclude>**/model/*.xml</exclude>
                  </excludes>
@@ -122,30 +122,22 @@
             <artifactId>molgenis-security</artifactId>
             <version>${molgenis.version}</version>
         </dependency>
-        <dependency>
-			<groupId>org.molgenis</groupId>
-			<artifactId>molgenis-search</artifactId>
-			<version>${molgenis.version}</version>
-		</dependency>
 		<dependency>
 			<groupId>org.molgenis</groupId>
-			<artifactId>molgenis-search-elasticsearch</artifactId>
+			<artifactId>molgenis-data-elasticsearch</artifactId>
 			<version>${molgenis.version}</version>
 		</dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-aop</artifactId>
-            <version>${spring.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context-support</artifactId>
-            <version>${spring.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
-            <version>${spring.version}</version>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>

@@ -3,7 +3,6 @@ package org.molgenis.compute.db.controller;
 import static org.molgenis.compute.db.controller.HomeController.URI;
 
 import org.molgenis.framework.server.MolgenisSettings;
-import org.molgenis.framework.ui.MolgenisPlugin;
 import org.molgenis.framework.ui.MolgenisPluginController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -18,7 +17,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @RequestMapping(URI)
 public class HomeController extends MolgenisPluginController
 {
-	public static final String URI = "/plugin/home";
+	public static final String ID = "home";
+	public static final String URI = MolgenisPluginController.PLUGIN_URI_PREFIX + ID;
 
 	private static final String DEFAULT_APP_HOME_HTML = "<p>Welcome to Compute 5!</p>";
 	private static final String KEY_APP_HOME_HTML = "app.home.html";

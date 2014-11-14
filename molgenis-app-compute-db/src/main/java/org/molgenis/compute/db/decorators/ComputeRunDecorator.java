@@ -7,7 +7,6 @@ import org.molgenis.data.CrudRepository;
 import org.molgenis.data.CrudRepositoryDecorator;
 import org.molgenis.data.Entity;
 
-
 public class ComputeRunDecorator extends CrudRepositoryDecorator
 {
 	public ComputeRunDecorator(CrudRepository generatedMapper)
@@ -16,10 +15,10 @@ public class ComputeRunDecorator extends CrudRepositoryDecorator
 	}
 
 	@Override
-	public void add(Iterable<? extends Entity> entities)
+	public Integer add(Iterable<? extends Entity> entities)
 	{
 		validate(entities);
-		super.add(entities);
+		return super.add(entities);
 	}
 
 	@Override
@@ -34,7 +33,7 @@ public class ComputeRunDecorator extends CrudRepositoryDecorator
 		for (Entity e : entities)
 		{
 			ComputeRun run = (ComputeRun) e;
-			
+
 			if (StringUtils.isEmpty(run.getName()) || !StringUtils.isAlphanumeric(run.getName()))
 			{
 				throw new ComputeDbException("Illegal run name [" + run.getName() + "] should be non empty alphnumeric");
