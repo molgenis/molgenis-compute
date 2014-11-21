@@ -116,6 +116,42 @@ public class SeparatedListFoldingTest
 
 	}
 
+	//test shows how to iterate over two lists without creating of all possible combination of parameters
+	@Test
+	public void testParameters2() throws Exception
+	{
+		System.out.println("--- Start Test Folding ---");
+
+		File f = new File(outputDir);
+		FileUtils.deleteDirectory(f);
+		Assert.assertFalse(f.exists());
+
+		f = new File(".compute.properties");
+		FileUtils.deleteQuietly(f);
+		Assert.assertFalse(f.exists());
+
+		ComputeCommandLine.main(new String[]{
+				"--generate",
+				"--run",
+				"--workflow",
+				"src/main/resources/workflows/listOutOfTwo/workflow2.csv",
+				"--parameters",
+				"src/main/resources/workflows/listOutOfTwo/parameters.csv",
+				"--weave",
+				"--rundir",
+				outputDir
+		});
+
+		String proper = "for s in \"prefix1\" \"prefix2\" \"prefix3\" \"postfix1\" \"postfix2\" \"postfix3\"";
+
+		String t = ComputeCommandLineTest.getFileAsString(outputDir + "/test1_0.sh");
+
+		if(!t.contains(proper))
+		{
+			Assert.fail("folding broken");
+		}
+	}
+
 	@Test
 	public void testParametersAllInTwoFiles() throws Exception
 	{
