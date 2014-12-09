@@ -7,13 +7,13 @@ MCDIR=$( cd -P "$( dirname "$0" )" && pwd )
 
 java -cp \
 $MCDIR:\
-$(dirname -- "$0")/lib/spring-core-4.0.2.RELEASE.jar:\
-$(dirname -- "$0")/lib/spring-context-4.0.2.RELEASE.jar:\
-$(dirname -- "$0")/lib/spring-beans-4.0.2.RELEASE.jar:\
-$(dirname -- "$0")/lib/molgenis-core-1.0.0.jar:\
-$(dirname -- "$0")/lib/molgenis-data-1.0.0.jar:\
-$(dirname -- "$0")/lib/molgenis-data-excel-1.0.0.jar:\
-$(dirname -- "$0")/lib/molgenis-data-csv-1.0.0.jar:\
+$(dirname -- "$0")/lib/spring-core-4.0.6.RELEASE.jar:\
+$(dirname -- "$0")/lib/spring-context-4.0.6.RELEASE.jar:\
+$(dirname -- "$0")/lib/spring-beans-4.0.6.RELEASE.jar:\
+$(dirname -- "$0")/lib/molgenis-core-1.2.0.jar:\
+$(dirname -- "$0")/lib/molgenis-data-1.2.0.jar:\
+$(dirname -- "$0")/lib/molgenis-data-excel-1.2.0.jar:\
+$(dirname -- "$0")/lib/molgenis-data-csv-1.2.0.jar:\
 $(dirname -- "$0")/lib/molgenis-compute-core-1.0.0-SNAPSHOT.jar:\
 $(dirname -- "$0")/lib/commons-cli-1.2.jar:\
 $(dirname -- "$0")/lib/commons-io-2.4.jar:\
