@@ -30,16 +30,17 @@ public class ComputeCommandLine
 {
 	private static final Logger LOG = Logger.getLogger(ComputeCommandLine.class);
 	private UrlReader urlReader = new UrlReader();
+	private CommandLineRunContainer commandLineRunContainer = null;
 
 	@SuppressWarnings("static-access")
 	public static void main(String[] args) throws Exception
 	{
 		BasicConfigurator.configure();
 
-		System.out.println("### MOLGENIS COMPUTE ###");
+		LOG.info("### MOLGENIS COMPUTE ###");
 		String version = ComputeCommandLine.class.getPackage().getImplementationVersion();
 		if (null == version) version = "development";
-		System.out.println("Version: " + version);
+		LOG.info("Version: " + version);
 
 		// disable freemarker logging
 		freemarker.log.Logger.selectLoggerLibrary(freemarker.log.Logger.LIBRARY_NONE);
@@ -51,7 +52,7 @@ public class ComputeCommandLine
 
 	}
 
-	public Compute execute(ComputeProperties computeProperties) throws Exception
+	public CommandLineRunContainer execute(ComputeProperties computeProperties) throws Exception
 	{
 		Compute compute = new Compute(computeProperties);
 
@@ -74,13 +75,13 @@ public class ComputeCommandLine
 		if(computeProperties.showHelp)
 		{
 			new HelpFormatter().printHelp("sh molgenis-compute.sh -p parameters.csv", computeProperties.getOptions());
-			return compute;
+			return commandLineRunContainer;
 		}
 
 		if (computeProperties.create)
 		{
 			new CreateWorkflowGenerator(computeProperties.createDirName);
-			return compute;
+			return commandLineRunContainer;
 		}
 		else if (computeProperties.clear)
 		{
@@ -88,34 +89,34 @@ public class ComputeCommandLine
 
 			if(file.delete())
 			{
-				System.out.println(file.getName() + " is cleared");
+				LOG.info(file.getName() + " is cleared");
 			}
 			else
 			{
-				System.out.println("Fail to clear " + file.getName());
+				LOG.info("Fail to clear " + file.getName());
 			}
-			return compute;
+			return commandLineRunContainer;
 		}
 		else if (computeProperties.generate)
 		{
-			String toPrint = computeProperties.workFlow.substring(2);
-			System.out.println("Using workflow:         " + new File(toPrint).getAbsolutePath());
+			String toPrint = computeProperties.workFlow;
+			LOG.info("Using workflow:         " + new File(toPrint).getAbsolutePath());
 
 			if (defaultsExists(computeProperties))
 			{
-				toPrint = computeProperties.defaults.substring(2);
-				System.out.println("Using defaults:         "
+				toPrint = computeProperties.defaults;
+				LOG.info("Using defaults:         "
 						+ new File(toPrint).getAbsolutePath());
 			}
 
 			for(int i = 0; i < computeProperties.parameters.length; i++)
 			{
-				toPrint = computeProperties.parameters[i].substring(2);
-				System.out.println("Using parameters:       " + new File(toPrint).getAbsolutePath());
+				toPrint = computeProperties.parameters[i];
+				LOG.info("Using parameters:       " + new File(toPrint).getAbsolutePath());
 			}
-				System.out.println("Using run (output) dir: " + new File(computeProperties.runDir).getAbsolutePath());
-			System.out.println("Using backend:          " + computeProperties.backend);
-			System.out.println("Using runID:            " + computeProperties.runId + "\n\n");
+			LOG.info("Using run (output) dir: " + new File(computeProperties.runDir).getAbsolutePath());
+			LOG.info("Using backend:          " + computeProperties.backend);
+			LOG.info("Using runID:            " + computeProperties.runId + "\n\n");
 
 			generate(compute, computeProperties);
 
@@ -133,7 +134,7 @@ public class ComputeCommandLine
 						}
 					});
 
-					System.out.println("Generated jobs that are ready to run:");
+					LOG.info("Generated jobs that are ready to run:");
 					if (null == scripts) System.out.println("None. Remark: the run (output) directory '"
 							+ computeProperties.runDir + "' does not exist.");
 					else if (0 == scripts.length) System.out.println("None.");
@@ -201,18 +202,18 @@ public class ComputeCommandLine
 
 				if((backendPass == null) || (backendUserName == null))
 				{
-					System.out.println("\nPlease specify username and password for computational back-end");
-					System.out.println("Use --backenduser[-bu] and --backendpassword[-bp] for this");
-					return compute;
+					LOG.info("\nPlease specify username and password for computational back-end");
+					LOG.info("Use --backenduser[-bu] and --backendpassword[-bp] for this");
+					return commandLineRunContainer;
 				}
 
 				StartRunRequest startRunRequest = new StartRunRequest(computeProperties.runId, backendUserName, backendPass);
 				dbApiClient.start(startRunRequest);
-				System.out.println("\n" + computeProperties.runId + "is submitted for execution "
+				LOG.info("\n" + computeProperties.runId + "is submitted for execution "
 						+ computeProperties.backend + " by user " + backendUserName);
 			}
 		}
-		return compute;
+		return commandLineRunContainer;
 	}
 
 	private static boolean defaultsExists(ComputeProperties computeProperties) throws IOException
@@ -252,7 +253,7 @@ public class ComputeCommandLine
 		compute.setParametersContainer(parametersContainer);
 		compute.setParameters(parameters);
 
-		System.out.println("Starting script generation...");
+		LOG.info("Starting script generation...");
 		// create outputdir
 		File dir = new File(computeProperties.runDir);
 		computeProperties.runDir = dir.getCanonicalPath();
@@ -283,7 +284,7 @@ public class ComputeCommandLine
 		List<Task> tasks = taskGenerator.generate(compute);
 		compute.setTasks(tasks);
 
-		new BackendGenerator(computeProperties).generate(compute.getTasks(), dir);
+		commandLineRunContainer = new BackendGenerator(computeProperties).generate(compute.getTasks(), dir);
 
 //TODO:	FIX	generate documentation
 //		new DocTotalParametersCsvGenerator().generate(new File(computeProperties.runDir + "/doc/outputs.csv"),
@@ -291,7 +292,7 @@ public class ComputeCommandLine
 //		new DocWorkflowDiagramGenerator().generate(new File(computeProperties.runDir + "/doc"), compute.getWorkflow());
 //		new DocTasksDiagramGenerator().generate(new File(computeProperties.runDir + "/doc"), compute.getTasks());
 
-		System.out.println("Generation complete.");
+		LOG.info("Generation complete.");
 	}
 
 }

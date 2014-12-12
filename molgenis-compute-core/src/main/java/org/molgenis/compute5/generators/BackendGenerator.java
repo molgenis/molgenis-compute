@@ -10,6 +10,7 @@ import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.apache.poi.util.IOUtils;
+import org.molgenis.compute5.CommandLineRunContainer;
 import org.molgenis.compute5.ComputeProperties;
 import org.molgenis.compute5.model.Parameters;
 import org.molgenis.compute5.model.Task;
@@ -83,9 +84,10 @@ public class BackendGenerator
 		return result.toString();
 	}
 
-	public void generate(List<Task> tasks, File targetDir) throws IOException
+	public CommandLineRunContainer generate(List<Task> tasks, File targetDir) throws IOException
 	{
 		Configuration conf = new Configuration();
+		CommandLineRunContainer container = new CommandLineRunContainer();
 
 		// get templates for header and footer
 		Template header = new Template("header", new StringReader(this.getHeaderTemplate()), conf);
@@ -96,15 +98,18 @@ public class BackendGenerator
 		try
 		{
 			File outFile = new File(targetDir.getAbsolutePath() + "/submit.sh");
-			Writer out = new BufferedWriter(new FileWriter(outFile));
+			Writer out = new StringWriter();
 
 			Map<String, Object> taskMap = new HashMap<String, Object>();
 			taskMap.put("tasks", tasks);
-			
-			submit.process(taskMap, out);
 
+			submit.process(taskMap, out);
+			String strSubmit = out.toString();
+			FileUtils.writeStringToFile(outFile, strSubmit);
 			out.close();
-			
+
+			container.setSumbitScript(strSubmit);
+
 			System.out.println("Generated " + outFile);
 		}
 		catch (TemplateException e)
@@ -118,15 +123,16 @@ public class BackendGenerator
 			try
 			{
 				File outFile = new File(targetDir.getAbsolutePath() + "/" + task.getName() + ".sh");
-				Writer out = new BufferedWriter(new FileWriter(outFile));
+				Writer out = new StringWriter();
 
 				header.process(task.getParameters(), out);
-
 				out.write("\n" + task.getScript() + "\n");
-
 				footer.process(task.getParameters(), out);
-
+				String strScript = out.toString();
+				FileUtils.writeStringToFile(outFile, strScript);
 				out.close();
+
+				container.addTask(task.getName(), strScript);
 
 				System.out.println("Generated " + outFile);
 			}
@@ -136,6 +142,7 @@ public class BackendGenerator
 						+ this.getClass().getSimpleName() + ": " + e.getMessage());
 			}
 		}
+		return container;
 	}
 
 	public String getHeaderTemplate()
