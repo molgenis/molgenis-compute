@@ -10,7 +10,9 @@ import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.apache.poi.util.IOUtils;
+import org.molgenis.compute5.CommandLineRunContainer;
 import org.molgenis.compute5.ComputeProperties;
+import org.molgenis.compute5.GeneratedScript;
 import org.molgenis.compute5.model.Parameters;
 import org.molgenis.compute5.model.Task;
 
@@ -83,9 +85,10 @@ public class BackendGenerator
 		return result.toString();
 	}
 
-	public void generate(List<Task> tasks, File targetDir) throws IOException
+	public CommandLineRunContainer generate(List<Task> tasks, File targetDir) throws IOException
 	{
 		Configuration conf = new Configuration();
+		CommandLineRunContainer container = new CommandLineRunContainer();
 
 		// get templates for header and footer
 		Template header = new Template("header", new StringReader(this.getHeaderTemplate()), conf);
@@ -95,16 +98,19 @@ public class BackendGenerator
 		// generate the submit script
 		try
 		{
-			File outFile = new File(targetDir.getAbsolutePath() + "/submit.sh");
-			Writer out = new BufferedWriter(new FileWriter(outFile));
+			File outFile = new File(targetDir.getAbsolutePath() + File.separator +"submit.sh");
+			Writer out = new StringWriter();
 
 			Map<String, Object> taskMap = new HashMap<String, Object>();
 			taskMap.put("tasks", tasks);
-			
-			submit.process(taskMap, out);
 
+			submit.process(taskMap, out);
+			String strSubmit = out.toString();
+			FileUtils.writeStringToFile(outFile, strSubmit);
 			out.close();
-			
+
+			container.setSumbitScript(strSubmit);
+
 			System.out.println("Generated " + outFile);
 		}
 		catch (TemplateException e)
@@ -117,16 +123,22 @@ public class BackendGenerator
 		{
 			try
 			{
-				File outFile = new File(targetDir.getAbsolutePath() + "/" + task.getName() + ".sh");
-				Writer out = new BufferedWriter(new FileWriter(outFile));
+				GeneratedScript generatedScript = new GeneratedScript();
+				File outFile = new File(targetDir.getAbsolutePath() + File.separator + task.getName() + ".sh");
+				Writer out = new StringWriter();
 
 				header.process(task.getParameters(), out);
-
 				out.write("\n" + task.getScript() + "\n");
-
 				footer.process(task.getParameters(), out);
-
+				String strScript = out.toString();
+				FileUtils.writeStringToFile(outFile, strScript);
 				out.close();
+
+				generatedScript.setName(task.getName());
+				generatedScript.setStepName(task.getStepName());
+				generatedScript.setScript(strScript);
+
+				container.addTask(generatedScript);
 
 				System.out.println("Generated " + outFile);
 			}
@@ -136,6 +148,7 @@ public class BackendGenerator
 						+ this.getClass().getSimpleName() + ": " + e.getMessage());
 			}
 		}
+		return container;
 	}
 
 	public String getHeaderTemplate()
@@ -185,9 +198,9 @@ public class BackendGenerator
 		if(!cp.database.equalsIgnoreCase(Parameters.BACKEND_TYPE_GRID) ||
 				!cp.database.equalsIgnoreCase(Parameters.BACKEND_TYPE_CLOUD))
 		{
-			this.setHeaderTemplate(readInClasspath("templates/"+ dir +"/header.ftl", dir));
-			this.setFooterTemplate(readInClasspath("templates/"+ dir +"/footer.ftl", dir));
-			this.setSubmitTemplate(readInClasspath("templates/"+ dir +"/submit.ftl", dir));
+			this.setHeaderTemplate(readInClasspath("templates" + File.separator + dir + File.separator + "header.ftl", dir));
+			this.setFooterTemplate(readInClasspath("templates" + File.separator + dir + File.separator + "footer.ftl", dir));
+			this.setSubmitTemplate(readInClasspath("templates" + File.separator + dir + File.separator + "submit.ftl", dir));
 		}
 
 		if (cp.customHeader != null)

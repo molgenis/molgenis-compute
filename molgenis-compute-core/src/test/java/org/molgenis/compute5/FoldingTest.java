@@ -302,9 +302,7 @@ public class FoldingTest
 
 		System.out.println("--- Test Created Files ---");
 
-		File file = new File(outputDir + "/test1_0.sh");
-
-		file = new File(outputDir + "/test2_1.sh");
+		File file = new File(outputDir + "/test2_1.sh");
 		if (!file.exists())
 		{
 			Assert.fail("test2_1.sh is not generated");
@@ -321,29 +319,29 @@ public class FoldingTest
 		//this conditions can be change later, when compute will weave parameters directly
 
 		String test2_0_list1 = "just[0]=\"1\"\n" +
-				"just[1]=\"2\"\n" +
+				"just[1]=\"1\"\n" +
 				"just[2]=\"1\"\n" +
 				"just[3]=\"2\"\n" +
-				"just[4]=\"1\"\n" +
+				"just[4]=\"2\"\n" +
 				"just[5]=\"2\"";
 
 		String test2_0_list2 ="chunk[0]=\"a\"\n" +
-				"chunk[1]=\"a\"\n" +
-				"chunk[2]=\"b\"\n" +
-				"chunk[3]=\"b\"\n" +
-				"chunk[4]=\"c\"\n" +
+				"chunk[1]=\"b\"\n" +
+				"chunk[2]=\"c\"\n" +
+				"chunk[3]=\"a\"\n" +
+				"chunk[4]=\"b\"\n" +
 				"chunk[5]=\"c\"";
 
 		String test2_0_list3 ="chr=\"1\"";
 
 		String test2_1_list1 = "just[0]=\"1\"\n" +
-				"just[1]=\"2\"\n" +
-				"just[2]=\"1\"\n" +
+				"just[1]=\"1\"\n" +
+				"just[2]=\"2\"\n" +
 				"just[3]=\"2\"";
 
 		String test2_1_list2 ="chunk[0]=\"a\"\n" +
-				"chunk[1]=\"a\"\n" +
-				"chunk[2]=\"b\"\n" +
+				"chunk[1]=\"b\"\n" +
+				"chunk[2]=\"a\"\n" +
 				"chunk[3]=\"b\"";
 
 		String test2_1_list3 ="chr=\"2\"";
@@ -363,9 +361,6 @@ public class FoldingTest
 
 		System.out.println("Test concatination with run-time parameters");
 	}
-
-
-
 
 	@Test
 	public void testFoldingWeaving() throws Exception

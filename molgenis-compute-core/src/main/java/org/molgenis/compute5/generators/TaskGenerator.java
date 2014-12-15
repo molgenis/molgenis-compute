@@ -378,6 +378,7 @@ public class TaskGenerator
 				script += "\n";
 
 				task.setScript(script);
+				task.setStepName(step.getName());
 
 			}
 			catch (Exception e)
