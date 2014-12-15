@@ -32,6 +32,7 @@ public class Task
 	// working directory (i.e. the directory on the shared storage for this
 	// workflow run)
 	String workdir;
+	private String stepName;
 
 	public Task(String name)
 	{
@@ -94,4 +95,13 @@ public class Task
 		this.workdir = workdir;
 	}
 
+	public void setStepName(String stepName)
+	{
+		this.stepName = stepName;
+	}
+
+	public String getStepName()
+	{
+		return stepName;
+	}
 }

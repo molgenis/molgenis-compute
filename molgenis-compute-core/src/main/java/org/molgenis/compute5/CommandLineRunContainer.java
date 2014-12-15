@@ -1,6 +1,7 @@
 package org.molgenis.compute5;
 
-import java.util.Hashtable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by hvbyelas on 12/12/14.
@@ -8,7 +9,7 @@ import java.util.Hashtable;
 public class CommandLineRunContainer
 {
 	private String sumbitScript;
-	private Hashtable<String, String> tasks = new Hashtable<String, String>();
+	private List<GeneratedScript> tasks = new ArrayList<GeneratedScript>();
 
 	public String getSumbitScript()
 	{
@@ -20,13 +21,13 @@ public class CommandLineRunContainer
 		this.sumbitScript = sumbitScript;
 	}
 
-	public Hashtable<String, String> getTasks()
+	public List<GeneratedScript> getTasks()
 	{
 		return tasks;
 	}
 
-	public void addTask(String name, String script)
+	public void addTask(GeneratedScript task)
 	{
-		tasks.put(name, script);
+		tasks.add(task);
 	}
 }

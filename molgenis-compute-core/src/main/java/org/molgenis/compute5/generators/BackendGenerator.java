@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 import org.apache.poi.util.IOUtils;
 import org.molgenis.compute5.CommandLineRunContainer;
 import org.molgenis.compute5.ComputeProperties;
+import org.molgenis.compute5.GeneratedScript;
 import org.molgenis.compute5.model.Parameters;
 import org.molgenis.compute5.model.Task;
 
@@ -122,6 +123,7 @@ public class BackendGenerator
 		{
 			try
 			{
+				GeneratedScript generatedScript = new GeneratedScript();
 				File outFile = new File(targetDir.getAbsolutePath() + "/" + task.getName() + ".sh");
 				Writer out = new StringWriter();
 
@@ -132,7 +134,11 @@ public class BackendGenerator
 				FileUtils.writeStringToFile(outFile, strScript);
 				out.close();
 
-				container.addTask(task.getName(), strScript);
+				generatedScript.setName(task.getName());
+				generatedScript.setStepName(task.getStepName());
+				generatedScript.setScript(strScript);
+
+				container.addTask(generatedScript);
 
 				System.out.println("Generated " + outFile);
 			}
