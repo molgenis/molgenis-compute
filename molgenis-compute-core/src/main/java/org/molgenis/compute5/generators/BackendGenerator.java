@@ -98,7 +98,7 @@ public class BackendGenerator
 		// generate the submit script
 		try
 		{
-			File outFile = new File(targetDir.getAbsolutePath() + "/submit.sh");
+			File outFile = new File(targetDir.getAbsolutePath() + File.separator +"submit.sh");
 			Writer out = new StringWriter();
 
 			Map<String, Object> taskMap = new HashMap<String, Object>();
@@ -124,7 +124,7 @@ public class BackendGenerator
 			try
 			{
 				GeneratedScript generatedScript = new GeneratedScript();
-				File outFile = new File(targetDir.getAbsolutePath() + "/" + task.getName() + ".sh");
+				File outFile = new File(targetDir.getAbsolutePath() + File.separator + task.getName() + ".sh");
 				Writer out = new StringWriter();
 
 				header.process(task.getParameters(), out);
@@ -198,9 +198,9 @@ public class BackendGenerator
 		if(!cp.database.equalsIgnoreCase(Parameters.BACKEND_TYPE_GRID) ||
 				!cp.database.equalsIgnoreCase(Parameters.BACKEND_TYPE_CLOUD))
 		{
-			this.setHeaderTemplate(readInClasspath("templates/"+ dir +"/header.ftl", dir));
-			this.setFooterTemplate(readInClasspath("templates/"+ dir +"/footer.ftl", dir));
-			this.setSubmitTemplate(readInClasspath("templates/"+ dir +"/submit.ftl", dir));
+			this.setHeaderTemplate(readInClasspath("templates" + File.separator + dir + File.separator + "header.ftl", dir));
+			this.setFooterTemplate(readInClasspath("templates" + File.separator + dir + File.separator + "footer.ftl", dir));
+			this.setSubmitTemplate(readInClasspath("templates" + File.separator + dir + File.separator + "submit.ftl", dir));
 		}
 
 		if (cp.customHeader != null)
