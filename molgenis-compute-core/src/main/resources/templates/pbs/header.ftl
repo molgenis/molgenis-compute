@@ -61,6 +61,7 @@ MOLGENIS_START=$(date +%s)
 touch $ENVIRONMENT_DIR/${taskId}.sh.started
 
 <#noparse>
+
 # Define the root to all your tools and data
 WORKDIR=${WORKDIR}
 
