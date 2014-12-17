@@ -44,7 +44,7 @@ public class Protocol
 
 	// resources
 	private String walltime = null;
-	private String defaultWalltime = "08:00:00";// walltime for protocol
+	private String defaultWalltime = "00:30:00";// walltime for protocol
 	private String nodes = null;
 	private String defaultNodes	= "1";
 	private String ppn = null;
