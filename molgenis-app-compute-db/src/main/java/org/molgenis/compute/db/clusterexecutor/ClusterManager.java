@@ -30,7 +30,8 @@ public class ClusterManager
 		runsToUsers.put(run.getName(), new Pair(username, password));
 
 		SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
-		(new Thread(new ClusterThread(clusterExecutor, run, username, password, ClusterThread.SUBMIT, ctx))).start();
+		(new Thread(new ClusterThread(clusterExecutor, run, username, password,
+				ClusterThread.SUBMIT, ctx))).start();
 	}
 
 	public void cancelRunJobs(ComputeRun run, SecurityContext ctx)
