@@ -350,13 +350,13 @@ public class FoldingTest
 
 		if(!t.contains(test2_0_list1) || !t.contains(test2_0_list2) || !t.contains(test2_0_list3))
 		{
-			Assert.fail("folding broken");
+			Assert.fail("0 folding broken");
 		}
 
 		t = ComputeCommandLineTest.getFileAsString(outputDir + "/test2_1.sh");
 		if(!t.contains(test2_1_list1) || !t.contains(test2_1_list2) || !t.contains(test2_1_list3))
 		{
-			Assert.fail("folding broken");
+			Assert.fail("1 folding broken");
 		}
 
 		System.out.println("Test concatination with run-time parameters");
