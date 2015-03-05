@@ -87,8 +87,6 @@ public class TaskGenerator
 				if(computeProperties.errorMailAddr != null)
 					map.put(Parameters.ERROR_MESSAGE_ADDR, computeProperties.errorMailAddr);
 
-				task.setParameters(map);
-
 				// for this step: store which target-ids go into which job
 				for (Integer id : target.getIntList(Parameters.ID_COLUMN))
 				{
@@ -207,6 +205,7 @@ public class TaskGenerator
 									String realValue = environment.get(right);
 									parameterHeader.append(left).append("=").append("\"").append(realValue).append("\"\n");
 									foreachParameters.put(left,realValue);
+                                    map.put(left, realValue);
 								}
 								else
 								{
@@ -379,6 +378,7 @@ public class TaskGenerator
 
 				task.setScript(script);
 				task.setStepName(step.getName());
+                task.setParameters(map);
 
 			}
 			catch (Exception e)
