@@ -8,8 +8,6 @@ touch $ENVIRONMENT_DIR/${taskId}.sh.finished
 
 echo "On $(date +"%Y-%m-%d %T"), after $(( ($(date +%s) - $MOLGENIS_START) / 60 )) minutes, task ${taskId} finished successfully" >> $ENVIRONMENT_DIR/molgenis.bookkeeping.log
 
-chmod r+rwX $intermediateDir
-
 <#noparse>
 if [ -d ${MC_tmpFolder:-} ];</#noparse>
 	then
