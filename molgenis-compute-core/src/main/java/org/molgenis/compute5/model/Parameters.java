@@ -134,7 +134,7 @@ public class Parameters
 	public static final String SCHEDULER_PBS = "pbs";
 	public static final String SCHEDULER_SLURM = "slurm";
 
-
+    public static final String BATCH = "batch";
 	public static String ENVIRONMENT_FULLPATH = null; // to be set
 
 	//table with all the values

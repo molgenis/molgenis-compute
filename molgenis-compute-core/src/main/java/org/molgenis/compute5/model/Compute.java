@@ -5,6 +5,7 @@ import java.util.*;
 
 import org.molgenis.compute5.ComputeProperties;
 import org.molgenis.compute5.generators.BackendGenerator;
+import org.molgenis.compute5.generators.BatchAnalyser;
 
 public class Compute
 {
@@ -18,6 +19,7 @@ public class Compute
 	HashMap<String, String> mapUserEnvironment = null;
 	private ParametersFolder parametersContainer;
 
+    private BatchAnalyser batchAnalyser = null;
 
 	public Compute(ComputeProperties computeProperties)
 	{
@@ -94,6 +96,20 @@ public class Compute
 		return parametersContainer;
 	}
 
+    public void createBatchAnalyser(String batchVariable, int batchNumber)
+    {
+        batchAnalyser = new BatchAnalyser(batchVariable, batchNumber);
+    }
+
+    public int getBatchNumber(Map<String, Object> map)
+    {
+        return batchAnalyser.getBatchNum(map);
+    }
+
+    public int getBatchesSize()
+    {
+        return batchAnalyser.getBatchesSize();
+    }
 }
 
 //

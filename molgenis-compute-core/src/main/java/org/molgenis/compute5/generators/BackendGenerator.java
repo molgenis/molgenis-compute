@@ -2,10 +2,7 @@ package org.molgenis.compute5.generators;
 
 import java.io.*;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -13,6 +10,7 @@ import org.apache.poi.util.IOUtils;
 import org.molgenis.compute5.CommandLineRunContainer;
 import org.molgenis.compute5.ComputeProperties;
 import org.molgenis.compute5.GeneratedScript;
+import org.molgenis.compute5.model.Compute;
 import org.molgenis.compute5.model.Parameters;
 import org.molgenis.compute5.model.Task;
 
@@ -24,7 +22,7 @@ import org.molgenis.compute5.urlreader.UrlReader;
 /** Parameters of the backend, either PBS, SGE, GRID, etc */
 public class BackendGenerator
 {
-
+    private ComputeProperties cp = null;
 	private static final Logger LOG = Logger.getLogger(BackendGenerator.class);
 
 
@@ -34,7 +32,11 @@ public class BackendGenerator
 
 	private UrlReader urlReader = new UrlReader();
 
-	private String readInJar(String file) throws IOException
+    private Configuration conf = new Configuration();
+    private CommandLineRunContainer container = new CommandLineRunContainer();
+
+
+    private String readInJar(String file) throws IOException
 	{
 		URL header = this.getClass().getResource(file);
 		if (header == null) throw new IOException("file " + file + " is missing for backend "
@@ -85,38 +87,37 @@ public class BackendGenerator
 		return result.toString();
 	}
 
-	public CommandLineRunContainer generate(List<Task> tasks, File targetDir) throws IOException
+	public CommandLineRunContainer generate(Compute compute, File targetDir) throws IOException
 	{
-		Configuration conf = new Configuration();
-		CommandLineRunContainer container = new CommandLineRunContainer();
+        List<Task> tasks = compute.getTasks();
+
 
 		// get templates for header and footer
 		Template header = new Template("header", new StringReader(this.getHeaderTemplate()), conf);
 		Template footer = new Template("footer", new StringReader(this.getFooterTemplate()), conf);
-		Template submit = new Template("submit", new StringReader(this.getSubmitTemplate()), conf);
 
-		// generate the submit script
-		try
-		{
-			File outFile = new File(targetDir.getAbsolutePath() + File.separator +"submit.sh");
-			Writer out = new StringWriter();
 
-			Map<String, Object> taskMap = new HashMap<String, Object>();
-			taskMap.put("tasks", tasks);
+        if(cp.batchOption == null)
+        {
+            generateSubmit("submit.sh", tasks, targetDir.getAbsolutePath());
+        }
+        else
+        {
+            for (int i = 0; i < compute.getBatchesSize(); i++)
+            {
+                List<Task> batchTasks = new ArrayList<Task>();
 
-			submit.process(taskMap, out);
-			String strSubmit = out.toString();
-			FileUtils.writeStringToFile(outFile, strSubmit);
-			out.close();
+                for(Task t : tasks)
+                {
+                    if(t.getBatchNumber() == i)
+                    {
+                        batchTasks.add(t);
+                    }
+                }
 
-			container.setSumbitScript(strSubmit);
-
-			System.out.println("Generated " + outFile);
-		}
-		catch (TemplateException e)
-		{
-			throw new IOException("Backend generation failed for " + this.getClass().getSimpleName() + "\n\nError is:\n" + e.toString());
-		}
+                generateSubmit("submit"+ i +".sh", batchTasks, targetDir.getAbsolutePath());
+            }
+        }
 
 		// generate the tasks scripts
 		for (Task task : tasks)
@@ -151,7 +152,34 @@ public class BackendGenerator
 		return container;
 	}
 
-	public String getHeaderTemplate()
+    // generate the submit script
+    private void generateSubmit(String s, List<Task> tasks, String targetDir) throws IOException
+    {
+
+        Template submit = new Template("submit", new StringReader(this.getSubmitTemplate()), conf);
+        try
+        {
+            File outFile = new File(targetDir + File.separator + s);
+            Writer out = new StringWriter();
+
+            Map<String, Object> taskMap = new HashMap<String, Object>();
+            taskMap.put("tasks", tasks);
+
+            submit.process(taskMap, out);
+            String strSubmit = out.toString();
+            FileUtils.writeStringToFile(outFile, strSubmit);
+            out.close();
+
+            container.setSumbitScript(strSubmit);
+
+            System.out.println("Generated " + outFile);
+        } catch (TemplateException e) {
+            throw new IOException("Backend generation failed for " + this.getClass().getSimpleName() + "\n\nError is:\n" + e.toString());
+        }
+
+    }
+
+    public String getHeaderTemplate()
 	{
 		return headerTemplate;
 	}
@@ -193,6 +221,8 @@ public class BackendGenerator
 
 	public BackendGenerator(ComputeProperties cp) throws IOException
 	{
+        this.cp = cp;
+
 		String dir = cp.backend;
 
 		if(!cp.database.equalsIgnoreCase(Parameters.BACKEND_TYPE_GRID) ||

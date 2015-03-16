@@ -34,6 +34,8 @@ public class Task
 	String workdir;
 	private String stepName;
 
+    private int batchNumber = -1;
+
 	public Task(String name)
 	{
 		this.setName(name);
@@ -104,4 +106,12 @@ public class Task
 	{
 		return stepName;
 	}
+
+    public int getBatchNumber() {
+        return batchNumber;
+    }
+
+    public void setBatchNumber(int batchNumber) {
+        this.batchNumber = batchNumber;
+    }
 }
