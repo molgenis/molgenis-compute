@@ -253,6 +253,9 @@ public class ComputeCommandLine
 		compute.setParametersContainer(parametersContainer);
 		compute.setParameters(parameters);
 
+        if(computeProperties.batchOption != null)
+            compute.createBatchAnalyser(computeProperties.batchVariable, computeProperties.batchSize);
+
 		LOG.info("Starting script generation...");
 		// create outputdir
 		File dir = new File(computeProperties.runDir);
@@ -284,7 +287,7 @@ public class ComputeCommandLine
 		List<Task> tasks = taskGenerator.generate(compute);
 		compute.setTasks(tasks);
 
-		commandLineRunContainer = new BackendGenerator(computeProperties).generate(compute.getTasks(), dir);
+		commandLineRunContainer = new BackendGenerator(computeProperties).generate(compute, dir);
 
 //TODO:	FIX	generate documentation
 //		new DocTotalParametersCsvGenerator().generate(new File(computeProperties.runDir + "/doc/outputs.csv"),

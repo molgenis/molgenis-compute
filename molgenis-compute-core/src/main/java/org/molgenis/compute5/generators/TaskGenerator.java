@@ -380,6 +380,12 @@ public class TaskGenerator
 				task.setStepName(step.getName());
                 task.setParameters(map);
 
+                if(computeProperties.batchOption != null)
+                {
+                    int batchNum = compute.getBatchNumber(map);
+                    task.setBatchNumber(batchNum);
+                }
+
 			}
 			catch (Exception e)
 			{

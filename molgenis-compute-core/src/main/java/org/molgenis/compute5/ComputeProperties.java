@@ -15,13 +15,17 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.log4j.Logger;
 import org.molgenis.compute5.model.Parameters;
 
 import com.google.common.base.Joiner;
 
 public class ComputeProperties
 {
-	public String path = Parameters.PATH_DEFAULT;
+    private static final Logger LOG = Logger.getLogger(ComputeProperties.class);
+
+
+    public String path = Parameters.PATH_DEFAULT;
 	public String workFlow = Parameters.WORKFLOW_DEFAULT;
 	public String defaults = null;
 	public String defaultsCommandLine = null;
@@ -68,6 +72,10 @@ public class ComputeProperties
 	private Options options = null;
 	public String errorMailAddr = null;
 	public String backendUrl = null;
+
+    public String batchOption = null;
+    public String batchVariable = null;
+    public int batchSize = -1;
 
 	public ComputeProperties(String[] args)
 	{
@@ -215,6 +223,19 @@ public class ComputeProperties
 			this.parametersToOverwrite = cmd.getOptionValue(Parameters.PARAMETERS_TO_OVERWRITE_CMDLINE_OPTION);
 			this.errorMailAddr = cmd.getOptionValue(Parameters.ERROR_MESSAGE_ADDR_OPTION);
 			this.backendUrl = cmd.getOptionValue(Parameters.BACKEND_URL);
+			this.batchOption = cmd.getOptionValue(Parameters.BATCH);
+
+            if(batchOption != null)
+            {
+                String nameValue[] = batchOption.split("=");
+                if(nameValue.length != 2)
+                    LOG.warn("BATCH specification is wrong; usage example sample=2");
+                else
+                {
+                    batchVariable = nameValue[0];
+                    batchSize = Integer.parseInt(nameValue[1]);
+                }
+            }
 
 			if(backendUrl == null)
 				backendUrl = Parameters.DEFAULT_BACKEND_URL;
@@ -451,6 +472,12 @@ public class ComputeProperties
 				.hasArg()
 				.withLongOpt(Parameters.BACKEND_URL)
 				.create(Parameters.BACKEND_URL_OPTION));
+
+        options.addOption(OptionBuilder
+                .withDescription(
+                        "Batch specify 1) parameter name on which batch is based; 2) number of entities in batch, e.g. sample=3")
+                .hasArg()
+                .create(Parameters.BATCH));
 
 
 		return options;
