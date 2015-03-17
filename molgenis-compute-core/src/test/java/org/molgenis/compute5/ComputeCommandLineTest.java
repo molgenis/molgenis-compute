@@ -284,8 +284,99 @@ public class ComputeCommandLineTest
 		}
 	}
 
+    @Test
+    public void testBatch() throws Exception
+    {
+        System.out.println("--- Start TestCommandLineParametersComputePropertiesFilesCreated ---");
 
-	@Test
+        File f = new File(outputDir);
+        FileUtils.deleteDirectory(f);
+        Assert.assertFalse(f.exists());
+
+        ComputeCommandLine.main(new String[]{
+                "--generate", "--workflow", "src/main/resources/workflows/batchesWorkflow/workflow.csv",
+                "--parameters","src/main/resources/workflows/batchesWorkflow/parameters.csv",
+                "--rundir",outputDir,
+                "--runid",
+                "test1",
+                "-weave",
+                "-b",
+                "pbs",
+                "-batch",
+                "chr=2"
+
+        });
+
+        System.out.println("--- Test Created Files ---");
+
+        File file = new File(outputDir + "/batch0/step1_0.sh");
+        if (!file.exists())
+        {
+            Assert.fail("wrong batch construction");
+        }
+
+        file = new File(outputDir + "/batch0/step1_1.sh");
+        if (!file.exists())
+        {
+            Assert.fail("wrong batch construction");
+        }
+
+        file = new File(outputDir + "/batch0/step1_2.sh");
+        if (!file.exists())
+        {
+            Assert.fail("wrong batch construction");
+        }
+
+        file = new File(outputDir + "/batch0/step1_3.sh");
+        if (!file.exists())
+        {
+            Assert.fail("wrong batch construction");
+        }
+
+        file = new File(outputDir + "/batch0/step1_4.sh");
+        if (!file.exists())
+        {
+            Assert.fail("wrong batch construction");
+        }
+
+        file = new File(outputDir + "/batch0/step2_0.sh");
+        if (!file.exists())
+        {
+            Assert.fail("wrong batch construction");
+        }
+
+        file = new File(outputDir + "/batch0/step2_1.sh");
+        if (!file.exists())
+        {
+            Assert.fail("wrong batch construction");
+        }
+
+        file = new File(outputDir + "/batch1/step1_5.sh");
+        if (!file.exists())
+        {
+            Assert.fail("wrong batch construction");
+        }
+
+        file = new File(outputDir + "/batch1/step1_6.sh");
+        if (!file.exists())
+        {
+            Assert.fail("wrong batch construction");
+        }
+
+        file = new File(outputDir + "/batch1/step2_2.sh");
+        if (!file.exists())
+        {
+            Assert.fail("wrong batch construction");
+        }
+
+        file = new File(outputDir + "/batch1/step2_3.sh");
+        if (!file.exists())
+        {
+            Assert.fail("wrong batch construction");
+        }
+    }
+
+    @Test
 	public void testParameters3Levels() throws Exception
 	{
 		System.out.println("--- Start TestCommandLineParametersComputePropertiesFilesCreated ---");

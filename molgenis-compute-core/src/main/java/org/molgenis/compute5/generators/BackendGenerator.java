@@ -25,6 +25,8 @@ public class BackendGenerator
     private ComputeProperties cp = null;
 	private static final Logger LOG = Logger.getLogger(BackendGenerator.class);
 
+    private static final String BATCH = "batch";
+    private static final String SUBMIT = "submit.sh";
 
 	private String headerTemplate = "";
 	private String footerTemplate = "";
@@ -34,6 +36,10 @@ public class BackendGenerator
 
     private Configuration conf = new Configuration();
     private CommandLineRunContainer container = new CommandLineRunContainer();
+
+    Template submit = null;
+    Template header = null;
+    Template footer = null;
 
 
     private String readInJar(String file) throws IOException
@@ -91,15 +97,15 @@ public class BackendGenerator
 	{
         List<Task> tasks = compute.getTasks();
 
-
-		// get templates for header and footer
-		Template header = new Template("header", new StringReader(this.getHeaderTemplate()), conf);
-		Template footer = new Template("footer", new StringReader(this.getFooterTemplate()), conf);
-
+        // get templates for header and footer
+        submit = new Template("submit", new StringReader(this.getSubmitTemplate()), conf);
+        header = new Template("header", new StringReader(this.getHeaderTemplate()), conf);
+        footer = new Template("footer", new StringReader(this.getFooterTemplate()), conf);
 
         if(cp.batchOption == null)
         {
-            generateSubmit("submit.sh", tasks, targetDir.getAbsolutePath());
+            generateSubmit(SUBMIT, tasks, targetDir.getAbsolutePath());
+            generateJobs(tasks, targetDir.getAbsolutePath());
         }
         else
         {
@@ -115,48 +121,54 @@ public class BackendGenerator
                     }
                 }
 
-                generateSubmit("submit"+ i +".sh", batchTasks, targetDir.getAbsolutePath());
+                String dir = targetDir.getAbsolutePath() + File.separator + BATCH + i;
+
+                generateSubmit(SUBMIT, batchTasks, dir);
+                generateJobs(batchTasks, dir);
             }
         }
 
-		// generate the tasks scripts
-		for (Task task : tasks)
-		{
-			try
-			{
-				GeneratedScript generatedScript = new GeneratedScript();
-				File outFile = new File(targetDir.getAbsolutePath() + File.separator + task.getName() + ".sh");
-				Writer out = new StringWriter();
-
-				header.process(task.getParameters(), out);
-				out.write("\n" + task.getScript() + "\n");
-				footer.process(task.getParameters(), out);
-				String strScript = out.toString();
-				FileUtils.writeStringToFile(outFile, strScript);
-				out.close();
-
-				generatedScript.setName(task.getName());
-				generatedScript.setStepName(task.getStepName());
-				generatedScript.setScript(strScript);
-
-				container.addTask(generatedScript);
-
-				System.out.println("Generated " + outFile);
-			}
-			catch (TemplateException e)
-			{
-				throw new IOException("Backend generation of task '" + task.getName() + "' failed for "
-						+ this.getClass().getSimpleName() + ": " + e.getMessage());
-			}
-		}
 		return container;
 	}
+
+    // generate the tasks scripts
+    private void generateJobs(List<Task> tasks, String absolutePath)  throws IOException
+    {
+        for (Task task : tasks)
+        {
+            try
+            {
+                GeneratedScript generatedScript = new GeneratedScript();
+                File outFile = new File(absolutePath + File.separator + task.getName() + ".sh");
+                Writer out = new StringWriter();
+
+                header.process(task.getParameters(), out);
+                out.write("\n" + task.getScript() + "\n");
+                footer.process(task.getParameters(), out);
+                String strScript = out.toString();
+                FileUtils.writeStringToFile(outFile, strScript);
+                out.close();
+
+                generatedScript.setName(task.getName());
+                generatedScript.setStepName(task.getStepName());
+                generatedScript.setScript(strScript);
+
+                container.addTask(generatedScript);
+
+                System.out.println("Generated " + outFile);
+            }
+            catch (TemplateException e)
+            {
+                throw new IOException("Backend generation of task '" + task.getName() + "' failed for "
+                        + this.getClass().getSimpleName() + ": " + e.getMessage());
+            }
+        }
+    }
 
     // generate the submit script
     private void generateSubmit(String s, List<Task> tasks, String targetDir) throws IOException
     {
 
-        Template submit = new Template("submit", new StringReader(this.getSubmitTemplate()), conf);
         try
         {
             File outFile = new File(targetDir + File.separator + s);
