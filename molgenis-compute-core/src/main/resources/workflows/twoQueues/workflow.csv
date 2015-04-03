@@ -1,0 +1,3 @@
+step,protocol,dependencies
+step1,protocols/step1.sh,queue=superQueue
+step2,protocols/step2.sh,step1
