@@ -377,6 +377,47 @@ public class ComputeCommandLineTest
     }
 
     @Test
+    public void testTwoQueues() throws Exception
+    {
+        System.out.println("--- Start TestCommandLineParametersComputePropertiesFilesCreated ---");
+
+        File f = new File(outputDir);
+        FileUtils.deleteDirectory(f);
+        Assert.assertFalse(f.exists());
+
+        String superQueue = "#PBS -q super";
+        String queue = "#PBS -q default";
+
+        ComputeCommandLine.main(new String[]{
+                "--generate", "--workflow", "src/main/resources/workflows/twoQueues/workflow.csv",
+                "--parameters","src/main/resources/workflows/twoQueues/parameters.csv",
+                "--rundir",outputDir,
+                "--runid",
+                "test1",
+                "-weave",
+                "-b",
+                "pbs"
+
+        });
+
+        String text =getFileAsString(outputDir + "/step1_0.sh");
+
+        if(!text.contains(superQueue))
+        {
+            Assert.fail("wrong queue substitution");
+        }
+
+        text =getFileAsString(outputDir + "/step2_0.sh");
+
+        if(!text.contains(queue))
+        {
+            Assert.fail("wrong default queue");
+        }
+
+    }
+
+
+    @Test
 	public void testParameters3Levels() throws Exception
 	{
 		System.out.println("--- Start TestCommandLineParametersComputePropertiesFilesCreated ---");
