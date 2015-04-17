@@ -1170,7 +1170,7 @@ public class ComputeCommandLineTest
 		File file = new File(outputDir + "/step3_0.sh");
 		if (!file.exists())
 		{
-			Assert.fail("step3_0.sh.started is not generated");
+			Assert.fail("step3_0.sh is not generated");
 		}
 
 		file = new File(outputDir + "/step3_1.sh");
@@ -1180,6 +1180,103 @@ public class ComputeCommandLineTest
 		}
 
 	}
+
+    @Test
+    public void testNumbering() throws Exception {
+        System.out.println("--- Start TestRunLocally ---");
+
+        File f = new File(outputDir);
+        FileUtils.deleteDirectory(f);
+        Assert.assertFalse(f.exists());
+
+        f = new File(".compute.properties");
+        FileUtils.deleteQuietly(f);
+        Assert.assertFalse(f.exists());
+
+        ComputeCommandLine.main(new String[]{
+                "--generate",
+                "--workflow",
+                "src/main/resources/workflows/numbering/workflow.csv",
+                "--parameters",
+                "src/main/resources/workflows/numbering/parameters.csv",
+                "--rundir",
+                "target/test/benchmark/run",
+                "--backend", "pbs", "--weave"
+        });
+
+        File file = new File(outputDir + "/01_step0_0.sh");
+        if (!file.exists())
+        {
+            Assert.fail("01_step0_0.sh is not generated");
+        }
+
+        file = new File(outputDir + "/01_step0_1.sh");
+        if (!file.exists())
+        {
+            Assert.fail("01_step0_1.sh is not generated");
+        }
+
+        file = new File(outputDir + "/02_step1_0.sh");
+        if (!file.exists())
+        {
+            Assert.fail("02_step1_0.sh is not generated");
+        }
+
+        file = new File(outputDir + "/02_step1_1.sh");
+        if (!file.exists())
+        {
+            Assert.fail("02_step1_1.sh is not generated");
+        }
+
+        file = new File(outputDir + "/03_step2_0.sh");
+        if (!file.exists())
+        {
+            Assert.fail("03_step2_0.sh is not generated");
+        }
+
+        file = new File(outputDir + "/03_step2_1.sh");
+        if (file.exists())
+        {
+            Assert.fail("03_step2_1.sh should not be generated");
+        }
+
+        String script = getFileAsString(outputDir + "/03_step2_0.sh");
+
+        if(!script.contains("input=\"map\""))
+        {
+            Assert.fail("Parameters mapping is not correct");
+        }
+
+        if(!script.contains("strings[0]=${02_step1__has__out[0]}"))
+        {
+            Assert.fail("Run-time parameters are not correct");
+        }
+
+        String submitDependencies = "dependencies=\"-W depend=afterok\"\n" +
+                "\t\tif [[ -n \"$01_step0_1\" ]]; then\n" +
+                "\t\t\tdependenciesExist=true\n" +
+                "\t\t\tdependencies=\"${dependencies}:$01_step0_1\"\n" +
+                "\t\tfi\n" +
+                "\t\tif [[ -n \"$01_step0_0\" ]]; then\n" +
+                "\t\t\tdependenciesExist=true\n" +
+                "\t\t\tdependencies=\"${dependencies}:$01_step0_0\"\n" +
+                "\t\tfi\n" +
+                "\t\tif [[ -n \"$02_step1_0\" ]]; then\n" +
+                "\t\t\tdependenciesExist=true\n" +
+                "\t\t\tdependencies=\"${dependencies}:$02_step1_0\"\n" +
+                "\t\tfi\n" +
+                "\t\tif [[ -n \"$02_step1_1\" ]]; then\n" +
+                "\t\t\tdependenciesExist=true\n" +
+                "\t\t\tdependencies=\"${dependencies}:$02_step1_1\"\n" +
+                "\t\tfi\n";
+
+        script = getFileAsString(outputDir + "/submit.sh");
+
+        if(!script.contains(submitDependencies))
+        {
+            Assert.fail("Submit is not correct");
+        }
+    }
 
 
 	@Test
@@ -1260,20 +1357,20 @@ public class ComputeCommandLineTest
 		FileUtils.deleteQuietly(f);
 		Assert.assertFalse(f.exists());
 
-		ComputeCommandLine.main(new String[]{
-				"--generate",
-				"--workflow",
-				"src/main/resources/workflows/benchmark.5.1/workflow.csv",
-				"--defaults",
-				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv",
-				"--parameters",
-				"src/main/resources/workflows/benchmark.5.1/parameters.csv",
-				"--parameters",
-				"src/main/resources/workflows/benchmark.5.1/sysparameters.csv",
-				"--rundir",
-				"target/test/benchmark/run",
-				"--backend","slurm"
-		});
+        ComputeCommandLine.main(new String[]{
+                "--generate",
+                "--workflow",
+                "src/main/resources/workflows/benchmark.5.1/workflow.csv",
+                "--defaults",
+                "src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv",
+                "--parameters",
+                "src/main/resources/workflows/benchmark.5.1/parameters.csv",
+                "--parameters",
+                "src/main/resources/workflows/benchmark.5.1/sysparameters.csv",
+                "--rundir",
+                "target/test/benchmark/run",
+                "--backend","slurm"
+        });
 
 		String script = getFileAsString(outputDir + "/submit.sh");
 
