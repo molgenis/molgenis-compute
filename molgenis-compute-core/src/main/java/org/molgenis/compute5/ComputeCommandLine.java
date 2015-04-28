@@ -15,10 +15,6 @@ import org.molgenis.compute5.model.*;
 import org.molgenis.compute5.parsers.ParametersCsvParser;
 import org.molgenis.compute5.parsers.WorkflowCsvParser;
 import org.molgenis.compute5.sysexecutor.SysCommandExecutor;
-import org.molgenis.compute5.urlreader.UrlReader;
-import org.molgenis.data.support.MapEntity;
-
-import com.google.common.base.Joiner;
 
 /**
  * Commandline program for compute5. Usage: -w workflow.csv -p parameters.csv
@@ -29,10 +25,8 @@ import com.google.common.base.Joiner;
 public class ComputeCommandLine
 {
 	private static final Logger LOG = Logger.getLogger(ComputeCommandLine.class);
-	private UrlReader urlReader = new UrlReader();
 	private CommandLineRunContainer commandLineRunContainer = null;
-
-	@SuppressWarnings("static-access")
+	
 	public static void main(String[] args) throws Exception
 	{
 		BasicConfigurator.configure();
