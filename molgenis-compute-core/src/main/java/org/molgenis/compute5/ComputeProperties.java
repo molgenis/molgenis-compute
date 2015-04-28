@@ -459,7 +459,7 @@ public class ComputeProperties
 		return false;
 	}
 
-	public HashMap<?, ?> getParametersToOverwrite()
+	public HashMap<String, String> getParametersToOverwrite()
 	{
 		return parametersToOverwriteMap;
 	}
