@@ -718,17 +718,11 @@ public class TaskGenerator
 	 */
 	public void determineCombineLists(Workflow workflow)
 	{
-
-		if(parameters.size() < 2)
-		    //all parameters come from one file
-			return;
-
 		for(Step step : workflow.getSteps())
 		{
 			Protocol protocol = step.getProtocol();
-			String name = protocol.getName();
 
-			//calculate how many lists separated lists we have
+			//calculate how many separated lists we have
 			int size = 0;
 			for(Input input : protocol.getInputs())
 			{
