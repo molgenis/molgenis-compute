@@ -7,6 +7,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.log4j.Logger;
 import org.molgenis.compute5.ComputeProperties;
 import org.molgenis.compute5.generators.TupleUtils;
 import org.molgenis.compute5.model.Parameters;
@@ -15,43 +16,47 @@ import org.molgenis.data.Entity;
 import org.molgenis.data.csv.CsvRepository;
 import org.molgenis.data.support.MapEntity;
 
-
-/** Parser for parameters csv file(s). Includes the solving of templated values. */
+/**
+ * Parser for csv file parameters. Includes the solving of templated values.
+ */
 public class ParametersCsvParser
 {
-	private ComputeProperties properties = null;
+	private static final Logger LOG = Logger.getLogger(ParametersCsvParser.class);
+
 	private String runID;
-	private HashMap<String, String> parametersToOverwrite = null;
+	private ComputeProperties properties;
+	private HashMap<String, String> parametersToOverwrite;
 
 	private UrlReader urlReader = new UrlReader();
 
-	public Parameters parse(List<File> filesArray, ComputeProperties computeProperties) throws IOException
+	public Parameters parse(List<File> files, ComputeProperties computeProperties) throws IOException
 	{
 		properties = computeProperties;
 		Parameters targets = null;
-		Set<String> fileSet = new HashSet<String>();
-		if(!properties.isWebWorkflow)
+		Set<String> uniqueFiles = new HashSet<String>();
+
+		if (!properties.isWebWorkflow)
 		{
-			for (File f : filesArray)
+			for (File file : files)
 			{
-				fileSet.add(f.getAbsolutePath().toString());
+				uniqueFiles.add(file.getAbsolutePath().toString());
 			}
 
-			targets = parseParamFiles(null, fileSet);
+			targets = parseParamFiles(null, uniqueFiles);
 		}
 		else
 		{
-			for (File f : filesArray)
+			for (File f : files)
 			{
-				fileSet.add(f.toString());
+				uniqueFiles.add(f.toString());
 			}
-			targets = parseParamFiles(null, fileSet);
+			targets = parseParamFiles(null, uniqueFiles);
 		}
 
 		// solve the templates
 		TupleUtils tupleUtils = new TupleUtils();
 		tupleUtils.setRunID(runID);
-		if(parametersToOverwrite != null) tupleUtils.setParametersToOverwrite(parametersToOverwrite);
+		if (parametersToOverwrite != null) tupleUtils.setParametersToOverwrite(parametersToOverwrite);
 		tupleUtils.solve(targets.getValues());
 
 		// mark all columns as 'user_*'
@@ -93,20 +98,23 @@ public class ParametersCsvParser
 		if (targets == null)
 		{
 			targets = new Parameters();
-//			targets.setRunID(runID);
+			// targets.setRunID(runID);
 		}
 		// if no files to parse, then we're done
-		if (paramFileSet.isEmpty())
-			return targets;
+		if (paramFileSet.isEmpty()) return targets;
 
 		// get a file to parse
 		String fString = paramFileSet.iterator().next();
 
-		File f = null;
-		if(!properties.isWebWorkflow)
-			f = new File(fString);
+		File file = null;
+		if (!properties.isWebWorkflow)
+		{
+			file = new File(fString);
+		}
 		else
-			f = urlReader.createFileFromGithub(properties.webWorkflowLocation, fString);
+		{
+			file = urlReader.createFileFromGithub(properties.webWorkflowLocation, fString);
+		}
 
 		// remove file from the set we have to parse
 		paramFileSet.remove(fString);
@@ -125,18 +133,16 @@ public class ParametersCsvParser
 		}
 		else
 		{
-			// parse file f
-
 			// add parsed file to the list of parsed files and ensure we'll not
 			// do this file again
 			paramFileSetDone.add(fString);
 
 			// get file f as list of tuples
-			List<Entity> tupleLst = asTuples(f);
+			List<Entity> tupleLst = asTuples(file);
 
 			// If path to workflow is relative then prepend its parent's path
 			// (f).
-			tupleLst = updatePath(tupleLst, Parameters.WORKFLOW, f);
+			tupleLst = updatePath(tupleLst, Parameters.WORKFLOW, file);
 
 			// same for output path
 			// tupleLst = updatePath(tupleLst, Parameters.WORKDIR_COLUMN, f);
@@ -144,7 +150,7 @@ public class ParametersCsvParser
 			// get other param files we have to parse, and validate that all
 			// values in 'parameters' column equal. If file path is relative
 			// then prepend its parent's path (f)
-			HashSet<String> newParamFileSet = getParamFiles(tupleLst, f);
+			HashSet<String> newParamFileSet = getParamFiles(tupleLst, file);
 
 			// Remove all files that are already done
 			newParamFileSet.removeAll(paramFileSetDone);
