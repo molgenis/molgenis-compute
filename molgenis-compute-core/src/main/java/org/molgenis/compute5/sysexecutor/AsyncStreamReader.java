@@ -6,11 +6,10 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.log4j.Logger;
-import org.molgenis.compute5.generators.TaskGenerator;
 
 class AsyncStreamReader extends Thread
 {
-	private static final Logger LOG = Logger.getLogger(TaskGenerator.class);
+	private static final Logger LOG = Logger.getLogger(AsyncStreamReader.class);
 
 	private StringBuffer buffer = null;
 	private InputStream inputStream = null;
