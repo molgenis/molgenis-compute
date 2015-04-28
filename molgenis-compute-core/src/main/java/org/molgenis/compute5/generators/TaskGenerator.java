@@ -636,8 +636,7 @@ public class TaskGenerator
 
 		for (Input i : step.getProtocol().getInputs())
 		{
-//			String origin = step.getParametersMapping().get(i.getName());
-			boolean initialized = true; //origin.startsWith(Parameters.USER_PREFIX);
+			boolean initialized = true;
 
 			boolean isList = Parameters.LIST_INPUT.equals(i.getType());
 
@@ -701,9 +700,6 @@ public class TaskGenerator
 				if (!found)
 				{
 					LOG.warn("Parameter [" + localName + "] is unknown at design time");
-//					throw new IOException("Generation of step '" + step.getName() + "' failed: mapped input '"
-//							+ globalName + "' is missing from parameter file(s).\nProvided parameters: "
-//							+ globalParameters);
 				}
 				else
 					local.set(localName, global.get(parameterNameWithPrefix));
@@ -716,7 +712,11 @@ public class TaskGenerator
 	}
 
 
-	public void analyseListsInProtocols(Workflow workflow, List<HashMap> parameters)
+	/**
+	 * Analyze lists in workflow protocols and determine whether these lists should be combined or not
+	 * @param workflow
+	 */
+	public void determineCombineLists(Workflow workflow)
 	{
 
 		if(parameters.size() < 2)
