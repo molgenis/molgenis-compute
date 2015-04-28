@@ -180,10 +180,6 @@ public class TaskGenerator
 								else
 									value = EnvironmentGenerator.GLOBAL_PREFIX + value;
 
-	//								left in code for future comparison in papers
-	//								parameterHeader += parameterName + "[" + i + "]=${" + value + "[" + rowIndexString
-	//										+ "]}\n";
-
 								String type = input.getType();
 
 								String left = null;
