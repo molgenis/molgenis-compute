@@ -1,4 +1,4 @@
-package org.molgenis.compute5.sysexecutor;
+package org.molgenis.compute5.model;
 
 public class EnvironmentVar
 {

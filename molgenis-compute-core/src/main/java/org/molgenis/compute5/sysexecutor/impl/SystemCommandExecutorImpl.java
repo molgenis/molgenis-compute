@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.molgenis.compute5.sysexecutor.EnvironmentVar;
+import org.molgenis.compute5.model.EnvironmentVar;
 import org.molgenis.compute5.sysexecutor.SystemCommandExecutor;
 
 public class SystemCommandExecutorImpl implements SystemCommandExecutor
