@@ -275,8 +275,9 @@ public class ComputeCommandLine
 		// analyse lists in workflow protocols
 		// we need to know if list input are coming from the same or different parameter files
 		// to combine lists or leave them separated
-		taskGenerator.analyseListsInProtocols(workflow, parametersContainer.getParameters());
-
+		if(parametersContainer.getParameters().size() > 2) {
+			taskGenerator.determineCombineLists(workflow);
+		}
 		// generate the tasks
 		List<Task> tasks = taskGenerator.generate(compute);
 		compute.setTasks(tasks);
