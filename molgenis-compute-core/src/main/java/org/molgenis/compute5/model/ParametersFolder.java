@@ -1,13 +1,11 @@
 package org.molgenis.compute5.model;
 
 import au.com.bytecode.opencsv.CSVReader;
-import org.apache.log4j.Logger;
+
 import org.molgenis.compute5.ComputeProperties;
 import org.molgenis.compute5.urlreader.UrlReader;
 
-
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
@@ -21,23 +19,17 @@ import java.util.*;
  */
 public class ParametersFolder
 {
-	private static final Logger LOG = Logger.getLogger(ParametersFolder.class);
-
-
 	//map parameter name and values
-	List<HashMap> parameters = new ArrayList<HashMap>();
+	List<HashMap<String, List<String>>> parameters = new ArrayList<HashMap<String, List<String>>>();
 	private UrlReader urlReader = new UrlReader();
-
 
 	public void setFromFiles(List<File> fromFiles, ComputeProperties computeProperties)
 	{
 		for (File file : fromFiles)
 		{
+			CSVReader reader = null;
 			try
 			{
-				CSVReader reader = null;
-
-
 				if(!computeProperties.isWebWorkflow)
 					reader = new CSVReader(new FileReader(file));
 				else
@@ -108,20 +100,25 @@ public class ParametersFolder
 					parameters.add(onefileParameters);
 				}
 			}
-			catch (FileNotFoundException e)
-			{
-				e.printStackTrace();
-			}
 			catch (IOException e)
 			{
 				e.printStackTrace();
+			} finally {
+				try
+				{
+					reader.close();
+				}
+				catch (IOException e)
+				{
+					e.printStackTrace();
+				}
 			}
 		}
 	}
 
 	private void checkIfParameterExist(String head, File file)
 	{
-		for(HashMap oneFile : parameters)
+		for(HashMap<String, List<String>> oneFile : parameters)
 		{
 			Set<String> keys = oneFile.keySet();
 			for(String key : keys)
@@ -138,9 +135,12 @@ public class ParametersFolder
 
 	public boolean isMultiParametersFiles()
 	{
-		if (parameters.size() > 1)
+		if (parameters.size() > 1) 
+		{
 			return true;
-		return false;
+		} else {
+			return false;
+		}
 	}
 
 	public int isParameterFindTimes(String name)
@@ -155,7 +155,14 @@ public class ParametersFolder
 		return i;
 	}
 
-	public List<String> foldingNieuwe(String name, Hashtable<String, String> foreach)
+	/**
+	 * TODO What does this method do exactly?
+	 * 
+	 * @param name
+	 * @param foreach
+	 * @return
+	 */
+	public List<String> foldingNew(String name, Hashtable<String, String> foreach)
 	{
 		List<String> values = new ArrayList<String>();
 		for (HashMap<String, List<String>> parametersFile : parameters)
@@ -166,7 +173,7 @@ public class ParametersFolder
 				//this is the parameter file that we are looking for
 				Hashtable<String, String> neededForeach = new Hashtable<String, String>();
 
-				Enumeration keys = foreach.keys();
+				Enumeration<String> keys = foreach.keys();
 				while (keys.hasMoreElements())
 				{
 					String key = (String) keys.nextElement();
@@ -197,7 +204,7 @@ public class ParametersFolder
 					}
 
 
-					Enumeration neededKeys = neededForeach.keys();
+					Enumeration<String> neededKeys = neededForeach.keys();
 					for (int i = 1; i <= neededForeach.size(); i++)
 					{
 						String key = (String) neededKeys.nextElement();
@@ -214,7 +221,7 @@ public class ParametersFolder
 					for (int i = 1; i <= parametersFile.get(name).size(); i++)
 					{
 						boolean stillGood = true;
-						Enumeration k = neededForeach.keys();
+						Enumeration<String> k = neededForeach.keys();
 						for (int j = 1; j <= neededForeach.size(); j++)
 						{
 							String key = (String) k.nextElement();
@@ -245,7 +252,7 @@ public class ParametersFolder
 		return values;
 	}
 
-	public List<HashMap> getParameters()
+	public List<HashMap<String,List<String>>> getParameters()
 	{
 		return parameters;
 	}
