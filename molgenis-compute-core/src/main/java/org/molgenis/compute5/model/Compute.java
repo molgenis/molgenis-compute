@@ -1,10 +1,10 @@
 package org.molgenis.compute5.model;
 
-
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.molgenis.compute5.ComputeProperties;
-import org.molgenis.compute5.generators.BackendGenerator;
 import org.molgenis.compute5.generators.BatchAnalyser;
 
 public class Compute
@@ -12,7 +12,6 @@ public class Compute
 	private Workflow workflow;
 	private Parameters parameters;
 	private List<Task> tasks;
-	private BackendGenerator backend;
 	private ComputeProperties computeProperties;
 	private String userEnvironment;
 
@@ -111,5 +110,3 @@ public class Compute
         return batchAnalyser.getBatchesSize();
     }
 }
-
-//
