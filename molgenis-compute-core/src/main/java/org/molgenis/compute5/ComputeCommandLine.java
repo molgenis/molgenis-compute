@@ -3,22 +3,15 @@ package org.molgenis.compute5;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
-import org.molgenis.compute5.generators.BackendGenerator;
-import org.molgenis.compute5.generators.CreateWorkflowGenerator;
-import org.molgenis.compute5.generators.EnvironmentGenerator;
-import org.molgenis.compute5.generators.TaskGenerator;
-import org.molgenis.compute5.model.Compute;
-import org.molgenis.compute5.model.Parameters;
-import org.molgenis.compute5.model.ParametersFolder;
-import org.molgenis.compute5.model.Task;
-import org.molgenis.compute5.model.Workflow;
+import org.molgenis.compute5.db.api.*;
+import org.molgenis.compute5.generators.*;
+import org.molgenis.compute5.model.*;
 import org.molgenis.compute5.parsers.ParametersCsvParser;
 import org.molgenis.compute5.parsers.WorkflowCsvParser;
 import org.molgenis.compute5.sysexecutor.SysCommandExecutor;
@@ -56,6 +49,22 @@ public class ComputeCommandLine
 	public CommandLineRunContainer execute(ComputeProperties computeProperties) throws Exception
 	{
 		Compute compute = new Compute(computeProperties);
+
+		String userName = null;
+		String pass = null;
+		ComputeDbApiConnection dbApiConnection = null;
+		ComputeDbApiClient dbApiClient = null;
+
+		//check if we are working with database; database default is database=none
+		if(!computeProperties.database.equalsIgnoreCase(Parameters.DATABASE_DEFAULT))
+		{
+			userName = computeProperties.molgenisuser;
+			pass = computeProperties.molgenispass;
+
+			dbApiConnection = new HttpClientComputeDbApiConnection(computeProperties.database,
+					computeProperties.port, "/api/v1", userName, pass);
+			dbApiClient = new ComputeDbApiClient(dbApiConnection);
+		}
 
 		if(computeProperties.showHelp)
 		{
@@ -105,44 +114,99 @@ public class ComputeCommandLine
 
 			generate(compute, computeProperties);
 
-			if (computeProperties.list)
-			{
-				// list *.sh files in rundir
-				File[] scripts = new File(computeProperties.runDir).listFiles(
-						new FilenameFilter()
+			if (Parameters.DATABASE_DEFAULT.equals(computeProperties.database))
+			{ // if database none (= off), then do following
+				if (computeProperties.list)
 				{
-					public boolean accept(File dir, String filename)
+					// list *.sh files in rundir
+					File[] scripts = new File(computeProperties.runDir).listFiles(
+							new FilenameFilter()
 					{
-						return filename.endsWith(".sh");
-					}
-				});
+						public boolean accept(File dir, String filename)
+						{
+							return filename.endsWith(".sh");
+						}
+					});
 
-				LOG.info("Generated jobs that are ready to run:");
-				if (null == scripts) System.out.println("None. Remark: the run (output) directory '"
-						+ computeProperties.runDir + "' does not exist.");
-				else if (0 == scripts.length) System.out.println("None.");
-				else for (File script : scripts)
+					LOG.info("Generated jobs that are ready to run:");
+					if (null == scripts) System.out.println("None. Remark: the run (output) directory '"
+							+ computeProperties.runDir + "' does not exist.");
+					else if (0 == scripts.length) System.out.println("None.");
+					else for (File script : scripts)
+						{
+							System.out.println("- " + script.getName());
+						}
+				}
+			}
+			else
+			{
+				String runName = computeProperties.runId;
+
+				String backendUrl = computeProperties.backendUrl;
+				String backendName = computeProperties.backend;
+				Long pollInterval = Long.parseLong(computeProperties.interval);
+
+				List<Task> tasks = compute.getTasks();
+				String submitScript = "none";
+				if(backendName.equalsIgnoreCase(Parameters.SCHEDULER_PBS) ||
+						backendName.equalsIgnoreCase(Parameters.SCHEDULER_SLURM))
+				{
+					for(Task task: tasks)
 					{
-						System.out.println("- " + script.getName());
+						String name = task.getName();
+						String wrappedScript = FileUtils.readFileToString(new File(computeProperties.runDir + "/" + name + ".sh"));
+						task.setScript(wrappedScript);
 					}
+					submitScript =  FileUtils.readFileToString(new File(computeProperties.runDir + "/submit.sh"));
+				}
+
+				String environment = compute.getUserEnvironment();
+
+				CreateRunRequest createRunRequest = new CreateRunRequest(runName, backendUrl, pollInterval,
+						tasks, environment, userName, submitScript);
+
+				dbApiClient.createRun(createRunRequest);
+
+				System.out.println("\n Run " + computeProperties.runId + " is inserted into database on "
+						+ computeProperties.database);
 			}
 		}
 
 		if (computeProperties.execute)
 		{
-			String runDir = computeProperties.runDir;
-			SysCommandExecutor exe =  new SysCommandExecutor();
-			exe.runCommand("sh " + runDir + "/submit.sh");
+			if(computeProperties.database.equalsIgnoreCase(Parameters.DATABASE_DEFAULT))
+			{
+				String runDir = computeProperties.runDir;
+				SysCommandExecutor exe =  new SysCommandExecutor();
+				exe.runCommand("sh " + runDir + "/submit.sh");
 
-			String err = exe.getCommandError();
-			String out = exe.getCommandOutput();
+				String err = exe.getCommandError();
+				String out = exe.getCommandOutput();
 
-			System.out.println("\nScripts are executed/submitted on " + computeProperties.backend);
+				System.out.println("\nScripts are executed/submitted on " + computeProperties.backend);
 
-			System.out.println(out);
-			System.out.println(err);
+				System.out.println(out);
+				System.out.println(err);
+
+			}
+			else
+			{
+				String backendUserName = computeProperties.backenduser;
+				String backendPass = computeProperties.backendpass;
+
+				if((backendPass == null) || (backendUserName == null))
+				{
+					LOG.info("\nPlease specify username and password for computational back-end");
+					LOG.info("Use --backenduser[-bu] and --backendpassword[-bp] for this");
+					return commandLineRunContainer;
+				}
+
+				StartRunRequest startRunRequest = new StartRunRequest(computeProperties.runId, backendUserName, backendPass);
+				dbApiClient.start(startRunRequest);
+				LOG.info("\n" + computeProperties.runId + "is submitted for execution "
+						+ computeProperties.backend + " by user " + backendUserName);
+			}
 		}
-		
 		return commandLineRunContainer;
 	}
 
