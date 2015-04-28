@@ -50,7 +50,7 @@ public class TaskGenerator
 			// (ii) taskIndex = id
 			localParameters = addStepIds(localParameters, step);
 
-			List<Task> tasks = (List<Task>) generateTasks(step, localParameters, workflow, computeProperties);
+			List<Task> tasks = generateTasks(step, localParameters, workflow, computeProperties);
 			// generate the tasks from template, add step id
 			result.addAll(tasks);
 
@@ -64,7 +64,7 @@ public class TaskGenerator
 		return result;
 	}
 
-	private Collection<? extends Task> generateTasks(Step step, List<MapEntity> localParameters,
+	private List<Task> generateTasks(Step step, List<MapEntity> localParameters,
 			Workflow workflow, ComputeProperties computeProperties) throws IOException
 	{
 		List<Task> tasks = new ArrayList<Task>();
