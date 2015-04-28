@@ -408,7 +408,7 @@ public class TaskGenerator
 			if(timeParameterFind == 1)
 			{
 				String name = input.getName();
-				List<String> foldedList = originalParameters.foldingNieuwe(name, foreachParameters);
+				List<String> foldedList = originalParameters.foldingNew(name, foreachParameters);
 
 				List<String> values = new ArrayList<String>();
 				for(int i = 0; i < foldedList.size(); i++)
