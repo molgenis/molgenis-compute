@@ -52,7 +52,7 @@ public class EnvironmentGenerator
 			{
 				String value = itValue.next();
 
-				arrayOfParameterSteps.add(new Pair(value, step.getName()));
+				arrayOfParameterSteps.add(new Pair<String, String>(value, step.getName()));
 
 				if(!workflow.parameterHasStepPrefix(value))
 				{
@@ -64,7 +64,7 @@ public class EnvironmentGenerator
 
 			for(String s : autoMappedParameters)
 			{
-				arrayOfParameterSteps.add(new Pair(s, step.getName()));
+				arrayOfParameterSteps.add(new Pair<String, String>(s, step.getName()));
 			}
 
 			userInputParamSet.addAll(autoMappedParameters);
@@ -135,8 +135,6 @@ public class EnvironmentGenerator
 
 	private boolean isFoundAsOutput(String parameter, MapEntity wt)
 	{
-		boolean isRunTime = false;
-
 		for(Step step: workflow.getSteps())
 		{
 			Set<Output> outputs = step.getProtocol().getOutputs();
