@@ -21,7 +21,7 @@ public class ParametersCsvParser
 {
 	private ComputeProperties properties = null;
 	private String runID;
-	private HashMap parametersToOverwrite = null;
+	private HashMap<String, String> parametersToOverwrite = null;
 
 	private UrlReader urlReader = new UrlReader();
 
@@ -51,8 +51,7 @@ public class ParametersCsvParser
 		// solve the templates
 		TupleUtils tupleUtils = new TupleUtils();
 		tupleUtils.setRunID(runID);
-		if(parametersToOverwrite != null)
-			tupleUtils.setParametersToOverwrite(parametersToOverwrite);
+		if(parametersToOverwrite != null) tupleUtils.setParametersToOverwrite(parametersToOverwrite);
 		tupleUtils.solve(targets.getValues());
 
 		// mark all columns as 'user_*'
@@ -345,7 +344,6 @@ public class ParametersCsvParser
 	 * @return
 	 * @throws IOException
 	 */
-	@SuppressWarnings("resource")
 	private static List<Entity> asTuples(File f) throws IOException
 	{
 		List<Entity> tLst = new ArrayList<Entity>();
@@ -536,7 +534,7 @@ public class ParametersCsvParser
 		this.runID = runID;
 	}
 
-	public void setParametersToOverwrite(HashMap parametersToOverwrite)
+	public void setParametersToOverwrite(HashMap<String, String> parametersToOverwrite)
 	{
 		this.parametersToOverwrite = parametersToOverwrite;
 	}
