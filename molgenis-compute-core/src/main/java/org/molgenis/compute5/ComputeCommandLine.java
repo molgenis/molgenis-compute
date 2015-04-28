@@ -12,8 +12,8 @@ import org.apache.log4j.Logger;
 import org.molgenis.compute5.db.api.*;
 import org.molgenis.compute5.generators.*;
 import org.molgenis.compute5.model.*;
-import org.molgenis.compute5.parsers.ParametersCsvParser;
-import org.molgenis.compute5.parsers.WorkflowCsvParser;
+import org.molgenis.compute5.parsers.impl.ParametersCsvParserImpl;
+import org.molgenis.compute5.parsers.impl.WorkflowCsvParser;
 import org.molgenis.compute5.sysexecutor.impl.SystemCommandExecutorImpl;
 
 /**
@@ -234,7 +234,7 @@ public class ComputeCommandLine
 				parameterFiles.add(new File(computeProperties.defaults));
 
 		// parse param files
-		ParametersCsvParser parser = new ParametersCsvParser();
+		ParametersCsvParserImpl parser = new ParametersCsvParserImpl();
 		//set runID here, which will be passed to TupleUtils to solve method
 		parser.setRunID(computeProperties.runId);
 

@@ -1,4 +1,4 @@
-package org.molgenis.compute5.parsers;
+package org.molgenis.compute5.parsers.impl;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,17 +11,15 @@ import org.apache.log4j.Logger;
 import org.molgenis.compute5.ComputeProperties;
 import org.molgenis.compute5.generators.TupleUtils;
 import org.molgenis.compute5.model.Parameters;
+import org.molgenis.compute5.parsers.ParametersCsvParser;
 import org.molgenis.compute5.urlreader.UrlReader;
 import org.molgenis.data.Entity;
 import org.molgenis.data.csv.CsvRepository;
 import org.molgenis.data.support.MapEntity;
 
-/**
- * Parser for csv file parameters. Includes the solving of templated values.
- */
-public class ParametersCsvParser
+public class ParametersCsvParserImpl implements ParametersCsvParser
 {
-	private static final Logger LOG = Logger.getLogger(ParametersCsvParser.class);
+	private static final Logger LOG = Logger.getLogger(ParametersCsvParserImpl.class);
 
 	private String runID;
 	private ComputeProperties properties;
@@ -79,16 +77,6 @@ public class ParametersCsvParser
 		return targets;
 	}
 
-	/**
-	 * Parse paramFileSet into Parameters targets.
-	 * 
-	 * @param targets
-	 *            contains Parameters after parsing paramFileSet
-	 * @param paramFileSet
-	 *            Set of parameter files to parse
-	 * @return
-	 * @throws IOException
-	 */
 	@SuppressWarnings("unchecked")
 	public Parameters parseParamFiles(Parameters targets, Set<String> paramFileSet) throws IOException
 	{
@@ -173,6 +161,16 @@ public class ParametersCsvParser
 		}
 	}
 
+	public void setRunID(String runID)
+	{
+		this.runID = runID;
+	}
+
+	public void setParametersToOverwrite(HashMap<String, String> parametersToOverwrite)
+	{
+		this.parametersToOverwrite = parametersToOverwrite;
+	}
+
 	/**
 	 * Expand tupleLst
 	 * 
@@ -219,6 +217,13 @@ public class ParametersCsvParser
 		return resultLst;
 	}
 
+	/**
+	 * Converts an Entity to a list of strings
+	 * 
+	 * @param t
+	 * @param col
+	 * @return A list of Entity columns
+	 */
 	private static List<String> asList(Entity t, String col)
 	{
 		String s = t.getString(col);
@@ -344,78 +349,84 @@ public class ParametersCsvParser
 	}
 
 	/**
-	 * (1) Parse file f as list of Tuples and (2) validate that no parameters contain the 'step_param' separator
+	 * Parse file as list of Tuples and validate that no parameters contain the 'step_param' separator
 	 * 
-	 * @param f
-	 * @return
+	 * @param file
+	 * @return A list of entities
 	 * @throws IOException
 	 */
-	private static List<Entity> asTuples(File f) throws IOException
+	private static List<Entity> asTuples(File file) throws IOException
 	{
-		List<Entity> tLst = new ArrayList<Entity>();
+		List<Entity> tupleList = new ArrayList<Entity>();
 
-		if (f.toString().endsWith(".properties"))
+		if (file.toString().endsWith(".properties"))
 		{
-			Properties p = new Properties();
-			FileInputStream fis = new FileInputStream(f);
+			Properties properties = new Properties();
+			FileInputStream fileInputStream = new FileInputStream(file);
 			try
 			{
-				p.load(fis);
+				properties.load(fileInputStream);
+			}
+			catch (Exception e)
+			{
+				LOG.error("Error loading the file input stream, message is: " + e);
 			}
 			finally
 			{
-				fis.close();
+				fileInputStream.close();
 			}
+			
 			// set this.variables
-			MapEntity t = new MapEntity();
-			Iterator<Object> it = p.keySet().iterator();
-			while (it.hasNext())
+			Entity keyValueEntity = new MapEntity();
+			Iterator<Object> keySetIterator = properties.keySet().iterator();
+			while (keySetIterator.hasNext())
 			{
-				String key = (String) it.next();
-				String value = p.getProperty(key);
-				t.set(key, value);
+				String key = keySetIterator.next().toString();
+				String value = properties.getProperty(key);
+				keyValueEntity.set(key, value);
 			}
 
-			tLst.add(t);
+			tupleList.add(keyValueEntity);
 		}
 		else
-		{ // assume we want to parse csv
-			if (!f.toString().endsWith(".csv"))
-			{ // assume we want to append '.csv'
-				System.out.println(">> File '" + f.toString() + "' does not end with *.properties or *.csv.");
-				if (f.exists() && f.isFile())
+		{
+			// assume we want to parse csv
+			if (!file.toString().endsWith(".csv"))
+			{
+				// assume we want to append '.csv'
+				LOG.warn("File '" + file.toString() + "' does not end with *.properties or *.csv.");
+				if (file.exists() && file.isFile())
 				{
-					System.out
-							.println("\tThe file exists. We'll assume it is in the CSV-format and start parsing it...");
+					LOG.info("\tThe file exists. We'll assume it is in the CSV-format and start parsing it...");
 				}
 				else
 				{
-					System.out
-							.println("\tWe couldn't find the file. We'll append the extension '.csv' and try again with");
-					System.out.println("\t" + f.toString() + ".csv");
-
-					f = new File(f.toString() + ".csv");
+					LOG.info("\tWe couldn't find the file. We'll append the extension '.csv' and try again with: "
+							+ file.toString() + ".csv");
+					
+					file = new File(file.toString() + ".csv");
 				}
 			}
 
-			for (Entity t : new CsvRepository(f, null))
+			for (Entity entity : new CsvRepository(file, null))
 			{
-				tLst.add(t);
+				tupleList.add(entity);
 			}
 		}
 
-		return tLst;
+		return tupleList;
 	}
 
 	/**
-	 * (1) Validate that all values (set of files) in 'parameters' column are equal and (2) return them as a set. (3) If
+	 * Validate that all values (set of files) in 'parameters' column are equal and  return them as a set. If
 	 * a file does not have an absolute path, then use the path of its parent as a starting point.
 	 * 
-	 * @param tupleLst
+	 * @param tupleList
+	 * @param file
 	 * @return set of files (in AbsoluteFile notation) to be included
 	 * @throws IOException
 	 */
-	private static HashSet<String> getParamFiles(List<Entity> tupleLst, File f) throws IOException
+	private static HashSet<String> getParamFiles(List<Entity> tupleList, File file) throws IOException
 	{
 		boolean noParamColumnFoundYet = true;
 
@@ -426,7 +437,7 @@ public class ParametersCsvParser
 		// transform list into file set
 		HashSet<String> fileSet = new HashSet<String>();
 
-		for (Entity t : tupleLst)
+		for (Entity t : tupleList)
 		{
 			for (String colName : t.getAttributeNames())
 			{
@@ -452,7 +463,7 @@ public class ParametersCsvParser
 							}
 							else
 							{
-								fileSet.add(f.getParent() + File.separator + fString);
+								fileSet.add(file.getParent() + File.separator + fString);
 							}
 						}
 					}
@@ -462,7 +473,7 @@ public class ParametersCsvParser
 								"Values in '"
 										+ Parameters.PARAMETER_COLUMN
 										+ "' column are not equal in file '"
-										+ f.toString()
+										+ file.toString()
 										+ "', please fix:\n'"
 										+ t.getString(colName)
 										+ "' is different from '"
@@ -533,15 +544,5 @@ public class ParametersCsvParser
 		}
 
 		return tupleLstUpdated;
-	}
-
-	public void setRunID(String runID)
-	{
-		this.runID = runID;
-	}
-
-	public void setParametersToOverwrite(HashMap<String, String> parametersToOverwrite)
-	{
-		this.parametersToOverwrite = parametersToOverwrite;
 	}
 }

@@ -1,4 +1,4 @@
-package org.molgenis.compute5.parsers;
+package org.molgenis.compute5.parsers.impl;
 
 import org.apache.log4j.Logger;
 import org.molgenis.compute5.model.Input;

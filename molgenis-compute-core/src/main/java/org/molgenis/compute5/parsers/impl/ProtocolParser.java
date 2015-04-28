@@ -1,4 +1,4 @@
-package org.molgenis.compute5.parsers;
+package org.molgenis.compute5.parsers.impl;
 
 import java.io.BufferedReader;
 import java.io.File;
