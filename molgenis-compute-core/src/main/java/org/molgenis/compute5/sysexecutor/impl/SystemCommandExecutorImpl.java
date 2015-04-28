@@ -1,4 +1,4 @@
-package org.molgenis.compute5.sysexecutor;
+package org.molgenis.compute5.sysexecutor.impl;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.molgenis.compute5.sysexecutor.EnvironmentVar;
+import org.molgenis.compute5.sysexecutor.SystemCommandExecutor;
+
 public class SystemCommandExecutorImpl implements SystemCommandExecutor
 {
 	private String workingDirectory = null;
@@ -14,8 +17,8 @@ public class SystemCommandExecutorImpl implements SystemCommandExecutor
 
 	private StringBuffer cmdOutput = null;
 	private StringBuffer cmdError = null;
-	private AsyncStreamReader cmdOutputThread = null;
-	private AsyncStreamReader cmdErrorThread = null;
+	private AsyncStreamReaderImpl cmdOutputThread = null;
+	private AsyncStreamReaderImpl cmdErrorThread = null;
 
 	@Override
 	public void setWorkingDirectory(String workingDirectory)
@@ -56,7 +59,6 @@ public class SystemCommandExecutorImpl implements SystemCommandExecutor
 		try
 		{
 			exitStatus = process.waitFor();
-
 		}
 		catch (Throwable ex)
 		{
@@ -101,11 +103,11 @@ public class SystemCommandExecutorImpl implements SystemCommandExecutor
 	private void startOutputAndErrorReadThreads(InputStream processOut, InputStream processErr)
 	{
 		cmdOutput = new StringBuffer();
-		cmdOutputThread = new AsyncStreamReader(processOut, cmdOutput);
+		cmdOutputThread = new AsyncStreamReaderImpl(processOut, cmdOutput);
 		cmdOutputThread.start();
 
 		cmdError = new StringBuffer();
-		cmdErrorThread = new AsyncStreamReader(processErr, cmdError);
+		cmdErrorThread = new AsyncStreamReaderImpl(processErr, cmdError);
 		cmdErrorThread.start();
 	}
 

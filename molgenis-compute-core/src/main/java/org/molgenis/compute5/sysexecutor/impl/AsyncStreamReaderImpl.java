@@ -1,4 +1,4 @@
-package org.molgenis.compute5.sysexecutor;
+package org.molgenis.compute5.sysexecutor.impl;
 
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.log4j.Logger;
+import org.molgenis.compute5.sysexecutor.AsyncStreamReader;
 
 class AsyncStreamReaderImpl extends Thread implements AsyncStreamReader
 {
@@ -44,7 +45,7 @@ class AsyncStreamReaderImpl extends Thread implements AsyncStreamReader
 		}
 		catch (Exception e)
 		{
-			LOG.error("Error while reading the input stream: " + e);
+			LOG.error("Error while reading the input stream, message is: " + e);
 		}
 		finally
 		{

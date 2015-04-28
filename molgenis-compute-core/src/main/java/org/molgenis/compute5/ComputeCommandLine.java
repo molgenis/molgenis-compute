@@ -14,7 +14,7 @@ import org.molgenis.compute5.generators.*;
 import org.molgenis.compute5.model.*;
 import org.molgenis.compute5.parsers.ParametersCsvParser;
 import org.molgenis.compute5.parsers.WorkflowCsvParser;
-import org.molgenis.compute5.sysexecutor.SystemCommandExecutorImpl;
+import org.molgenis.compute5.sysexecutor.impl.SystemCommandExecutorImpl;
 
 /**
  * Commandline program for compute5. Usage: -w workflow.csv -p parameters.csv
