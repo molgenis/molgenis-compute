@@ -1,14 +1,13 @@
 package org.molgenis.compute5.sysexecutor;
 
-
 public class EnvironmentVar
 {
-	public String fName = null;
-	public String fValue = null;
+	public final String name;
+	public final String value;
 
 	public EnvironmentVar(String name, String value)
 	{
-		fName = name;
-		fValue = value;
+		this.name = name;
+		this.value = value;
 	}
 }

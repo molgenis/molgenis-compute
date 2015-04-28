@@ -8,47 +8,33 @@ import java.util.List;
 
 public class SysCommandExecutor
 {
-    private ILogDevice fOuputLogDevice = null;
-    private ILogDevice fErrorLogDevice = null;
-    private String fWorkingDirectory = null;
-    private List fEnvironmentVarList = null;
+    private String workingDirectory = null;
+    private List<EnvironmentVar> environmentVarList = null;
 
-    private StringBuffer fCmdOutput = null;
-    private StringBuffer fCmdError = null;
-    private AsyncStreamReader fCmdOutputThread = null;
-    private AsyncStreamReader fCmdErrorThread = null;
-
-    public void setOutputLogDevice(ILogDevice logDevice)
-    {
-        fOuputLogDevice = logDevice;
-    }
-
-    public void setErrorLogDevice(ILogDevice logDevice)
-    {
-        fErrorLogDevice = logDevice;
-    }
+    private StringBuffer cmdOutput = null;
+    private StringBuffer cmdError = null;
+    private AsyncStreamReader cmdOutputThread = null;
+    private AsyncStreamReader cmdErrorThread = null;
 
     public void setWorkingDirectory(String workingDirectory)
     {
-        fWorkingDirectory = workingDirectory;
+        this.workingDirectory = workingDirectory;
     }
 
     public void setEnvironmentVar(String name, String value)
     {
-        if (fEnvironmentVarList == null)
-            fEnvironmentVarList = new ArrayList();
-
-        fEnvironmentVarList.add(new EnvironmentVar(name, value));
+        if (environmentVarList == null) environmentVarList = new ArrayList<EnvironmentVar>();
+        environmentVarList.add(new EnvironmentVar(name, value));
     }
 
     public String getCommandOutput()
     {
-        return fCmdOutput.toString();
+        return cmdOutput.toString();
     }
 
     public String getCommandError()
     {
-        return fCmdError.toString();
+        return cmdError.toString();
     }
 
     public int runCommand(String commandLine) throws Exception
@@ -77,50 +63,50 @@ public class SysCommandExecutor
 
         return exitStatus;
     }
+    
+    private String[] getEnvTokens()
+    {
+        if (environmentVarList == null)
+            return null;
+
+        String[] envTokenArray = new String[environmentVarList.size()];
+        Iterator<EnvironmentVar> envVarIter = environmentVarList.iterator();
+        int nEnvVarIndex = 0;
+        while (envVarIter.hasNext() == true)
+        {
+            EnvironmentVar envVar = (EnvironmentVar) (envVarIter.next());
+            String envVarToken = envVar.name + "=" + envVar.value;
+            envTokenArray[nEnvVarIndex++] = envVarToken;
+        }
+
+        return envTokenArray;
+    }
 
     private Process runCommandHelper(String commandLine) throws IOException
     {
         Process process = null;
-        if (fWorkingDirectory == null)
+        if (workingDirectory == null)
             process = Runtime.getRuntime().exec(commandLine, getEnvTokens());
         else
-            process = Runtime.getRuntime().exec(commandLine, getEnvTokens(), new File(fWorkingDirectory));
+            process = Runtime.getRuntime().exec(commandLine, getEnvTokens(), new File(workingDirectory));
 
         return process;
     }
 
     private void startOutputAndErrorReadThreads(InputStream processOut, InputStream processErr)
     {
-        fCmdOutput = new StringBuffer();
-        fCmdOutputThread = new AsyncStreamReader(processOut, fCmdOutput, fOuputLogDevice, "OUTPUT");
-        fCmdOutputThread.start();
+        cmdOutput = new StringBuffer();
+        cmdOutputThread = new AsyncStreamReader(processOut, cmdOutput);
+        cmdOutputThread.start();
 
-        fCmdError = new StringBuffer();
-        fCmdErrorThread = new AsyncStreamReader(processErr, fCmdError, fErrorLogDevice, "ERROR");
-        fCmdErrorThread.start();
+        cmdError = new StringBuffer();
+        cmdErrorThread = new AsyncStreamReader(processErr, cmdError);
+        cmdErrorThread.start();
     }
 
     private void notifyOutputAndErrorReadThreadsToStopReading()
     {
-        fCmdOutputThread.stopReading();
-        fCmdErrorThread.stopReading();
-    }
-
-    private String[] getEnvTokens()
-    {
-        if (fEnvironmentVarList == null)
-            return null;
-
-        String[] envTokenArray = new String[fEnvironmentVarList.size()];
-        Iterator envVarIter = fEnvironmentVarList.iterator();
-        int nEnvVarIndex = 0;
-        while (envVarIter.hasNext() == true)
-        {
-            EnvironmentVar envVar = (EnvironmentVar) (envVarIter.next());
-            String envVarToken = envVar.fName + "=" + envVar.fValue;
-            envTokenArray[nEnvVarIndex++] = envVarToken;
-        }
-
-        return envTokenArray;
+		cmdOutputThread.stopReading();
+        cmdErrorThread.stopReading();
     }
 }
