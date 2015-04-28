@@ -14,7 +14,7 @@ import org.molgenis.compute5.generators.*;
 import org.molgenis.compute5.model.*;
 import org.molgenis.compute5.parsers.ParametersCsvParser;
 import org.molgenis.compute5.parsers.WorkflowCsvParser;
-import org.molgenis.compute5.sysexecutor.SysCommandExecutor;
+import org.molgenis.compute5.sysexecutor.SystemCommandExecutorImpl;
 
 /**
  * Commandline program for compute5. Usage: -w workflow.csv -p parameters.csv
@@ -177,7 +177,7 @@ public class ComputeCommandLine
 			if(computeProperties.database.equalsIgnoreCase(Parameters.DATABASE_DEFAULT))
 			{
 				String runDir = computeProperties.runDir;
-				SysCommandExecutor exe =  new SysCommandExecutor();
+				SystemCommandExecutorImpl exe =  new SystemCommandExecutorImpl();
 				exe.runCommand("sh " + runDir + "/submit.sh");
 
 				String err = exe.getCommandError();

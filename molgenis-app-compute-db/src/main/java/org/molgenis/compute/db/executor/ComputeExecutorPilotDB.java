@@ -16,7 +16,7 @@ import org.apache.log4j.Logger;
 import org.molgenis.compute.db.ComputeDbException;
 import org.molgenis.compute.runtime.ComputeRun;
 import org.molgenis.compute.runtime.ComputeTask;
-import org.molgenis.compute5.sysexecutor.SysCommandExecutor;
+import org.molgenis.compute5.sysexecutor.SystemCommandExecutorImpl;
 import org.molgenis.data.DataService;
 import org.molgenis.data.support.QueryImpl;
 import org.molgenis.security.runas.RunAsSystem;
@@ -179,7 +179,7 @@ public class ComputeExecutorPilotDB implements ComputeExecutor
 	{
 		LOG.info("Execution command [" + command + "] ...");
 
-		SysCommandExecutor localExecutor = new SysCommandExecutor();
+		SystemCommandExecutorImpl localExecutor = new SystemCommandExecutorImpl();
 		try
 		{
 			localExecutor.runCommand(command);
