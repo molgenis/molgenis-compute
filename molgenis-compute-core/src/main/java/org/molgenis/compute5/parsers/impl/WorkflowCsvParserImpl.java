@@ -24,7 +24,7 @@ import au.com.bytecode.opencsv.CSVReader;
 public class WorkflowCsvParserImpl implements WorkflowCsvParser
 {
 	private Vector<String> stepNames = new Vector<String>();
-	private ProtocolParser parser = new ProtocolParser();
+	private ProtocolParserImpl parser = new ProtocolParserImpl();
 	private UrlReader urlReader = new UrlReader();
 	private ProtocolAnalyser protocolAnalyser = new ProtocolAnalyser();
 	public static final String WORKFLOW_COMMENT_SIGN = "#";

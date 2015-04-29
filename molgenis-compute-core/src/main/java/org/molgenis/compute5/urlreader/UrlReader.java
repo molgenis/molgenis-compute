@@ -4,7 +4,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.molgenis.compute5.generators.BackendGenerator;
 import org.molgenis.compute5.model.ParametersFolder;
-import org.molgenis.compute5.parsers.impl.ProtocolParser;
+import org.molgenis.compute5.parsers.impl.ProtocolParserImpl;
 
 import java.io.*;
 import java.net.URL;
@@ -16,7 +16,7 @@ import java.net.URL;
  * 
  * {@link BackendGenerator} constructor
  * 
- * {@link ProtocolParser} parse(File, String, ComputeProperties) method
+ * {@link ProtocolParserImpl} parse(File, String, ComputeProperties) method
  * 
  * {@link WorkflowCsvParserImpl} parse(String, ComputeProperties) method
  * 

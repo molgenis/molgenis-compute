@@ -13,21 +13,13 @@ import org.molgenis.compute5.model.Input;
 import org.molgenis.compute5.model.Output;
 import org.molgenis.compute5.model.Parameters;
 import org.molgenis.compute5.model.Protocol;
+import org.molgenis.compute5.parsers.ProtocolParser;
 import org.molgenis.compute5.urlreader.UrlReader;
 
-public class ProtocolParser
+public class ProtocolParserImpl implements ProtocolParser
 {
 	private UrlReader urlReader = new UrlReader();
 
-	/**
-	 * Used as primary search path. If missing it uses the runtime path or absolute path
-	 *
-	 * @param workflowDirectory
-	 * @param protocolPath
-	 * @param computeProperties
-	 * @return
-	 * @throws IOException
-	 */
 	public Protocol parse(File workflowDirectory, String protocolPath, ComputeProperties computeProperties)
 			throws IOException
 	{
@@ -91,14 +83,14 @@ public class ProtocolParser
 									if (values.get(i).startsWith(Parameters.QUEUE)) protocol.setQueue(values.get(i)
 											.substring(Parameters.QUEUE.length() + 1));
 
-									if (values.get(i).startsWith(Parameters.WALLTIME)) protocol.setWalltime(values.get(i)
-											.substring(Parameters.WALLTIME.length() + 1));
+									if (values.get(i).startsWith(Parameters.WALLTIME)) protocol.setWalltime(values.get(
+											i).substring(Parameters.WALLTIME.length() + 1));
 
 									if (values.get(i).startsWith(Parameters.NODES)) protocol.setNodes(values.get(i)
 											.substring(Parameters.NODES.length() + 1));
 
-									if (values.get(i).startsWith(Parameters.PPN)) protocol.setPpn(values.get(i).substring(
-											Parameters.PPN.length() + 1));
+									if (values.get(i).startsWith(Parameters.PPN)) protocol.setPpn(values.get(i)
+											.substring(Parameters.PPN.length() + 1));
 
 									if (values.get(i).startsWith(Parameters.MEMORY)) protocol.setMemory(values.get(i)
 											.substring(Parameters.MEMORY.length() + 1));
@@ -117,7 +109,8 @@ public class ProtocolParser
 							}
 
 							// input, syntax = "#input inputVarName1, inputVarName2"
-							else if (values.get(0).equals(Parameters.STRING) || values.get(0).equals(Parameters.LIST_INPUT))
+							else if (values.get(0).equals(Parameters.STRING)
+									|| values.get(0).equals(Parameters.LIST_INPUT))
 							{
 
 								boolean combinedListsNotation = false;
