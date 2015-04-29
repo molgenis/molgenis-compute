@@ -6,34 +6,31 @@ import org.molgenis.compute5.model.Output;
 import org.molgenis.compute5.model.Protocol;
 
 /**
- * Created with IntelliJ IDEA.
- * User: hvbyelas
- * Date: 11/8/13
- * Time: 9:56 AM
- * To change this template use File | Settings | File Templates.
+ * This class analyzes protocol variables to see if they can be broken
  */
 public class ProtocolAnalyser
 {
+	private static final Logger LOG = Logger.getLogger(ProtocolAnalyser.class);
+
 	private static final String strStart = "${";
 	private static final String strEnd = "}";
 
-	private Protocol protocol = null;
-
-	private static final Logger LOG = Logger.getLogger(ProtocolAnalyser.class);
-
-	public void analysesProtocolVariables(Protocol p)
+	/**
+	 * Goes through the protocol template if the protocol is of a right format
+	 * 
+	 * @param protocol
+	 */
+	public void analyseProtocolVariables(Protocol protocol)
 	{
-		this.protocol = p;
 		String template = protocol.getTemplate();
 		int position = 0;
 
 		while (true)
 		{
 			int iStart = template.indexOf(strStart, position);
-			if(iStart == -1)
-				return;
+			if (iStart == -1) return;
 			int iEnd = template.indexOf(strEnd, iStart);
-			if(iEnd == -1)
+			if (iEnd == -1)
 			{
 				LOG.warn("Protocol [" + protocol + "] can be broken");
 				return;
@@ -41,40 +38,45 @@ public class ProtocolAnalyser
 			position = iEnd + 1;
 
 			String variable = template.substring(iStart + strStart.length(), iEnd);
-			analyseVariable(variable);
+			analyseVariable(variable, protocol);
 		}
 	}
 
-	private void analyseVariable(String variable)
+	/**
+	 * Method checks to see if one of the output or input names equals the submitted variable name. Throws a warning if
+	 * it does not.
+	 * 
+	 * @param variable
+	 * @param protocol
+	 */
+	private void analyseVariable(String variable, Protocol protocol)
 	{
 		int end = variable.indexOf("[");
-		if(end > -1)
-			variable = variable.substring(0, end);
+		if (end > -1) variable = variable.substring(0, end);
 
 		boolean warn = true;
 
-		for(Input input : protocol.getInputs())
+		for (Input input : protocol.getInputs())
 		{
 			String name = input.getName();
-			if(name.equals(variable))
+			if (name.equals(variable))
 			{
 				warn = false;
 				break;
 			}
 		}
 
-		if(warn)
-			for(Output output : protocol.getOutputs())
+		if (warn) for (Output output : protocol.getOutputs())
+		{
+			String name = output.getName();
+			if (name.equals(variable))
 			{
-				String name = output.getName();
-				if(name.equals(variable))
-				{
-					warn = false;
-					break;
-				}
+				warn = false;
+				break;
 			}
+		}
 
-		if(warn)
+		if (warn)
 		{
 			LOG.warn("Variable [" + variable + "] in Protocol [" + protocol.getName() + "] can be unmapped");
 		}
