@@ -18,13 +18,14 @@ public interface Workflow
 	public Set<String> getUserParameters();
 
 	/**
+	 * This method gets the list of {@link Step}s
 	 * 
 	 * @return
 	 */
 	public List<Step> getSteps();
 
 	/**
-	 * 
+	 * This method adds a {@link Step} to the globally set list of {@link Step}s
 	 * 
 	 * @param step
 	 */
