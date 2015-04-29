@@ -17,7 +17,7 @@ import org.apache.log4j.Logger;
 import org.molgenis.compute.db.ComputeDbException;
 import org.molgenis.compute.runtime.ComputeRun;
 import org.molgenis.compute.runtime.ComputeTask;
-import org.molgenis.compute5.sysexecutor.impl.SystemCommandExecutorImpl;
+import org.molgenis.compute.sysexecutor.impl.SystemCommandExecutorImpl;
 import org.molgenis.data.DataService;
 import org.molgenis.data.support.QueryImpl;
 import org.molgenis.security.runas.RunAsSystem;
