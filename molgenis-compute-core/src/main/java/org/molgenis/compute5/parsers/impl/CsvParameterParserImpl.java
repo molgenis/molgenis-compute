@@ -220,39 +220,39 @@ public class CsvParameterParserImpl implements CsvParameterParser
 	/**
 	 * Converts an Entity to a list of strings
 	 * 
-	 * @param t
-	 * @param col
+	 * @param entity
+	 * @param colName
 	 * @return A list of Entity columns
 	 */
-	private static List<String> asList(Entity t, String col)
+	private static List<String> asList(Entity entity, String colName)
 	{
-		String s = t.getString(col);
+		String value = entity.getString(colName);
 
 		// deal with 'empty' values
-		if (null == s) return new ArrayList<String>(Arrays.asList(""));
+		if (null == value) return new ArrayList<String>(Arrays.asList(""));
 
 		Pattern pattern = Pattern.compile("([+-]?[0-9]+)\\.\\.([+-]?[0-9]+)");
-		Matcher matcher = pattern.matcher(s);
+		Matcher matcher = pattern.matcher(value);
 
 		// first try as sequence, eg 3..5 (meaning 3, 4, 5)
 		if (matcher.find())
 		{
-			List<String> seq = new ArrayList<String>();
+			List<String> sequences = new ArrayList<String>();
 			int first = Integer.parseInt(matcher.group(1));
 			int second = Integer.parseInt(matcher.group(2));
 			int from = Math.min(first, second);
 			int to = Math.max(first, second);
 
 			for (Integer i = from; i <= to; i++)
-				seq.add(i.toString());
+				sequences.add(i.toString());
 
-			return seq;
+			return sequences;
 		}
 		else
 		{
 			// no sequence, then return as list (values will be converted to
 			// list with only that value)
-			return t.getList(col);
+			return entity.getList(colName);
 		}
 	}
 
@@ -264,9 +264,9 @@ public class CsvParameterParserImpl implements CsvParameterParser
 	 */
 	private static Parameters addParsedFile(Parameters targets, Set<String> paramFileSetDone)
 	{
-		for (MapEntity t : targets.getValues())
+		for (MapEntity target : targets.getValues())
 		{
-			t.set(Parameters.PARAMETER_COLUMN, paramFileSetDone);
+			target.set(Parameters.PARAMETER_COLUMN, paramFileSetDone);
 		}
 
 		return targets;
@@ -276,66 +276,70 @@ public class CsvParameterParserImpl implements CsvParameterParser
 	 * Merge tupleLst with targets based on overlapping columns (except 'parameters')
 	 * 
 	 * @param targets
-	 * @param right
+	 * @param newTuples
 	 */
-	private Parameters join(Parameters targets, List<Entity> right)
+	private Parameters join(Parameters targets, List<Entity> newTuples)
 	{
 		// joined tuples that we want to return
-		List<MapEntity> joined = new ArrayList<MapEntity>();
+		List<MapEntity> joinedTuples = new ArrayList<MapEntity>();
 
 		// current tuples
-		List<MapEntity> left = targets.getValues();
+		List<MapEntity> currentTuples = targets.getValues();
 
-		if (0 == right.size())
+		if (0 == newTuples.size())
 		{
 			// nothing to join
 			return targets;
 		}
-		else if (0 == left.size())
+		else if (0 == currentTuples.size())
 		{
 			// nothing to join, convert 'right' into targets
-			for (Entity t : right)
+			for (Entity newTuple : newTuples)
 			{
-				MapEntity newValue = new MapEntity(t);
-				joined.add(newValue);
+				MapEntity newValue = new MapEntity(newTuple);
+				joinedTuples.add(newValue);
 			}
 		}
 		else
 		{
 			// determine intersection of col names (except param column):
 			// joinFields
-			Set<String> joinFields = new HashSet<String>();
-			for (String s : left.get(0).getAttributeNames())
-				joinFields.add(s);
-
-			Set<String> rightFields = new HashSet<String>();
-			for (String s : right.get(0).getAttributeNames())
-				rightFields.add(s);
-
-			joinFields.remove(Parameters.PARAMETER_COLUMN);
-			joinFields.retainAll(rightFields);
-
-			for (Entity l : left)
+			Set<String> joinedFields = new HashSet<String>();
+			for (String attributeName : currentTuples.get(0).getAttributeNames())
 			{
-				for (Entity r : right)
+				joinedFields.add(attributeName);
+			}
+
+			Set<String> newFields = new HashSet<String>();
+			for (String attributeName : newTuples.get(0).getAttributeNames())
+			{
+				newFields.add(attributeName);
+			}
+
+			joinedFields.remove(Parameters.PARAMETER_COLUMN);
+			joinedFields.retainAll(newFields);
+
+			for (Entity currentTuple : currentTuples)
+			{
+				for (Entity newTuple : newTuples)
 				{
 					// determine whether tuples match and thus should be joinded
 					boolean match = true;
-					Iterator<String> it = joinFields.iterator();
-					while (it.hasNext())
+					Iterator<String> joinedFieldIterator = joinedFields.iterator();
+					while (joinedFieldIterator.hasNext())
 					{
-						String field = it.next();
-						if (!l.getString(field).equals(r.getString(field))) match = false;
+						String field = joinedFieldIterator.next();
+						if (!currentTuple.getString(field).equals(newTuple.getString(field))) match = false;
 					}
 
 					// if joinFields match, then join into new tuple and add
 					// that to 'joined'
 					if (match)
 					{
-						MapEntity t = new MapEntity();
-						t.set(r);
-						t.set(l);
-						joined.add(t);
+						MapEntity tupleMap = new MapEntity();
+						tupleMap.set(newTuple);
+						tupleMap.set(currentTuple);
+						joinedTuples.add(tupleMap);
 					}
 				}
 			}
@@ -343,7 +347,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 		}
 
 		targets = new Parameters();
-		targets.setValues(joined);
+		targets.setValues(joinedTuples);
 
 		return targets;
 	}
