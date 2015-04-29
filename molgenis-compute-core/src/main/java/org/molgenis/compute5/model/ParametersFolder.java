@@ -8,7 +8,12 @@ import org.molgenis.compute5.urlreader.UrlReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Created with IntelliJ IDEA.
