@@ -26,10 +26,11 @@ public class WorkflowCsvParserImpl implements WorkflowCsvParser
 	private Vector<String> stepNames = new Vector<String>();
 	private ProtocolParserImpl parser = new ProtocolParserImpl();
 	private UrlReader urlReader = new UrlReader();
-	private ProtocolAnalyser protocolAnalyser = new ProtocolAnalyser();
+	private ProtocolAnalyserImpl protocolAnalyserImpl = new ProtocolAnalyserImpl();
 	public static final String WORKFLOW_COMMENT_SIGN = "#";
 	private Map<String, String> resultParsing = null;
 
+	@Override
 	public Workflow parse(String workflowPath, ComputeProperties computeProperties) throws IOException
 	{
 		CSVReader reader = null;
@@ -76,7 +77,7 @@ public class WorkflowCsvParserImpl implements WorkflowCsvParser
 					String fileName = row[1];
 
 					Protocol protocol = parser.parse(workflowDir, fileName, computeProperties);
-					protocolAnalyser.analyseProtocolVariables(protocol);
+					protocolAnalyserImpl.analyseProtocolVariables(protocol);
 
 					step.setProtocol(protocol);
 					String strParameters = row[2];

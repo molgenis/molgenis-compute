@@ -4,22 +4,16 @@ import org.apache.log4j.Logger;
 import org.molgenis.compute5.model.Input;
 import org.molgenis.compute5.model.Output;
 import org.molgenis.compute5.model.Protocol;
+import org.molgenis.compute5.parsers.ProtocolAnalyser;
 
-/**
- * This class analyzes protocol variables to see if they can be broken
- */
-public class ProtocolAnalyser
+public class ProtocolAnalyserImpl implements ProtocolAnalyser
 {
-	private static final Logger LOG = Logger.getLogger(ProtocolAnalyser.class);
+	private static final Logger LOG = Logger.getLogger(ProtocolAnalyserImpl.class);
 
 	private static final String strStart = "${";
 	private static final String strEnd = "}";
 
-	/**
-	 * Goes through the protocol template if the protocol is of a right format
-	 * 
-	 * @param protocol
-	 */
+	@Override
 	public void analyseProtocolVariables(Protocol protocol)
 	{
 		String template = protocol.getTemplate();

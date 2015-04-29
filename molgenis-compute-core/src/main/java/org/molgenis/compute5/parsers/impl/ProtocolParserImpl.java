@@ -20,6 +20,7 @@ public class ProtocolParserImpl implements ProtocolParser
 {
 	private UrlReader urlReader = new UrlReader();
 
+	@Override
 	public Protocol parse(File workflowDirectory, String protocolPath, ComputeProperties computeProperties)
 			throws IOException
 	{

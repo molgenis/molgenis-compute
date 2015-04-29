@@ -3,7 +3,14 @@ package org.molgenis.compute5.parsers.impl;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,6 +34,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 
 	private UrlReader urlReader = new UrlReader();
 
+	@Override
 	public Parameters parse(List<File> files, ComputeProperties computeProperties) throws IOException
 	{
 		properties = computeProperties;
@@ -77,7 +85,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 		return targets;
 	}
 
-	@SuppressWarnings("unchecked")
+	@Override
 	public Parameters parseParamFiles(Parameters targets, Set<String> paramFileSet) throws IOException
 	{
 		// ensure targets are initialized
@@ -115,8 +123,10 @@ public class CsvParameterParserImpl implements CsvParameterParser
 		Set<String> paramFileSetDone = new HashSet<String>();
 
 		// if targets exist then get parsed file set
-		if (0 < targets.getValues().size()) paramFileSetDone = (Set<String>) targets.getValues().get(0)
-				.get(Parameters.PARAMETER_COLUMN);
+		if (0 < targets.getValues().size())
+		{
+			paramFileSetDone = (Set<String>) targets.getValues().get(0).get(Parameters.PARAMETER_COLUMN);
+		}
 
 		// if we have already parsed this file then skip file f
 		if (paramFileSetDone.contains(fileName))
@@ -161,11 +171,13 @@ public class CsvParameterParserImpl implements CsvParameterParser
 		}
 	}
 
+	@Override
 	public void setRunID(String runID)
 	{
 		this.runID = runID;
 	}
 
+	@Override
 	public void setParametersToOverwrite(HashMap<String, String> parametersToOverwrite)
 	{
 		this.parametersToOverwrite = parametersToOverwrite;
