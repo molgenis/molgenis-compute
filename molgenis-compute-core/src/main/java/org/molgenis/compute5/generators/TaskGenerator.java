@@ -50,7 +50,7 @@ public class TaskGenerator
 			// (ii) taskIndex = id
 			localParameters = addStepIds(localParameters, step);
 
-			List<Task> tasks = (List<Task>) generateTasks(step, localParameters, workflow, computeProperties);
+			List<Task> tasks = generateTasks(step, localParameters, workflow, computeProperties);
 			// generate the tasks from template, add step id
 			result.addAll(tasks);
 
@@ -64,7 +64,7 @@ public class TaskGenerator
 		return result;
 	}
 
-	private Collection<? extends Task> generateTasks(Step step, List<MapEntity> localParameters,
+	private List<Task> generateTasks(Step step, List<MapEntity> localParameters,
 			Workflow workflow, ComputeProperties computeProperties) throws IOException
 	{
 		List<Task> tasks = new ArrayList<Task>();
@@ -179,10 +179,6 @@ public class TaskGenerator
 											Parameters.STEP_PARAM_SEP_SCRIPT);
 								else
 									value = EnvironmentGenerator.GLOBAL_PREFIX + value;
-
-	//								left in code for future comparison in papers
-	//								parameterHeader += parameterName + "[" + i + "]=${" + value + "[" + rowIndexString
-	//										+ "]}\n";
 
 								String type = input.getType();
 
@@ -408,7 +404,7 @@ public class TaskGenerator
 			if(timeParameterFind == 1)
 			{
 				String name = input.getName();
-				List<String> foldedList = originalParameters.foldingNieuwe(name, foreachParameters);
+				List<String> foldedList = originalParameters.foldingNew(name, foreachParameters);
 
 				List<String> values = new ArrayList<String>();
 				for(int i = 0; i < foldedList.size(); i++)
@@ -636,8 +632,7 @@ public class TaskGenerator
 
 		for (Input i : step.getProtocol().getInputs())
 		{
-//			String origin = step.getParametersMapping().get(i.getName());
-			boolean initialized = true; //origin.startsWith(Parameters.USER_PREFIX);
+			boolean initialized = true;
 
 			boolean isList = Parameters.LIST_INPUT.equals(i.getType());
 
@@ -701,9 +696,6 @@ public class TaskGenerator
 				if (!found)
 				{
 					LOG.warn("Parameter [" + localName + "] is unknown at design time");
-//					throw new IOException("Generation of step '" + step.getName() + "' failed: mapped input '"
-//							+ globalName + "' is missing from parameter file(s).\nProvided parameters: "
-//							+ globalParameters);
 				}
 				else
 					local.set(localName, global.get(parameterNameWithPrefix));
@@ -716,19 +708,17 @@ public class TaskGenerator
 	}
 
 
-	public void analyseListsInProtocols(Workflow workflow, List<HashMap> parameters)
+	/**
+	 * Analyze lists in workflow protocols and determine whether these lists should be combined or not
+	 * @param workflow
+	 */
+	public void determineCombineLists(Workflow workflow)
 	{
-
-		if(parameters.size() < 2)
-		    //all parameters come from one file
-			return;
-
 		for(Step step : workflow.getSteps())
 		{
 			Protocol protocol = step.getProtocol();
-			String name = protocol.getName();
 
-			//calculate how many lists separated lists we have
+			//calculate how many separated lists we have
 			int size = 0;
 			for(Input input : protocol.getInputs())
 			{

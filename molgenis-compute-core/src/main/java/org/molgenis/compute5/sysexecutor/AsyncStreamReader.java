@@ -1,76 +1,27 @@
 package org.molgenis.compute5.sysexecutor;
 
-import java.io.InputStreamReader;
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 
-class AsyncStreamReader extends Thread
+/**
+ * This class allows for the asynchronous reading of an input stream
+ */
+public interface AsyncStreamReader
 {
-    private StringBuffer fBuffer = null;
-    private InputStream fInputStream = null;
-    private String fThreadId = null;
-    private boolean fStop = false;
-    private ILogDevice fLogDevice = null;
+	/**
+	 * Returns the buffer used to instantiate this {@link AsyncStreamReader}
+	 * 
+	 * @return A string representation of a {@link StringBuffer}
+	 */
+	public String getBuffer();
 
-    private String fNewLine = null;
+	/**
+	 * Reads the {@link InputStream} used to instantiate this {@link AsyncStreamReader} and writes every line as an info
+	 * log
+	 */
+	public void run();
 
-    public AsyncStreamReader(InputStream inputStream, StringBuffer buffer, ILogDevice logDevice, String threadId)
-    {
-        fInputStream = inputStream;
-        fBuffer = buffer;
-        fThreadId = threadId;
-        fLogDevice = logDevice;
-
-        fNewLine = System.getProperty("line.separator");
-    }
-
-    public String getBuffer()
-    {
-        return fBuffer.toString();
-    }
-
-    public void run()
-    {
-        try
-        {
-            readCommandOutput();
-        } catch (Exception ex)
-        {
-            //ex.printStackTrace(); //DEBUG
-        }
-    }
-
-    private void readCommandOutput() throws IOException
-    {
-        BufferedReader bufOut = new BufferedReader(new InputStreamReader(fInputStream));
-        String line = null;
-        while ((fStop == false) && ((line = bufOut.readLine()) != null))
-        {
-            fBuffer.append(line + fNewLine);
-            printToDisplayDevice(line);
-        }
-        bufOut.close();
-        //printToConsole("END OF: " + fThreadId); //DEBUG
-    }
-
-    public void stopReading()
-    {
-        fStop = true;
-    }
-
-    private void printToDisplayDevice(String line)
-    {
-        if (fLogDevice != null)
-            fLogDevice.log(line);
-        else
-        {
-            //printToConsole(line);//DEBUG
-        }
-    }
-
-    private synchronized void printToConsole(String line)
-    {
-        System.out.println(line);
-    }
+	/**
+	 * When called stops the reading if supplied {@link InputStream}
+	 */
+	public void stopReading();
 }

@@ -1,12 +1,10 @@
 package org.molgenis.compute5.generators;
 
 import java.io.*;
-import java.net.URL;
 import java.util.*;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
-import org.apache.poi.util.IOUtils;
 import org.molgenis.compute5.CommandLineRunContainer;
 import org.molgenis.compute5.ComputeProperties;
 import org.molgenis.compute5.GeneratedScript;
@@ -40,33 +38,7 @@ public class BackendGenerator
     Template submit = null;
     Template header = null;
     Template footer = null;
-
-
-    private String readInJar(String file) throws IOException
-	{
-		URL header = this.getClass().getResource(file);
-		if (header == null) throw new IOException("file " + file + " is missing for backend "
-				+ this.getClass().getSimpleName());
-
-		BufferedReader stream = new BufferedReader(new InputStreamReader(header.openStream()));
-
-		StringBuilder result = new StringBuilder();
-		try
-		{
-
-			String inputLine;
-
-			while ((inputLine = stream.readLine()) != null)
-				result.append(inputLine + "\n");
-		}
-		finally
-		{
-			stream.close();
-		}
-		return result.toString();
-	}
-
-
+    
 	private String readInClasspath(String file, String backend) throws IOException
 	{
 		InputStream in = this.getClass().getClassLoader().getResourceAsStream(file);

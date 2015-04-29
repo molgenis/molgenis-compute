@@ -1,4 +1,4 @@
-package org.molgenis.compute5.parsers;
+package org.molgenis.compute5.parsers.impl;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -7,52 +7,54 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.log4j.Logger;
 import org.molgenis.compute5.ComputeProperties;
 import org.molgenis.compute5.generators.TupleUtils;
 import org.molgenis.compute5.model.Parameters;
+import org.molgenis.compute5.parsers.CsvParameterParser;
 import org.molgenis.compute5.urlreader.UrlReader;
 import org.molgenis.data.Entity;
 import org.molgenis.data.csv.CsvRepository;
 import org.molgenis.data.support.MapEntity;
 
-
-/** Parser for parameters csv file(s). Includes the solving of templated values. */
-public class ParametersCsvParser
+public class CsvParameterParserImpl implements CsvParameterParser
 {
-	private ComputeProperties properties = null;
+	private static final Logger LOG = Logger.getLogger(CsvParameterParserImpl.class);
+
 	private String runID;
-	private HashMap parametersToOverwrite = null;
+	private ComputeProperties properties;
+	private HashMap<String, String> parametersToOverwrite;
 
 	private UrlReader urlReader = new UrlReader();
 
-	public Parameters parse(List<File> filesArray, ComputeProperties computeProperties) throws IOException
+	public Parameters parse(List<File> files, ComputeProperties computeProperties) throws IOException
 	{
 		properties = computeProperties;
 		Parameters targets = null;
-		Set<String> fileSet = new HashSet<String>();
-		if(!properties.isWebWorkflow)
+		Set<String> uniqueFiles = new HashSet<String>();
+
+		if (!properties.isWebWorkflow)
 		{
-			for (File f : filesArray)
+			for (File file : files)
 			{
-				fileSet.add(f.getAbsolutePath().toString());
+				uniqueFiles.add(file.getAbsolutePath().toString());
 			}
 
-			targets = parseParamFiles(null, fileSet);
+			targets = parseParamFiles(null, uniqueFiles);
 		}
 		else
 		{
-			for (File f : filesArray)
+			for (File file : files)
 			{
-				fileSet.add(f.toString());
+				uniqueFiles.add(file.toString());
 			}
-			targets = parseParamFiles(null, fileSet);
+			targets = parseParamFiles(null, uniqueFiles);
 		}
 
 		// solve the templates
 		TupleUtils tupleUtils = new TupleUtils();
 		tupleUtils.setRunID(runID);
-		if(parametersToOverwrite != null)
-			tupleUtils.setParametersToOverwrite(parametersToOverwrite);
+		if (parametersToOverwrite != null) tupleUtils.setParametersToOverwrite(parametersToOverwrite);
 		tupleUtils.solve(targets.getValues());
 
 		// mark all columns as 'user_*'
@@ -75,42 +77,39 @@ public class ParametersCsvParser
 		return targets;
 	}
 
-	/**
-	 * Parse paramFileSet into Parameters targets.
-	 * 
-	 * @param targets
-	 *            contains Parameters after parsing paramFileSet
-	 * @param paramFileSet
-	 *            Set of parameter files to parse
-	 * @return
-	 * @throws IOException
-	 */
 	@SuppressWarnings("unchecked")
 	public Parameters parseParamFiles(Parameters targets, Set<String> paramFileSet) throws IOException
 	{
-		System.out.println(">> Start of parseParamFiles " + paramFileSet.toString());
-		// Pre-process input in (1) and (2):
-		// (1) ensure targets initialized
+		// ensure targets are initialized
 		if (targets == null)
 		{
 			targets = new Parameters();
-//			targets.setRunID(runID);
 		}
+
 		// if no files to parse, then we're done
 		if (paramFileSet.isEmpty())
+		{
+			LOG.warn("No parameter files found, continuing without one...");
 			return targets;
+		}
+
+		LOG.info("Start of parseParamFiles " + paramFileSet.toString());
 
 		// get a file to parse
-		String fString = paramFileSet.iterator().next();
+		String fileName = paramFileSet.iterator().next();
 
-		File f = null;
-		if(!properties.isWebWorkflow)
-			f = new File(fString);
+		File file = null;
+		if (!properties.isWebWorkflow)
+		{
+			file = new File(fileName);
+		}
 		else
-			f = urlReader.createFileFromGithub(properties.webWorkflowLocation, fString);
+		{
+			file = urlReader.createFileFromGithub(properties.webWorkflowLocation, fileName);
+		}
 
 		// remove file from the set we have to parse
-		paramFileSet.remove(fString);
+		paramFileSet.remove(fileName);
 
 		// initialize set of files we have parsed
 		Set<String> paramFileSetDone = new HashSet<String>();
@@ -120,45 +119,39 @@ public class ParametersCsvParser
 				.get(Parameters.PARAMETER_COLUMN);
 
 		// if we have already parsed this file then skip file f
-		if (paramFileSetDone.contains(fString))
+		if (paramFileSetDone.contains(fileName))
 		{
 			return parseParamFiles(targets, paramFileSet);
 		}
 		else
 		{
-			// parse file f
-
 			// add parsed file to the list of parsed files and ensure we'll not
 			// do this file again
-			paramFileSetDone.add(fString);
+			paramFileSetDone.add(fileName);
 
-			// get file f as list of tuples
-			List<Entity> tupleLst = asTuples(f);
+			// get file as list of tuples
+			List<Entity> tupleList = asTuples(file);
 
 			// If path to workflow is relative then prepend its parent's path
-			// (f).
-			tupleLst = updatePath(tupleLst, Parameters.WORKFLOW, f);
-
-			// same for output path
-			// tupleLst = updatePath(tupleLst, Parameters.WORKDIR_COLUMN, f);
+			tupleList = updatePath(tupleList, Parameters.WORKFLOW, file);
 
 			// get other param files we have to parse, and validate that all
 			// values in 'parameters' column equal. If file path is relative
 			// then prepend its parent's path (f)
-			HashSet<String> newParamFileSet = getParamFiles(tupleLst, f);
+			HashSet<String> newParameterFileSet = getParamFiles(tupleList, file);
 
 			// Remove all files that are already done
-			newParamFileSet.removeAll(paramFileSetDone);
+			newParameterFileSet.removeAll(paramFileSetDone);
 
 			// merge new paramFileSet with current one
-			paramFileSet.addAll(newParamFileSet);
+			paramFileSet.addAll(newParameterFileSet);
 
 			// expand tupleLst on col's with lists/iterators (except
 			// 'parameters')
-			tupleLst = expand(tupleLst);
+			tupleList = expand(tupleList);
 
 			// join on overlapping col's (except 'parameters')
-			targets = join(targets, tupleLst);
+			targets = join(targets, tupleList);
 
 			// update targets with 'parsed file'
 			targets = addParsedFile(targets, paramFileSetDone);
@@ -166,6 +159,16 @@ public class ParametersCsvParser
 			// parse rest of param files
 			return parseParamFiles(targets, paramFileSet);
 		}
+	}
+
+	public void setRunID(String runID)
+	{
+		this.runID = runID;
+	}
+
+	public void setParametersToOverwrite(HashMap<String, String> parametersToOverwrite)
+	{
+		this.parametersToOverwrite = parametersToOverwrite;
 	}
 
 	/**
@@ -214,6 +217,13 @@ public class ParametersCsvParser
 		return resultLst;
 	}
 
+	/**
+	 * Converts an Entity to a list of strings
+	 * 
+	 * @param t
+	 * @param col
+	 * @return A list of Entity columns
+	 */
 	private static List<String> asList(Entity t, String col)
 	{
 		String s = t.getString(col);
@@ -339,79 +349,84 @@ public class ParametersCsvParser
 	}
 
 	/**
-	 * (1) Parse file f as list of Tuples and (2) validate that no parameters contain the 'step_param' separator
+	 * Parse file as list of Tuples and validate that no parameters contain the 'step_param' separator
 	 * 
-	 * @param f
-	 * @return
+	 * @param file
+	 * @return A list of entities
 	 * @throws IOException
 	 */
-	@SuppressWarnings("resource")
-	private static List<Entity> asTuples(File f) throws IOException
+	private static List<Entity> asTuples(File file) throws IOException
 	{
-		List<Entity> tLst = new ArrayList<Entity>();
+		List<Entity> tupleList = new ArrayList<Entity>();
 
-		if (f.toString().endsWith(".properties"))
+		if (file.toString().endsWith(".properties"))
 		{
-			Properties p = new Properties();
-			FileInputStream fis = new FileInputStream(f);
+			Properties properties = new Properties();
+			FileInputStream fileInputStream = new FileInputStream(file);
 			try
 			{
-				p.load(fis);
+				properties.load(fileInputStream);
+			}
+			catch (Exception e)
+			{
+				LOG.error("Error loading the file input stream, message is: " + e);
 			}
 			finally
 			{
-				fis.close();
-			}
-			// set this.variables
-			MapEntity t = new MapEntity();
-			Iterator<Object> it = p.keySet().iterator();
-			while (it.hasNext())
-			{
-				String key = (String) it.next();
-				String value = p.getProperty(key);
-				t.set(key, value);
+				fileInputStream.close();
 			}
 
-			tLst.add(t);
+			// set this.variables
+			Entity keyValueEntity = new MapEntity();
+			Iterator<Object> keySetIterator = properties.keySet().iterator();
+			while (keySetIterator.hasNext())
+			{
+				String key = keySetIterator.next().toString();
+				String value = properties.getProperty(key);
+				keyValueEntity.set(key, value);
+			}
+
+			tupleList.add(keyValueEntity);
 		}
 		else
-		{ // assume we want to parse csv
-			if (!f.toString().endsWith(".csv"))
-			{ // assume we want to append '.csv'
-				System.out.println(">> File '" + f.toString() + "' does not end with *.properties or *.csv.");
-				if (f.exists() && f.isFile())
+		{
+			// assume we want to parse csv
+			if (!file.toString().endsWith(".csv"))
+			{
+				// assume we want to append '.csv'
+				LOG.warn("File '" + file.toString() + "' does not end with *.properties or *.csv.");
+				if (file.exists() && file.isFile())
 				{
-					System.out
-							.println("\tThe file exists. We'll assume it is in the CSV-format and start parsing it...");
+					LOG.info("\tThe file exists. We'll assume it is in the CSV-format and start parsing it...");
 				}
 				else
 				{
-					System.out
-							.println("\tWe couldn't find the file. We'll append the extension '.csv' and try again with");
-					System.out.println("\t" + f.toString() + ".csv");
+					LOG.info("\tWe couldn't find the file. We'll append the extension '.csv' and try again with: "
+							+ file.toString() + ".csv");
 
-					f = new File(f.toString() + ".csv");
+					file = new File(file.toString() + ".csv");
 				}
 			}
 
-			for (Entity t : new CsvRepository(f, null))
+			for (Entity entity : new CsvRepository(file, null))
 			{
-				tLst.add(t);
+				tupleList.add(entity);
 			}
 		}
 
-		return tLst;
+		return tupleList;
 	}
 
 	/**
-	 * (1) Validate that all values (set of files) in 'parameters' column are equal and (2) return them as a set. (3) If
-	 * a file does not have an absolute path, then use the path of its parent as a starting point.
+	 * Validate that all values (set of files) in 'parameters' column are equal and return them as a set. If a file does
+	 * not have an absolute path, then use the path of its parent as a starting point.
 	 * 
-	 * @param tupleLst
+	 * @param tupleList
+	 * @param file
 	 * @return set of files (in AbsoluteFile notation) to be included
 	 * @throws IOException
 	 */
-	private static HashSet<String> getParamFiles(List<Entity> tupleLst, File f) throws IOException
+	private static HashSet<String> getParamFiles(List<Entity> tupleList, File file) throws IOException
 	{
 		boolean noParamColumnFoundYet = true;
 
@@ -422,11 +437,11 @@ public class ParametersCsvParser
 		// transform list into file set
 		HashSet<String> fileSet = new HashSet<String>();
 
-		for (Entity t : tupleLst)
+		for (Entity entity : tupleList)
 		{
-			for (String colName : t.getAttributeNames())
+			for (String columnName : entity.getAttributeNames())
 			{
-				if (colName.equals(Parameters.PARAMETER_COLUMN))
+				if (columnName.equals(Parameters.PARAMETER_COLUMN))
 				{
 					if (noParamColumnFoundYet)
 					{
@@ -434,38 +449,38 @@ public class ParametersCsvParser
 						noParamColumnFoundYet = false;
 
 						// should be equal for all following tuples:
-						paramFilesString = t.getString(colName);
+						paramFilesString = entity.getString(columnName);
 
 						// iterate through list and add absolute paths to
 						// return-set
-						for (String fString : t.getList(colName))
+						for (String value : entity.getList(columnName))
 						{
 							// if file has no absolute path, then use the path
-							// of its parent (file f) as path
-							if (fString.charAt(0) == '/')
+							// of its parent as path
+							if (value.charAt(0) == '/')
 							{
-								fileSet.add(fString);
+								fileSet.add(value);
 							}
 							else
 							{
-								fileSet.add(f.getParent() + File.separator + fString);
+								fileSet.add(file.getParent() + File.separator + value);
 							}
 						}
 					}
 					else
 					{
-						if (!t.getString(colName).equals(paramFilesString)) throw new IOException(
+						if (!entity.getString(columnName).equals(paramFilesString)) throw new IOException(
 								"Values in '"
 										+ Parameters.PARAMETER_COLUMN
 										+ "' column are not equal in file '"
-										+ f.toString()
+										+ file.toString()
 										+ "', please fix:\n'"
-										+ t.getString(colName)
+										+ entity.getString(columnName)
 										+ "' is different from '"
 										+ paramFilesString
 										+ "'.\n"
 										+ "You could put all values 'comma-separated' in each cell and repeat that on each line in your file, e.g.:\n"
-										+ "\"" + t.getString(colName) + "," + paramFilesString + "\"");
+										+ "\"" + entity.getString(columnName) + "," + paramFilesString + "\"");
 					}
 				}
 			}
@@ -479,65 +494,55 @@ public class ParametersCsvParser
 	}
 
 	/**
-	 * If path to 'column' (eg workflow) file relative, then prepend parent's path (f)
+	 * If the path to a 'column' (eg workflow) file is relative, then prepend parent's path
 	 * 
-	 * @param tupleLst
-	 * @return
+	 * @param tupleList
+	 * @return A list of entities
 	 */
-	private static List<Entity> updatePath(List<Entity> tupleLst, String column, File f)
+	private static List<Entity> updatePath(List<Entity> tupleList, String columnName, File file)
 	{
-		List<Entity> tupleLstUpdated = new ArrayList<Entity>();
+		List<Entity> updatedTupleList = new ArrayList<Entity>();
 
-		for (Entity t : tupleLst)
+		for (Entity entity : tupleList)
 		{
-			MapEntity wt = new MapEntity(t);
+			Entity tuple = new MapEntity(entity);
 
-			for (String colName : t.getAttributeNames())
+			for (String colName : entity.getAttributeNames())
 			{
-				if (colName.equals(column))
+				if (colName.equals(columnName))
 				{
-					List<String> wfLst = new ArrayList<String>();
+					List<String> fileLocationList = new ArrayList<String>();
 					// iterate through list and add absolute paths to
 					// return-set
-					for (String fString : t.getList(colName))
+					for (String value : entity.getList(colName))
 					{
 						// if file has no absolute path, then use the path
 						// of its parent (file f) as path
-						if (fString.charAt(0) == '/')
+						if (value.charAt(0) == '/')
 						{
-							wfLst.add(fString);
+							fileLocationList.add(value);
 						}
 						else
 						{
-							wfLst.add(f.getParent() + File.separator + fString);
+							fileLocationList.add(file.getParent() + File.separator + value);
 						}
 					}
 
 					// put updated paths back in tuple
-					if (wfLst.size() == 1)
+					if (fileLocationList.size() == 1)
 					{
-						wt.set(colName, wfLst.get(0));
+						tuple.set(colName, fileLocationList.get(0));
 					}
 					else
 					{
-						wt.set(colName, wfLst);
+						tuple.set(colName, fileLocationList);
 					}
 				}
 			}
 
-			tupleLstUpdated.add(wt);
+			updatedTupleList.add(tuple);
 		}
 
-		return tupleLstUpdated;
-	}
-
-	public void setRunID(String runID)
-	{
-		this.runID = runID;
-	}
-
-	public void setParametersToOverwrite(HashMap parametersToOverwrite)
-	{
-		this.parametersToOverwrite = parametersToOverwrite;
+		return updatedTupleList;
 	}
 }

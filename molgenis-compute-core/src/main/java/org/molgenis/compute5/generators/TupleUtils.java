@@ -3,26 +3,29 @@ package org.molgenis.compute5.generators;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
-import org.molgenis.compute5.model.Parameters;
+import org.molgenis.data.Entity;
+import org.molgenis.data.support.MapEntity;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
-import org.molgenis.data.Entity;
-import org.molgenis.data.support.MapEntity;
 
-
+/**
+ * Collapse tuples on targets
+ * 
+ * @param parameters
+ * @param targets
+ * @return
+ */
 public class TupleUtils
 {
-	/**
-	 * Collapse tuples on targets
-	 * 
-	 * @param parameters
-	 * @param targets
-	 * @return
-	 */
+	
 	private String runID = null;
 	private HashMap<String, String> parametersToOverwrite = null;
 
@@ -161,8 +164,12 @@ public class TupleUtils
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	/** Convert a tuple into a map. Columns with a '_' in them will be nested submaps. */
+	/** 
+	 * Convert a tuple into a map. Columns with a '_' in them will be nested submaps.
+	 * 
+	 * @param t
+	 * @return A {@link Map} of String Object key value pairs
+	 */
 	public static Map<String, Object> toMap(Entity t)
 	{
 		Map<String, Object> result = new LinkedHashMap<String, Object>();
@@ -173,7 +180,7 @@ public class TupleUtils
 		return result;
 	}
 
-	@SuppressWarnings("unchecked")
+	
 	/** 
 	 * Uncollapse a tuple using an idColumn
 	 *  
@@ -181,6 +188,7 @@ public class TupleUtils
 	 * @param idColumn
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public static <E extends Entity> List<E> uncollapse(List<E> values, String idColumn)
 	{
 		List<E> result = new ArrayList<E>();
@@ -220,7 +228,7 @@ public class TupleUtils
 		this.runID = runID;
 	}
 
-	public void setParametersToOverwrite(HashMap parametersToOverwrite)
+	public void setParametersToOverwrite(HashMap<String, String> parametersToOverwrite)
 	{
 		this.parametersToOverwrite = parametersToOverwrite;
 	}

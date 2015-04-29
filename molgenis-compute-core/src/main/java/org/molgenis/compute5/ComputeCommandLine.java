@@ -12,13 +12,9 @@ import org.apache.log4j.Logger;
 import org.molgenis.compute5.db.api.*;
 import org.molgenis.compute5.generators.*;
 import org.molgenis.compute5.model.*;
-import org.molgenis.compute5.parsers.ParametersCsvParser;
-import org.molgenis.compute5.parsers.WorkflowCsvParser;
-import org.molgenis.compute5.sysexecutor.SysCommandExecutor;
-import org.molgenis.compute5.urlreader.UrlReader;
-import org.molgenis.data.support.MapEntity;
-
-import com.google.common.base.Joiner;
+import org.molgenis.compute5.parsers.impl.CsvParameterParserImpl;
+import org.molgenis.compute5.parsers.impl.WorkflowCsvParser;
+import org.molgenis.compute5.sysexecutor.impl.SystemCommandExecutorImpl;
 
 /**
  * Commandline program for compute5. Usage: -w workflow.csv -p parameters.csv
@@ -29,10 +25,8 @@ import com.google.common.base.Joiner;
 public class ComputeCommandLine
 {
 	private static final Logger LOG = Logger.getLogger(ComputeCommandLine.class);
-	private UrlReader urlReader = new UrlReader();
 	private CommandLineRunContainer commandLineRunContainer = null;
-
-	@SuppressWarnings("static-access")
+	
 	public static void main(String[] args) throws Exception
 	{
 		BasicConfigurator.configure();
@@ -183,7 +177,7 @@ public class ComputeCommandLine
 			if(computeProperties.database.equalsIgnoreCase(Parameters.DATABASE_DEFAULT))
 			{
 				String runDir = computeProperties.runDir;
-				SysCommandExecutor exe =  new SysCommandExecutor();
+				SystemCommandExecutorImpl exe =  new SystemCommandExecutorImpl();
 				exe.runCommand("sh " + runDir + "/submit.sh");
 
 				String err = exe.getCommandError();
@@ -240,7 +234,7 @@ public class ComputeCommandLine
 				parameterFiles.add(new File(computeProperties.defaults));
 
 		// parse param files
-		ParametersCsvParser parser = new ParametersCsvParser();
+		CsvParameterParserImpl parser = new CsvParameterParserImpl();
 		//set runID here, which will be passed to TupleUtils to solve method
 		parser.setRunID(computeProperties.runId);
 
@@ -281,8 +275,8 @@ public class ComputeCommandLine
 		// analyse lists in workflow protocols
 		// we need to know if list input are coming from the same or different parameter files
 		// to combine lists or leave them separated
-		taskGenerator.analyseListsInProtocols(workflow, parametersContainer.getParameters());
-
+		if(parametersContainer.getParameters().size() >= 2) taskGenerator.determineCombineLists(workflow);
+		
 		// generate the tasks
 		List<Task> tasks = taskGenerator.generate(compute);
 		compute.setTasks(tasks);

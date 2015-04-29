@@ -373,34 +373,7 @@ public class FoldingTest
 			Assert.fail("test6_2.sh should not be generated");
 		}
 
-
 		System.out.println("--- Test Lists Correctness ---");
-
-//		left for old way testing
-//		String test2_0_list1 = "chunk[0]=${global_chunk[0]}\n" +
-//				"chunk[1]=${global_chunk[1]}\n" +
-//				"chunk[2]=${global_chunk[2]}\n";
-//		String test2_0_list2 ="chr[0]=${global_chr[0]}\n" +
-//				"chr[1]=${global_chr[1]}\n" +
-//				"chr[2]=${global_chr[2]}";
-//
-//		String test2_1_list1 = "chunk[0]=${global_chunk[3]}\n" +
-//				"chunk[1]=${global_chunk[4]}\n";
-//		String test2_1_list2 ="chr[0]=${global_chr[3]}\n" +
-//				"chr[1]=${global_chr[4]}";
-//
-//		String test3_0_list1 = "chunk[0]=${global_chunk[0]}\n" +
-//				"chunk[1]=${global_chunk[3]}\n";
-//		String test3_0_list2 ="chr[0]=${global_chr[0]}\n" +
-//				"chr[1]=${global_chr[3]}";
-//
-//		String test3_1_list1 = "chunk[0]=${global_chunk[1]}\n" +
-//				"chunk[1]=${global_chunk[4]}\n";
-//		String test3_1_list2 = "chr[0]=${global_chr[1]}\n" +
-//				"chr[1]=${global_chr[4]}";
-//
-//		String test3_2_list1 = "chunk[0]=${global_chunk[2]}\n";
-//		String test3_2_list2 =	"chr[0]=${global_chr[2]}";
 
 		String test_weaving_2_0 = "for s in \"a\" \"b\" \"c\"";
 		String test_weaving_2_1 = "for s in \"a\" \"b\"";
@@ -447,9 +420,5 @@ public class FoldingTest
 		{
 			Assert.fail("concatination of run-time parameters is broken");
 		}
-
-
 	}
-
-
 }

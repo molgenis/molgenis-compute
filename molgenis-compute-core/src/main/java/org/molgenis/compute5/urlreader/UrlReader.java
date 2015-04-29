@@ -1,86 +1,119 @@
 package org.molgenis.compute5.urlreader;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.log4j.Logger;
+import org.molgenis.compute5.generators.BackendGenerator;
+import org.molgenis.compute5.model.ParametersFolder;
+import org.molgenis.compute5.parsers.impl.ProtocolParser;
 
 import java.io.*;
 import java.net.URL;
-import java.util.UUID;
 
 /**
- * Created with IntelliJ IDEA.
- * User: hvbyelas
- * Date: 11/6/13
- * Time: 3:35 PM
- * To change this template use File | Settings | File Templates.
+ * Class that handles the reading of URL's and writes URL content to files
+ * 
+ * Called by:
+ * 
+ * {@link BackendGenerator} constructor
+ * 
+ * {@link ProtocolParser} parse(File, String, ComputeProperties) method
+ * 
+ * {@link WorkflowCsvParser} parse(String, ComputeProperties) method
+ * 
+ * {@link CsvParameterParserImpl} parseParamFiles(Parameters, Set<String>) method
+ * 
+ * {@link ParametersFolder} setFromFiles(List<File>, ComputeProperties) method
  */
 public class UrlReader
 {
-	private String readFileGithub(String fullName)
-	{
-		String text = "";
+	private static final Logger LOG = Logger.getLogger(UrlReader.class);
 
-		URL protocol = null;
-		InputStream stream = null;
-		BufferedReader in = null;
+	/**
+	 * Reads output from a github URL as text and writes it to a file
+	 * 
+	 * @param root
+	 * @param filename
+	 * 
+	 * @return The location of the temporary file that was created with the contents of the submitted github filename
+	 */
+	public File createFileFromGithub(String root, String filename)
+	{
+		if (filename.startsWith("./"))
+		{
+			filename = filename.substring(2);
+		}
+
+		String fullName = root + "/" + filename;
+		String name = FilenameUtils.getBaseName(filename);
+		String ext = FilenameUtils.getExtension(filename);
+		String text = readGithubFile(fullName);
+
+		File temporaryFile = null;
+		BufferedWriter bufferedWriter = null;
+
 		try
 		{
-			protocol = new URL(fullName);
-			stream = protocol.openStream();
-			InputStreamReader reader = new InputStreamReader(stream);
+			// Create temp file.
+			temporaryFile = File.createTempFile(name, "." + ext);
 
-			in = new BufferedReader(reader);
+			// Delete temp file when program exits.
+			temporaryFile.deleteOnExit();
+
+			// Write to temp file
+			bufferedWriter = new BufferedWriter(new FileWriter(temporaryFile));
+			bufferedWriter.write(text);
 		}
 		catch (IOException e)
 		{
-			System.out.println("problem with remote file: " + fullName);
-//			e.printStackTrace();
+			LOG.error("Error handling file, message is: " + e);
 		}
-
-		if (in != null)
+		finally
 		{
-			String inputLine;
 			try
 			{
-				while ((inputLine = in.readLine()) != null)
-					text = text + inputLine + "\n";
-				in.close();
+				bufferedWriter.close();
 			}
 			catch (IOException e)
 			{
-				e.printStackTrace();
+				LOG.error("Error closing the file, message is: " + e);
 			}
 		}
+
+		return temporaryFile;
+	}
+
+	private String readGithubFile(String fullName)
+	{
+		String text = "";
+		BufferedReader bufferedReader = null;
+		try
+		{
+			bufferedReader = new BufferedReader(new InputStreamReader(new URL(fullName).openStream()));
+			if (bufferedReader != null)
+			{
+				String inputLine;
+				while ((inputLine = bufferedReader.readLine()) != null)
+				{
+					text = text + inputLine + "\n";
+				}
+			}
+		}
+		catch (IOException e)
+		{
+			LOG.error("Error handling file, message is: " + e);
+		}
+		finally
+		{
+			try
+			{
+				bufferedReader.close();
+			}
+			catch (IOException e)
+			{
+				LOG.error("Error closing the file, message is: " + e);
+			}
+		}
+
 		return text;
 	}
-
-	public File createFileFromGithub(String root, String filename)
-	{
-		File temp = null;
-		if(filename.startsWith("./"))
-			filename = filename.substring(2);
-		String fullName = root + "/" + filename;
-
-		String text = readFileGithub(fullName);
-
-		String name = FilenameUtils.getBaseName(filename);
-		String ext = FilenameUtils.getExtension(filename);
-
-
-		try {
-			// Create temp file.
-			temp = File.createTempFile(name, "." + ext);
-
-			// Delete temp file when program exits.
-			temp.deleteOnExit();
-
-			// Write to temp file
-			BufferedWriter out = new BufferedWriter(new FileWriter(temp));
-			out.write(text);
-			out.close();
-		} catch (IOException e)
-		{
-		}
-		return temp;
-	}
-
 }

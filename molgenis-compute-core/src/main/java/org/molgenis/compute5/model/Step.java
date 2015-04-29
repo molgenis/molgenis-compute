@@ -1,8 +1,12 @@
 package org.molgenis.compute5.model;
 
-import java.util.*;
-
-import org.molgenis.model.elements.Parameter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.google.gson.Gson;
 
@@ -17,7 +21,7 @@ public class Step
 
 	// map between global parameters and local inputs
 	private Map<String, String> parametersMapping = new LinkedHashMap<String, String>();
-	private List<String> parameterNames = new ArrayList();
+	private List<String> parameterNames = new ArrayList<String>();
 
 	// map of previous steps, i.e. where inputs depend on values from previous
 	// steps.
@@ -102,7 +106,7 @@ public class Step
 
 	public List<String> getAutoMappedParameters()
 	{
-		List autoMapped = new ArrayList<String>();
+		List<String> autoMapped = new ArrayList<String>();
 
 		for(String parameter : parameterNames)
 		{

@@ -62,10 +62,10 @@ public class FreemarkerUtils
 
 	public static String weaveWithoutFreemarker(String template, Hashtable<String, String> values)
 	{
-		Enumeration keys = values.keys();
+		Enumeration<String> keys = values.keys();
 		while( keys.hasMoreElements() )
 		{
-			String key = (String) keys.nextElement();
+			String key = keys.nextElement();
 			String value = values.get(key);
 			template = template.replace(key, value);
 		}
