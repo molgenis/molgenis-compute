@@ -3,7 +3,7 @@ package org.molgenis.compute5.urlreader;
 import java.io.File;
 
 import org.molgenis.compute5.generators.BackendGenerator;
-import org.molgenis.compute5.model.ParametersFolder;
+import org.molgenis.compute5.model.impl.FoldParametersImpl;
 import org.molgenis.compute5.parsers.impl.ProtocolParserImpl;
 
 /**
@@ -19,7 +19,7 @@ import org.molgenis.compute5.parsers.impl.ProtocolParserImpl;
  * 
  * {@link CsvParameterParserImpl} parseParamFiles(Parameters, Set<String>) method
  * 
- * {@link ParametersFolder} setFromFiles(List<File>, ComputeProperties) method
+ * {@link FoldParametersImpl} setFromFiles(List<File>, ComputeProperties) method
  */
 public interface UrlReader
 {

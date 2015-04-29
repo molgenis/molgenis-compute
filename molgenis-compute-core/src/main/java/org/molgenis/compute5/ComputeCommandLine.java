@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 import org.molgenis.compute5.db.api.*;
 import org.molgenis.compute5.generators.*;
 import org.molgenis.compute5.model.*;
+import org.molgenis.compute5.model.impl.FoldParametersImpl;
 import org.molgenis.compute5.parsers.impl.CsvParameterParserImpl;
 import org.molgenis.compute5.parsers.impl.WorkflowCsvParserImpl;
 import org.molgenis.compute5.sysexecutor.impl.SystemCommandExecutorImpl;
@@ -242,7 +243,7 @@ public class ComputeCommandLine
 			parser.setParametersToOverwrite(computeProperties.getParametersToOverwrite());
 
 		Parameters parameters = parser.parse(parameterFiles, computeProperties);
-		ParametersFolder parametersContainer = new ParametersFolder();
+		FoldParametersImpl parametersContainer = new FoldParametersImpl();
 		parametersContainer.setFromFiles(parameterFiles, computeProperties);
 		compute.setParametersContainer(parametersContainer);
 		compute.setParameters(parameters);

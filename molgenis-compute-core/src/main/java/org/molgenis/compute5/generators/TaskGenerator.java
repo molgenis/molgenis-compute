@@ -7,6 +7,7 @@ import java.util.*;
 import org.apache.log4j.Logger;
 import org.molgenis.compute5.ComputeProperties;
 import org.molgenis.compute5.model.*;
+import org.molgenis.compute5.model.impl.FoldParametersImpl;
 import org.molgenis.data.Entity;
 import org.molgenis.data.support.MapEntity;
 
@@ -267,7 +268,7 @@ public class TaskGenerator
 					}
 				}
 
-				foldNew(listInputsToFoldNew, foreachParameters);
+				performFolding(listInputsToFoldNew, foreachParameters);
 
 				parameterHeader
 						.append("\n# Validate that each 'value' parameter has only identical values in its list\n")
@@ -384,17 +385,17 @@ public class TaskGenerator
 		return tasks;
 	}
 
-	private void foldNew(List<Input> list, Hashtable<String, String> foreachParameters)
+	private void performFolding(List<Input> list, Hashtable<String, String> foreachParameters)
 	{
 		for (Input input : list)
 		{
-			ParametersFolder originalParameters = compute.getParametersContainer();
+			FoldParametersImpl originalParameters = compute.getParametersContainer();
 			int timeParameterFind = originalParameters.isParameterFindTimes(input.getName());
 
 			if (timeParameterFind == 1)
 			{
 				String name = input.getName();
-				List<String> foldedList = originalParameters.foldingNew(name, foreachParameters);
+				List<String> foldedList = originalParameters.folding(name, foreachParameters);
 
 				List<String> values = new ArrayList<String>();
 				for (int i = 0; i < foldedList.size(); i++)

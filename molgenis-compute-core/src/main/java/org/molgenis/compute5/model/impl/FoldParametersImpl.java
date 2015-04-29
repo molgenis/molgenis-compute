@@ -1,8 +1,9 @@
-package org.molgenis.compute5.model;
+package org.molgenis.compute5.model.impl;
 
 import au.com.bytecode.opencsv.CSVReader;
 
 import org.molgenis.compute5.ComputeProperties;
+import org.molgenis.compute5.model.FoldParameters;
 import org.molgenis.compute5.urlreader.impl.UrlReaderImpl;
 
 import java.io.File;
@@ -15,19 +16,13 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Created with IntelliJ IDEA.
- * User: hvbyelas
- * Date: 3/12/14
- * Time: 4:01 PM
- * To change this template use File | Settings | File Templates.
- */
-public class ParametersFolder
+public class FoldParametersImpl implements FoldParameters
 {
-	//map parameter name and values
+	// map parameter name and values
 	List<HashMap<String, List<String>>> parameters = new ArrayList<HashMap<String, List<String>>>();
 	private UrlReaderImpl urlReaderImpl = new UrlReaderImpl();
 
+	@Override
 	public void setFromFiles(List<File> fromFiles, ComputeProperties computeProperties)
 	{
 		for (File file : fromFiles)
@@ -35,15 +30,13 @@ public class ParametersFolder
 			CSVReader reader = null;
 			try
 			{
-				if(!computeProperties.isWebWorkflow)
-					reader = new CSVReader(new FileReader(file));
+				if (!computeProperties.isWebWorkflow) reader = new CSVReader(new FileReader(file));
 				else
 				{
 					String fString = file.getName();
 					File f = urlReaderImpl.createFileFromGithub(computeProperties.webWorkflowLocation, fString);
 					reader = new CSVReader(new FileReader(f));
 				}
-
 
 				HashMap<String, List<String>> onefileParameters = new HashMap<String, List<String>>();
 
@@ -53,10 +46,10 @@ public class ParametersFolder
 
 				if (header[0].contains("="))
 				{
-					//properties file
-					for(String[] array : allLines)
+					// properties file
+					for (String[] array : allLines)
 					{
-						if(array.length > 0)
+						if (array.length > 0)
 						{
 							List<String> values = new ArrayList<String>();
 							int eq = array[0].indexOf("=");
@@ -65,7 +58,7 @@ public class ParametersFolder
 
 							values.add(value);
 
-							for(int i = 1; i <array.length; i++)
+							for (int i = 1; i < array.length; i++)
 								values.add(array[i].trim());
 
 							checkIfParameterExist(name, file);
@@ -96,7 +89,7 @@ public class ParametersFolder
 							values.add(str);
 						}
 
-						//first check if this parameters already exist
+						// first check if this parameters already exist
 						checkIfParameterExist(head, file);
 
 						onefileParameters.put(head, values);
@@ -108,7 +101,9 @@ public class ParametersFolder
 			catch (IOException e)
 			{
 				e.printStackTrace();
-			} finally {
+			}
+			finally
+			{
 				try
 				{
 					reader.close();
@@ -121,53 +116,33 @@ public class ParametersFolder
 		}
 	}
 
-	private void checkIfParameterExist(String head, File file)
-	{
-		for(HashMap<String, List<String>> oneFile : parameters)
-		{
-			Set<String> keys = oneFile.keySet();
-			for(String key : keys)
-			{
-				if(key.equals(head))
-				{
-					throw new RuntimeException ("Parameter is doubled. [ "
-							+ head + " ] is present in [ " +
-					file.getName() + "] and one another parameters file");
-				}
-			}
-		}
-	}
-
+	@Override
 	public boolean isMultiParametersFiles()
 	{
-		if (parameters.size() > 1) 
+		if (parameters.size() > 1)
 		{
 			return true;
-		} else {
+		}
+		else
+		{
 			return false;
 		}
 	}
 
+	@Override
 	public int isParameterFindTimes(String name)
 	{
 		int i = 0;
 		for (HashMap<String, List<String>> parametersFile : parameters)
 		{
 			boolean hasID = parametersFile.containsKey(name);
-			if (hasID)
-				i++;
+			if (hasID) i++;
 		}
 		return i;
 	}
 
-	/**
-	 * TODO What does this method do exactly?
-	 * 
-	 * @param name
-	 * @param foreach
-	 * @return
-	 */
-	public List<String> foldingNew(String name, Hashtable<String, String> foreach)
+	@Override
+	public List<String> folding(String name, Hashtable<String, String> foreach)
 	{
 		List<String> values = new ArrayList<String>();
 		for (HashMap<String, List<String>> parametersFile : parameters)
@@ -175,7 +150,7 @@ public class ParametersFolder
 			boolean hasID = parametersFile.containsKey(name);
 			if (hasID)
 			{
-				//this is the parameter file that we are looking for
+				// this is the parameter file that we are looking for
 				Hashtable<String, String> neededForeach = new Hashtable<String, String>();
 
 				Enumeration<String> keys = foreach.keys();
@@ -193,8 +168,8 @@ public class ParametersFolder
 
 				if (neededForeach.size() > 0)
 				{
-					//now, we have values on which we will fold
-					//we can create table
+					// now, we have values on which we will fold
+					// we can create table
 					// + 1 for table header
 					int x = parametersFile.get(name).size() + 1;
 					// + 1 for name
@@ -207,7 +182,6 @@ public class ParametersFolder
 						String value = parametersFile.get(name).get(j);
 						table[0][j + 1] = value;
 					}
-
 
 					Enumeration<String> neededKeys = neededForeach.keys();
 					for (int i = 1; i <= neededForeach.size(); i++)
@@ -222,7 +196,8 @@ public class ParametersFolder
 
 					}
 
-					//now we start all the folding magic
+					// now we start all the folding magic
+					// This should not be magic!
 					for (int i = 1; i <= parametersFile.get(name).size(); i++)
 					{
 						boolean stillGood = true;
@@ -239,17 +214,16 @@ public class ParametersFolder
 							}
 						}
 
-						if(stillGood)
+						if (stillGood)
 						{
-							//if(!values.contains(table[0][i]))
-								values.add(table[0][i]);
+							// if(!values.contains(table[0][i]))
+							values.add(table[0][i]);
 						}
 					}
 				}
 				else
 				{
-					//we are lucky this time
-					//we can take all parameters
+					// we can take all parameters
 					values = parametersFile.get(name);
 				}
 			}
@@ -257,8 +231,25 @@ public class ParametersFolder
 		return values;
 	}
 
-	public List<HashMap<String,List<String>>> getParameters()
+	@Override
+	public List<HashMap<String, List<String>>> getParameters()
 	{
 		return parameters;
+	}
+
+	private void checkIfParameterExist(String head, File file)
+	{
+		for (HashMap<String, List<String>> oneFile : parameters)
+		{
+			Set<String> keys = oneFile.keySet();
+			for (String key : keys)
+			{
+				if (key.equals(head))
+				{
+					throw new RuntimeException("Parameter is doubled. [ " + head + " ] is present in [ "
+							+ file.getName() + "] and one another parameters file");
+				}
+			}
+		}
 	}
 }

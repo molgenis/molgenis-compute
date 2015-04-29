@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.molgenis.compute5.ComputeProperties;
 import org.molgenis.compute5.generators.BatchAnalyser;
+import org.molgenis.compute5.model.impl.FoldParametersImpl;
 
 public class Compute
 {
@@ -16,7 +17,7 @@ public class Compute
 	private String userEnvironment;
 
 	HashMap<String, String> mapUserEnvironment = null;
-	private ParametersFolder parametersContainer;
+	private FoldParametersImpl parametersContainer;
 
     private BatchAnalyser batchAnalyser = null;
 
@@ -85,12 +86,12 @@ public class Compute
 		this.mapUserEnvironment = mapUserEnvironment;
 	}
 
-	public void setParametersContainer(ParametersFolder parametersContainer)
+	public void setParametersContainer(FoldParametersImpl parametersContainer)
 	{
 		this.parametersContainer = parametersContainer;
 	}
 
-	public ParametersFolder getParametersContainer()
+	public FoldParametersImpl getParametersContainer()
 	{
 		return parametersContainer;
 	}
