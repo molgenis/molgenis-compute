@@ -3,16 +3,25 @@ package org.molgenis.compute5.parsers.impl;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Vector;
+
+import org.molgenis.compute5.ComputeProperties;
+import org.molgenis.compute5.model.Input;
+import org.molgenis.compute5.model.Parameters;
+import org.molgenis.compute5.model.Protocol;
+import org.molgenis.compute5.model.Step;
+import org.molgenis.compute5.model.Workflow;
+import org.molgenis.compute5.parsers.WorkflowCsvParser;
+import org.molgenis.compute5.urlreader.UrlReader;
 
 import au.com.bytecode.opencsv.CSVReader;
 
-import org.molgenis.compute5.ComputeProperties;
-import org.molgenis.compute5.model.*;
-import org.molgenis.compute5.urlreader.UrlReader;
-
-/** Parser for the workflow csv */
-public class WorkflowCsvParser
+public class WorkflowCsvParserImpl implements WorkflowCsvParser
 {
 	private Vector<String> stepNames = new Vector<String>();
 	private ProtocolParser parser = new ProtocolParser();
@@ -34,7 +43,7 @@ public class WorkflowCsvParser
 			}
 			else reader = new CSVReader(new FileReader(workflowPath), ',');
 
-			Workflow wf = new Workflow();
+			Workflow workFlow = new Workflow();
 
 			List<String[]> listLines = reader.readAll();
 			boolean isFirstRow = true;
@@ -85,11 +94,11 @@ public class WorkflowCsvParser
 						step.addParameter(input.getName());
 					}
 
-					wf.addStep(step);
+					workFlow.addStep(step);
 				}
 
 			}
-			return wf;
+			return workFlow;
 		}
 		catch (IOException e)
 		{

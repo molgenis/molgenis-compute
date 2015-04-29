@@ -13,7 +13,7 @@ import org.molgenis.compute5.db.api.*;
 import org.molgenis.compute5.generators.*;
 import org.molgenis.compute5.model.*;
 import org.molgenis.compute5.parsers.impl.CsvParameterParserImpl;
-import org.molgenis.compute5.parsers.impl.WorkflowCsvParser;
+import org.molgenis.compute5.parsers.impl.WorkflowCsvParserImpl;
 import org.molgenis.compute5.sysexecutor.impl.SystemCommandExecutorImpl;
 
 /**
@@ -262,7 +262,7 @@ public class ComputeCommandLine
 //				compute.getParameters());
 
 		// parse workflow
-		Workflow workflow = new WorkflowCsvParser().parse(computeProperties.workFlow, computeProperties);
+		Workflow workflow = new WorkflowCsvParserImpl().parse(computeProperties.workFlow, computeProperties);
 		compute.setWorkflow(workflow);
 
 		// create environment.txt with user parameters that are used in at least

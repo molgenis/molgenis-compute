@@ -18,7 +18,7 @@ import java.net.URL;
  * 
  * {@link ProtocolParser} parse(File, String, ComputeProperties) method
  * 
- * {@link WorkflowCsvParser} parse(String, ComputeProperties) method
+ * {@link WorkflowCsvParserImpl} parse(String, ComputeProperties) method
  * 
  * {@link CsvParameterParserImpl} parseParamFiles(Parameters, Set<String>) method
  * 
