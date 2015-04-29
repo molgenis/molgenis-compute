@@ -17,36 +17,35 @@ import org.molgenis.compute5.urlreader.UrlReader;
 
 public class ProtocolParser
 {
+	private UrlReader urlReader = new UrlReader();
+
 	/**
-	 * 
+	 * Used as primary search path. If missing it uses the runtime path or absolute path
 	 *
-	 * @param workflowDir
-	 *            , used as primary search path. If missing it uses runtime path/absolute path
+	 * @param workflowDirectory
 	 * @param protocolPath
 	 * @param computeProperties
 	 * @return
 	 * @throws IOException
 	 */
-	private UrlReader urlReader = new UrlReader();
-
-	public Protocol parse(File workflowDir, String protocolPath, ComputeProperties computeProperties) throws IOException
+	public Protocol parse(File workflowDirectory, String protocolPath, ComputeProperties computeProperties)
+			throws IOException
 	{
 		try
 		{
 			File templateFile = null;
 			// first test path within workflowDir
 
-			if(computeProperties.isWebWorkflow)
+			if (computeProperties.isWebWorkflow)
 			{
-				templateFile = urlReader.createFileFromGithub(computeProperties.webWorkflowLocation,
-						protocolPath);
+				templateFile = urlReader.createFileFromGithub(computeProperties.webWorkflowLocation, protocolPath);
 			}
 			else
 			{
-				templateFile = new File(workflowDir.getAbsolutePath() + "/" + protocolPath);
+				templateFile = new File(workflowDirectory.getAbsolutePath() + "/" + protocolPath);
 				if (!templateFile.exists())
 				{
-					//what is going on here?
+					// what is going on here?
 					templateFile = new File(protocolPath);
 					if (!templateFile.exists()) throw new IOException("protocol '" + protocolPath + "' cannot be found");
 				}
@@ -54,9 +53,9 @@ public class ProtocolParser
 
 			// start reading
 			Protocol protocol = new Protocol(protocolPath);
-			String ext = FilenameUtils.getExtension(protocolPath);
+			String fileExtension = FilenameUtils.getExtension(protocolPath);
 
-			protocol.setType(ext);
+			protocol.setType(fileExtension);
 
 			String description = "";
 			String template = "";
@@ -80,80 +79,76 @@ public class ProtocolParser
 						// remove #, trim spaces, then split on " "
 						line = line.substring(1).trim();
 
-						//make a list out of line with spaces and commas
-						String[] values = line.replaceAll("^[,\\s]+", "").split("[,\\s]+");
-						List<String> els = Arrays.asList(values);
+						// make a list out of line with spaces and commas
+						List<String> values = Arrays.asList(line.replaceAll("^[,\\s]+", "").split("[,\\s]+"));
 
-						if (els.size() > 0)
+						if (values.size() > 0)
 						{
-							if (els.get(0).equals("MOLGENIS"))
+							if (values.get(0).equals("MOLGENIS"))
 							{
-								for (int i = 1; i < els.size(); i++)
+								for (int i = 1; i < values.size(); i++)
 								{
-									if (els.get(i).startsWith(Parameters.QUEUE)) protocol.setQueue(els.get(i).substring(
-											Parameters.QUEUE.length() + 1));
+									if (values.get(i).startsWith(Parameters.QUEUE)) protocol.setQueue(values.get(i)
+											.substring(Parameters.QUEUE.length() + 1));
 
-									if (els.get(i).startsWith(Parameters.WALLTIME)) protocol.setWalltime(els.get(i).substring(
-											Parameters.WALLTIME.length() + 1));
+									if (values.get(i).startsWith(Parameters.WALLTIME)) protocol.setWalltime(values.get(i)
+											.substring(Parameters.WALLTIME.length() + 1));
 
-									if (els.get(i).startsWith(Parameters.NODES)) protocol.setNodes(els.get(i).substring(
-											Parameters.NODES.length() + 1));
+									if (values.get(i).startsWith(Parameters.NODES)) protocol.setNodes(values.get(i)
+											.substring(Parameters.NODES.length() + 1));
 
-									if (els.get(i).startsWith(Parameters.PPN)) protocol.setPpn(els.get(i).substring(
+									if (values.get(i).startsWith(Parameters.PPN)) protocol.setPpn(values.get(i).substring(
 											Parameters.PPN.length() + 1));
 
-									if (els.get(i).startsWith(Parameters.MEMORY)) protocol.setMemory(els.get(i).substring(
-											Parameters.MEMORY.length() + 1));
+									if (values.get(i).startsWith(Parameters.MEMORY)) protocol.setMemory(values.get(i)
+											.substring(Parameters.MEMORY.length() + 1));
 
 								}
 							}
 							// description?
-							else if (els.get(0).equals("description") && els.size() > 1)
+							else if (values.get(0).equals("description") && values.size() > 1)
 							{
 								// add all elements
-								for (int i = 1; i < els.size(); i++)
+								for (int i = 1; i < values.size(); i++)
 								{
-									description += els.get(i) + " ";
+									description += values.get(i) + " ";
 								}
 								description += "\n";
 							}
 
 							// input, syntax = "#input inputVarName1, inputVarName2"
-							else if (els.get(0).equals(Parameters.STRING)
-									|| els.get(0).equals(Parameters.LIST_INPUT))
+							else if (values.get(0).equals(Parameters.STRING) || values.get(0).equals(Parameters.LIST_INPUT))
 							{
 
 								boolean combinedListsNotation = false;
-								if(els.get(0).equals(Parameters.LIST_INPUT) &&
-										els.size() > 2)
+								if (values.get(0).equals(Parameters.LIST_INPUT) && values.size() > 2)
 								{
-									//see folding tests
+									// see folding tests
 									combinedListsNotation = true;
 								}
 
 								// assume name column
-								if (els.size() < 2)
-									throw new IOException(
+								if (values.size() < 2) throw new IOException(
 										"param requires 'name', e.g. '#string input1'");
 
-								for(int i = 1; i < els.size(); i++)
+								for (int i = 1; i < values.size(); i++)
 								{
-									Input input = new Input(els.get(i));
-									input.setType(els.get(0));
+									Input input = new Input(values.get(i));
+									input.setType(values.get(0));
 									input.setCombinedListsNotation(combinedListsNotation);
 									protocol.addInput(input);
 								}
 							}
 
 							// output, syntax = "#output outputVarName1, outputVarName2"
-							else if (els.get(0).equals("output"))
+							else if (values.get(0).equals("output"))
 							{
-								if (els.size() < 2) throw new IOException(
+								if (values.size() < 2) throw new IOException(
 										"output requires 'name', e.g. '#output myOutputVariable'");
 
-								for(int i = 1; i < els.size(); i++)
+								for (int i = 1; i < values.size(); i++)
 								{
-									Output output = new Output(els.get(i));
+									Output output = new Output(values.get(i));
 									output.setValue(Parameters.NOTAVAILABLE);
 									protocol.addOutput(output);
 								}
@@ -175,6 +170,5 @@ public class ProtocolParser
 		{
 			throw new IOException("Parsing of protocol " + protocolPath + " failed: " + e.getMessage());
 		}
-
 	}
 }
