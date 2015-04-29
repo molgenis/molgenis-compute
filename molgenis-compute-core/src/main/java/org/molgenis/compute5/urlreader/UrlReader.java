@@ -2,11 +2,27 @@ package org.molgenis.compute5.urlreader;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
+import org.molgenis.compute5.generators.BackendGenerator;
+import org.molgenis.compute5.model.ParametersFolder;
+import org.molgenis.compute5.parsers.impl.ProtocolParser;
+
 import java.io.*;
 import java.net.URL;
 
 /**
  * Class that handles the reading of URL's and writes URL content to files
+ * 
+ * Called by:
+ * 
+ * {@link BackendGenerator} constructor
+ * 
+ * {@link ProtocolParser} parse(File, String, ComputeProperties) method
+ * 
+ * {@link WorkflowCsvParser} parse(String, ComputeProperties) method
+ * 
+ * {@link ParametersCsvParserImpl} parseParamFiles(Parameters, Set<String>) method
+ * 
+ * {@link ParametersFolder} setFromFiles(List<File>, ComputeProperties) method
  */
 public class UrlReader
 {
