@@ -5,17 +5,17 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.molgenis.compute5.model.Workflow;
+import org.molgenis.compute5.model.impl.WorkflowImpl;
 
 
 /** Generates graphvis diagram */
 public class DocWorkflowDiagramGenerator
 {
-	public void generate(File dir, Workflow workflow) throws IOException
+	public void generate(File dir, WorkflowImpl workflowImpl) throws IOException
 	{
 		//model
 		Map<String, Object> model = new LinkedHashMap<String, Object>();
-		model.put("workflow", workflow);
+		model.put("workflow", workflowImpl);
 
 		//apply
 		File dotFile = new File(dir.getAbsoluteFile() + "/workflow.dot");

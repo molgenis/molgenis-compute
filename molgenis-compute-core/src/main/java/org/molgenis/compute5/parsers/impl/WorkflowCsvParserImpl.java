@@ -15,7 +15,7 @@ import org.molgenis.compute5.model.Input;
 import org.molgenis.compute5.model.Parameters;
 import org.molgenis.compute5.model.Protocol;
 import org.molgenis.compute5.model.Step;
-import org.molgenis.compute5.model.Workflow;
+import org.molgenis.compute5.model.impl.WorkflowImpl;
 import org.molgenis.compute5.parsers.WorkflowCsvParser;
 import org.molgenis.compute5.urlreader.impl.UrlReaderImpl;
 
@@ -31,7 +31,7 @@ public class WorkflowCsvParserImpl implements WorkflowCsvParser
 	private Map<String, String> resultParsing = null;
 
 	@Override
-	public Workflow parse(String workflowPath, ComputeProperties computeProperties) throws IOException
+	public WorkflowImpl parse(String workflowPath, ComputeProperties computeProperties) throws IOException
 	{
 		CSVReader reader = null;
 		try
@@ -44,7 +44,7 @@ public class WorkflowCsvParserImpl implements WorkflowCsvParser
 			}
 			else reader = new CSVReader(new FileReader(workflowPath), ',');
 
-			Workflow workFlow = new Workflow();
+			WorkflowImpl workFlow = new WorkflowImpl();
 
 			List<String[]> listLines = reader.readAll();
 			boolean isFirstRow = true;

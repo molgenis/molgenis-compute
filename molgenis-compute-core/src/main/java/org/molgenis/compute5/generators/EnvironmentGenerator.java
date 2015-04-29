@@ -5,6 +5,7 @@ import java.util.*;
 
 import org.apache.log4j.Logger;
 import org.molgenis.compute5.model.*;
+import org.molgenis.compute5.model.impl.WorkflowImpl;
 import org.molgenis.data.support.MapEntity;
 import org.molgenis.util.Pair;
 
@@ -23,14 +24,14 @@ public class EnvironmentGenerator
 
 	private HashMap<String, String> environment = new HashMap<String, String>();
 	private List<Step> steps = null;
-	private Workflow workflow = null;
+	private WorkflowImpl workflowImpl = null;
 
 	// for error handling
 	private ArrayList<Pair<String, String>> arrayOfParameterSteps = new ArrayList<Pair<String, String>>();
 
 	public String getEnvironmentAsString(Compute compute) throws Exception
 	{
-		workflow = compute.getWorkflow();
+		workflowImpl = compute.getWorkflow();
 
 		// put header 'adding user params' in environment
 		StringBuilder output = new StringBuilder(1024);
@@ -53,7 +54,7 @@ public class EnvironmentGenerator
 
 				arrayOfParameterSteps.add(new Pair<String, String>(value, step.getName()));
 
-				if (!workflow.parameterHasStepPrefix(value))
+				if (!workflowImpl.parameterHasStepPrefix(value))
 				{
 					userInputParamSet.add(value);
 				}
@@ -129,7 +130,7 @@ public class EnvironmentGenerator
 
 	private boolean isFoundAsOutput(String parameter, MapEntity wt)
 	{
-		for (Step step : workflow.getSteps())
+		for (Step step : workflowImpl.getSteps())
 		{
 			Set<Output> outputs = step.getProtocol().getOutputs();
 			for (Output output : outputs)
@@ -166,7 +167,7 @@ public class EnvironmentGenerator
 
 	private boolean checkIfVariableCanbeKnown(String previousStepName, String parameterName)
 	{
-		for (Step step : workflow.getSteps())
+		for (Step step : workflowImpl.getSteps())
 		{
 			for (Input input : step.getProtocol().getInputs())
 			{
@@ -191,7 +192,7 @@ public class EnvironmentGenerator
 		boolean isRunTimeVariable = false;
 		String key = null;
 
-		for (Step step : workflow.getSteps())
+		for (Step step : workflowImpl.getSteps())
 		{
 			if (step.getPreviousSteps().contains(previousStepName))
 			{

@@ -2,15 +2,17 @@ package org.molgenis.compute5.model;
 
 import org.molgenis.compute5.Validator;
 
-/** Input for a protocol.*/
+/**
+ * Input for a protocol
+ */
 public class Input
 {
 	public static final String TYPE_STRING = "string";
 	public static final String TYPE_LIST = "list";
 
-	//unique name within a protocol
+	// unique name within a protocol
 	private String name;
-	//description of this parameter
+	// description of this parameter
 	private String description;
 	private String type;
 
@@ -31,7 +33,7 @@ public class Input
 
 	public void setName(String name)
 	{
-		//Validate that 'name' does only contain a-zA-Z0-9
+		// Validate that 'name' does only contain a-zA-Z0-9
 		Validator.validateParameterName(name);
 		this.name = name;
 	}

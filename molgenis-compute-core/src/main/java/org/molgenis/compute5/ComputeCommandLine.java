@@ -13,6 +13,7 @@ import org.molgenis.compute5.db.api.*;
 import org.molgenis.compute5.generators.*;
 import org.molgenis.compute5.model.*;
 import org.molgenis.compute5.model.impl.FoldParametersImpl;
+import org.molgenis.compute5.model.impl.WorkflowImpl;
 import org.molgenis.compute5.parsers.impl.CsvParameterParserImpl;
 import org.molgenis.compute5.parsers.impl.WorkflowCsvParserImpl;
 import org.molgenis.compute5.sysexecutor.impl.SystemCommandExecutorImpl;
@@ -263,8 +264,8 @@ public class ComputeCommandLine
 //				compute.getParameters());
 
 		// parse workflow
-		Workflow workflow = new WorkflowCsvParserImpl().parse(computeProperties.workFlow, computeProperties);
-		compute.setWorkflow(workflow);
+		WorkflowImpl workflowImpl = new WorkflowCsvParserImpl().parse(computeProperties.workFlow, computeProperties);
+		compute.setWorkflow(workflowImpl);
 
 		// create environment.txt with user parameters that are used in at least
 		// one of the steps
@@ -276,7 +277,7 @@ public class ComputeCommandLine
 		// analyse lists in workflow protocols
 		// we need to know if list input are coming from the same or different parameter files
 		// to combine lists or leave them separated
-		if(parametersContainer.getParameters().size() >= 2) taskGenerator.determineCombineLists(workflow);
+		if(parametersContainer.getParameters().size() >= 2) taskGenerator.determineCombineLists(workflowImpl);
 		
 		// generate the tasks
 		List<Task> tasks = taskGenerator.generate(compute);

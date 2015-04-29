@@ -13,28 +13,12 @@ public class Protocol
 
 	// reserved parameter names, used form system purposes
 	public static final List<String> reservedNames = Arrays.asList(new String[]
-	{
-			Parameters.PORT_CMNDLINE_OPTION,
-			Parameters.INTERVAL_CMNDLINE_OPTION,
-			Parameters.PATH, Parameters.WORKFLOW,
-			Parameters.DEFAULTS,
-			Parameters.PARAMETERS,
-			Parameters.RUNDIR,
-			Parameters.RUNID,
-			Parameters.BACKEND,
-			Parameters.DATABASE,
-			Parameters.WALLTIME,
-			Parameters.NODES,
-			Parameters.PPN,
-			Parameters.QUEUE,
-			Parameters.MEMORY,
-			Parameters.NOTAVAILABLE,
-			Parameters.MOLGENIS_PASS_CMNDLINE,
-			Parameters.MOLGENIS_USER_CMNDLINE,
-			Parameters.CUSTOM_HEADER_COLUMN,
-			Parameters.CUSTOM_FOOTER_COLUMN,
-			Parameters.CUSTOM_SUBMIT_COLUMN
-	});
+	{ Parameters.PORT_CMNDLINE_OPTION, Parameters.INTERVAL_CMNDLINE_OPTION, Parameters.PATH, Parameters.WORKFLOW,
+			Parameters.DEFAULTS, Parameters.PARAMETERS, Parameters.RUNDIR, Parameters.RUNID, Parameters.BACKEND,
+			Parameters.DATABASE, Parameters.WALLTIME, Parameters.NODES, Parameters.PPN, Parameters.QUEUE,
+			Parameters.MEMORY, Parameters.NOTAVAILABLE, Parameters.MOLGENIS_PASS_CMNDLINE,
+			Parameters.MOLGENIS_USER_CMNDLINE, Parameters.CUSTOM_HEADER_COLUMN, Parameters.CUSTOM_FOOTER_COLUMN,
+			Parameters.CUSTOM_SUBMIT_COLUMN });
 
 	// unique name of the protocol
 	private String name = null;
@@ -46,7 +30,7 @@ public class Protocol
 	private String walltime = null;
 	private String defaultWalltime = "00:30:00";// walltime for protocol
 	private String nodes = null;
-	private String defaultNodes	= "1";
+	private String defaultNodes = "1";
 	private String ppn = null;
 	private String defaultPpn = "4";
 	private String queue = null;
@@ -69,8 +53,6 @@ public class Protocol
 	{
 		this.name = name;
 	}
-
-	// getters/setters below
 
 	public String getName()
 	{
@@ -131,12 +113,12 @@ public class Protocol
 	{
 		this.nodes = nodes;
 	}
-	
+
 	public String getWalltime()
 	{
 		return this.walltime;
 	}
-	
+
 	public void setWalltime(String walltime)
 	{
 		this.walltime = walltime;

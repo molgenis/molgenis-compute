@@ -2,12 +2,26 @@ package org.molgenis.compute5.generators;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Vector;
 
 import org.apache.log4j.Logger;
 import org.molgenis.compute5.ComputeProperties;
-import org.molgenis.compute5.model.*;
+import org.molgenis.compute5.model.Compute;
+import org.molgenis.compute5.model.Input;
+import org.molgenis.compute5.model.Output;
+import org.molgenis.compute5.model.Parameters;
+import org.molgenis.compute5.model.Protocol;
+import org.molgenis.compute5.model.Step;
+import org.molgenis.compute5.model.Task;
 import org.molgenis.compute5.model.impl.FoldParametersImpl;
+import org.molgenis.compute5.model.impl.WorkflowImpl;
 import org.molgenis.data.Entity;
 import org.molgenis.data.support.MapEntity;
 
@@ -15,7 +29,7 @@ public class TaskGenerator
 {
 	private List<MapEntity> globalParameters = null;
 	private HashMap<String, String> environment = null;
-	private Workflow workflow = null;
+	private WorkflowImpl workflowImpl = null;
 
 	private static final Logger LOG = Logger.getLogger(TaskGenerator.class);
 	private Compute compute;
@@ -26,7 +40,7 @@ public class TaskGenerator
 	public List<Task> generate(Compute compute) throws IOException
 	{
 		this.compute = compute;
-		workflow = compute.getWorkflow();
+		workflowImpl = compute.getWorkflow();
 		Parameters parameters = compute.getParameters();
 		ComputeProperties computeProperties = compute.getComputeProperties();
 		environment = compute.getMapUserEnvironment();
@@ -34,7 +48,7 @@ public class TaskGenerator
 		List<Task> result = new ArrayList<Task>();
 
 		globalParameters = parameters.getValues();
-		for (Step step : workflow.getSteps())
+		for (Step step : workflowImpl.getSteps())
 		{
 			// map global to local parameters
 			List<MapEntity> localParameters = mapGlobalToLocalParameters(globalParameters, step);
@@ -50,7 +64,7 @@ public class TaskGenerator
 			// (ii) taskIndex = id
 			localParameters = addStepIds(localParameters, step);
 
-			List<Task> tasks = generateTasks(step, localParameters, workflow, computeProperties);
+			List<Task> tasks = generateTasks(step, localParameters, workflowImpl, computeProperties);
 			// generate the tasks from template, add step id
 			result.addAll(tasks);
 
@@ -64,7 +78,7 @@ public class TaskGenerator
 		return result;
 	}
 
-	private List<Task> generateTasks(Step step, List<MapEntity> localParameters, Workflow workflow,
+	private List<Task> generateTasks(Step step, List<MapEntity> localParameters, WorkflowImpl workflowImpl,
 			ComputeProperties computeProperties) throws IOException
 	{
 		List<Task> tasks = new ArrayList<Task>();
@@ -115,7 +129,7 @@ public class TaskGenerator
 
 				for (String previousStepName : step.getPreviousSteps())
 				{ // we have jobs on which we depend in this prev step
-					Step prevStep = workflow.getStep(previousStepName);
+					Step prevStep = workflowImpl.getStep(previousStepName);
 					for (Integer id : target.getIntList(Parameters.ID_COLUMN))
 					{
 						String prevJobName = prevStep.getJobName(id);
@@ -655,7 +669,7 @@ public class TaskGenerator
 				boolean found = false;
 				for (String col : global.getAttributeNames())
 				{
-					if (!workflow.parameterHasStepPrefix(globalName)) parameterNameWithPrefix = Parameters.USER_PREFIX
+					if (!workflowImpl.parameterHasStepPrefix(globalName)) parameterNameWithPrefix = Parameters.USER_PREFIX
 							+ globalName;
 					else parameterNameWithPrefix = globalName;
 
@@ -682,11 +696,11 @@ public class TaskGenerator
 	/**
 	 * Analyze lists in workflow protocols and determine whether these lists should be combined or not
 	 * 
-	 * @param workflow
+	 * @param workflowImpl
 	 */
-	public void determineCombineLists(Workflow workflow)
+	public void determineCombineLists(WorkflowImpl workflowImpl)
 	{
-		for (Step step : workflow.getSteps())
+		for (Step step : workflowImpl.getSteps())
 		{
 			Protocol protocol = step.getProtocol();
 

@@ -7,10 +7,11 @@ import java.util.Map;
 import org.molgenis.compute5.ComputeProperties;
 import org.molgenis.compute5.generators.BatchAnalyser;
 import org.molgenis.compute5.model.impl.FoldParametersImpl;
+import org.molgenis.compute5.model.impl.WorkflowImpl;
 
 public class Compute
 {
-	private Workflow workflow;
+	private WorkflowImpl workflowImpl;
 	private Parameters parameters;
 	private List<Task> tasks;
 	private ComputeProperties computeProperties;
@@ -36,14 +37,14 @@ public class Compute
 		this.tasks = tasks;
 	}
 
-	public Workflow getWorkflow()
+	public WorkflowImpl getWorkflow()
 	{
-		return workflow;
+		return workflowImpl;
 	}
 
-	public void setWorkflow(Workflow workflow)
+	public void setWorkflow(WorkflowImpl workflowImpl)
 	{
-		this.workflow = workflow;
+		this.workflowImpl = workflowImpl;
 	}
 
 	public Parameters getParameters()

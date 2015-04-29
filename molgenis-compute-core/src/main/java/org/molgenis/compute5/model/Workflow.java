@@ -1,64 +1,49 @@
 package org.molgenis.compute5.model;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.google.gson.Gson;
-
-public class Workflow
+/**
+ * This class allows to get {@link Step}s, get user parameters, add {@link Step}s, retrieve a {@link Step} based on the
+ * name of the previous {@link Step}, or to check if a {@link Parameters} has a {@link Step} prefix
+ */
+public interface Workflow
 {
-	private List<Step> steps = new ArrayList<Step>();
+	/**
+	 * This method returns a {@link Set} of user defined parameters based on the parameter mapping that is present for
+	 * every step
+	 * 
+	 * @return A {@link Set} of user parameters
+	 */
+	public Set<String> getUserParameters();
 
-	public Set<String> getUserParameters()
-	{
-		Set<String> result = new HashSet<String>();
-		for (Step s : steps)
-		{
-			for (String value : s.getParametersMapping().values())
-			{
-				if (value.startsWith(Parameters.USER_PREFIX))
-				{
-					result.add(value);
-				}
-			}
-		}
-		return result;
-	}
+	/**
+	 * 
+	 * @return
+	 */
+	public List<Step> getSteps();
 
-	public String toString()
-	{
-		String result = new Gson().toJson(this);
-		return "workflow=" + result;
-	}
+	/**
+	 * 
+	 * 
+	 * @param step
+	 */
+	public void addStep(Step step);
 
-	public List<Step> getSteps()
-	{
-		return steps;
-	}
+	/**
+	 * This method returns a {@link Step} object based on a provided step name
+	 * 
+	 * @param stepName
+	 * @return A step based on the supplied step name
+	 */
+	public Step getStep(String stepName);
 
-	public void addStep(Step step)
-	{
-		this.steps.add(step);
-	}
+	/**
+	 * This method checks to see if a given parameter contains a step prefix
+	 * 
+	 * @param parameter
+	 * @return A boolean that tells you if a parameter has a step prefix
+	 */
+	public boolean parameterHasStepPrefix(String parameter);
 
-	public Step getStep(String previousStepName)
-	{
-		for (Step step : this.steps)
-		{
-			if (previousStepName.equals(step.getName())) return step;
-		}
-		return null;
-	}
-
-	public boolean parameterHasStepPrefix(String parameter)
-	{
-		for(Step step : steps)
-		{
-			if(parameter.contains(step.getName()+ Parameters.STEP_PARAM_SEP_SCRIPT))
-				return true;
-		}
-		return false;
-	}
 }
