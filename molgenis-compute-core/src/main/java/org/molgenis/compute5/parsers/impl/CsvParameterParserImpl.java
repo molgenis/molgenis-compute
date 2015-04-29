@@ -11,15 +11,15 @@ import org.apache.log4j.Logger;
 import org.molgenis.compute5.ComputeProperties;
 import org.molgenis.compute5.generators.TupleUtils;
 import org.molgenis.compute5.model.Parameters;
-import org.molgenis.compute5.parsers.ParametersCsvParser;
+import org.molgenis.compute5.parsers.CsvParameterParser;
 import org.molgenis.compute5.urlreader.UrlReader;
 import org.molgenis.data.Entity;
 import org.molgenis.data.csv.CsvRepository;
 import org.molgenis.data.support.MapEntity;
 
-public class ParametersCsvParserImpl implements ParametersCsvParser
+public class CsvParameterParserImpl implements CsvParameterParser
 {
-	private static final Logger LOG = Logger.getLogger(ParametersCsvParserImpl.class);
+	private static final Logger LOG = Logger.getLogger(CsvParameterParserImpl.class);
 
 	private String runID;
 	private ComputeProperties properties;
@@ -44,9 +44,9 @@ public class ParametersCsvParserImpl implements ParametersCsvParser
 		}
 		else
 		{
-			for (File f : files)
+			for (File file : files)
 			{
-				uniqueFiles.add(f.toString());
+				uniqueFiles.add(file.toString());
 			}
 			targets = parseParamFiles(null, uniqueFiles);
 		}

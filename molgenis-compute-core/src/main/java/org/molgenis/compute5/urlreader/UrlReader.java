@@ -20,7 +20,7 @@ import java.net.URL;
  * 
  * {@link WorkflowCsvParser} parse(String, ComputeProperties) method
  * 
- * {@link ParametersCsvParserImpl} parseParamFiles(Parameters, Set<String>) method
+ * {@link CsvParameterParserImpl} parseParamFiles(Parameters, Set<String>) method
  * 
  * {@link ParametersFolder} setFromFiles(List<File>, ComputeProperties) method
  */

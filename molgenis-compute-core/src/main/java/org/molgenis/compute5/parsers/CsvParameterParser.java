@@ -12,7 +12,7 @@ import org.molgenis.compute5.model.Parameters;
 /**
  * Parser for csv file parameters. Includes the solving of templated values.
  */
-public interface ParametersCsvParser
+public interface CsvParameterParser
 {
 	/**
 	 * Parse CSV files into {@link Parameters}
