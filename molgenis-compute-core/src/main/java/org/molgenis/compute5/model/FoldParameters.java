@@ -8,30 +8,34 @@ import java.util.List;
 import org.molgenis.compute5.ComputeProperties;
 
 /**
- * 
+ * This class performs complicated folding and can set and get parameters, tell you if there are multiple parameter
+ * files or can count for you how often a parameter is found in the list of existing parameters
  */
 public interface FoldParameters
 {
 	/**
+	 * This method creates {@link Parameters} objects by parsing parameter files or a github URL
 	 * 
 	 * @param fromFiles
 	 * @param computeProperties
 	 */
-	public void setFromFiles(List<File> fromFiles, ComputeProperties computeProperties);
-	
+	public void setFromFiles(List<File> parameterFiles, ComputeProperties computeProperties);
+
 	/**
+	 * This method checks if there are multiple parameters
 	 * 
-	 * @return
+	 * @return If there are multiple parameters
 	 */
 	public boolean isMultiParametersFiles();
-	
+
 	/**
+	 * Method that counts how often a parameter is found
 	 * 
 	 * @param name
 	 * @return
 	 */
-	public int isParameterFindTimes(String name);
-	
+	public int howManyTimesParameterIsFound(String name);
+
 	/**
 	 * TODO What does this method do exactly?
 	 * 
@@ -40,11 +44,11 @@ public interface FoldParameters
 	 * @return
 	 */
 	public List<String> folding(String name, Hashtable<String, String> foreach);
-	
-	
+
 	/**
+	 * Method that returns a map of parameters
 	 * 
-	 * @return
+	 * @return A map of parameters
 	 */
-	public List<HashMap<String,List<String>>> getParameters();
+	public List<HashMap<String, List<String>>> getParameters();
 }

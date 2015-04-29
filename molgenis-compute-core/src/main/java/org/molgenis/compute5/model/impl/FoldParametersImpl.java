@@ -14,7 +14,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Set;
 
 public class FoldParametersImpl implements FoldParameters
 {
@@ -23,19 +22,23 @@ public class FoldParametersImpl implements FoldParameters
 	private UrlReaderImpl urlReaderImpl = new UrlReaderImpl();
 
 	@Override
-	public void setFromFiles(List<File> fromFiles, ComputeProperties computeProperties)
+	public void setFromFiles(List<File> parameterFiles, ComputeProperties computeProperties)
 	{
-		for (File file : fromFiles)
+		for (File parameterFile : parameterFiles)
 		{
 			CSVReader reader = null;
 			try
 			{
-				if (!computeProperties.isWebWorkflow) reader = new CSVReader(new FileReader(file));
+				if (!computeProperties.isWebWorkflow)
+				{
+					reader = new CSVReader(new FileReader(parameterFile));
+				}
 				else
 				{
-					String fString = file.getName();
-					File f = urlReaderImpl.createFileFromGithub(computeProperties.webWorkflowLocation, fString);
-					reader = new CSVReader(new FileReader(f));
+					String fileName = parameterFile.getName();
+					File githubWorkflowFile = urlReaderImpl.createFileFromGithub(computeProperties.webWorkflowLocation,
+							fileName);
+					reader = new CSVReader(new FileReader(githubWorkflowFile));
 				}
 
 				HashMap<String, List<String>> onefileParameters = new HashMap<String, List<String>>();
@@ -61,7 +64,7 @@ public class FoldParametersImpl implements FoldParameters
 							for (int i = 1; i < array.length; i++)
 								values.add(array[i].trim());
 
-							checkIfParameterExist(name, file);
+							checkIfParameterExists(name, parameterFile);
 							onefileParameters.put(name, values);
 						}
 					}
@@ -90,7 +93,7 @@ public class FoldParametersImpl implements FoldParameters
 						}
 
 						// first check if this parameters already exist
-						checkIfParameterExist(head, file);
+						checkIfParameterExists(head, parameterFile);
 
 						onefileParameters.put(head, values);
 					}
@@ -130,15 +133,17 @@ public class FoldParametersImpl implements FoldParameters
 	}
 
 	@Override
-	public int isParameterFindTimes(String name)
+	public int howManyTimesParameterIsFound(String name)
 	{
-		int i = 0;
+		int numberOfTimesParameterIsFound = 0;
 		for (HashMap<String, List<String>> parametersFile : parameters)
 		{
-			boolean hasID = parametersFile.containsKey(name);
-			if (hasID) i++;
+			if (parametersFile.containsKey(name))
+			{
+				numberOfTimesParameterIsFound++;
+			}
 		}
-		return i;
+		return numberOfTimesParameterIsFound;
 	}
 
 	@Override
@@ -237,12 +242,11 @@ public class FoldParametersImpl implements FoldParameters
 		return parameters;
 	}
 
-	private void checkIfParameterExist(String head, File file)
+	private void checkIfParameterExists(String head, File file)
 	{
 		for (HashMap<String, List<String>> oneFile : parameters)
 		{
-			Set<String> keys = oneFile.keySet();
-			for (String key : keys)
+			for (String key : oneFile.keySet())
 			{
 				if (key.equals(head))
 				{

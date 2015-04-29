@@ -390,7 +390,7 @@ public class TaskGenerator
 		for (Input input : list)
 		{
 			FoldParametersImpl originalParameters = compute.getParametersContainer();
-			int timeParameterFind = originalParameters.isParameterFindTimes(input.getName());
+			int timeParameterFind = originalParameters.howManyTimesParameterIsFound(input.getName());
 
 			if (timeParameterFind == 1)
 			{
