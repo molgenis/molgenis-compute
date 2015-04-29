@@ -3,19 +3,21 @@ package org.molgenis.compute5.generators;
 import java.io.*;
 import java.util.*;
 
-
 import org.apache.log4j.Logger;
 import org.molgenis.compute5.model.*;
 import org.molgenis.data.support.MapEntity;
 import org.molgenis.util.Pair;
 
+/**
+ * Returns initial environment with all user params that are used somewhere in this workflow
+ * 
+ * @param compute
+ * @return
+ */
+
 public class EnvironmentGenerator
 {
-	/**
-	 * Returns initial environment with all user params that are used somewhere in this workflow
-	 * @param compute
-	 * @return
-	 */
+	private static final Logger LOG = Logger.getLogger(EnvironmentGenerator.class);
 
 	public static final String GLOBAL_PREFIX = "global_";
 
@@ -23,11 +25,8 @@ public class EnvironmentGenerator
 	private List<Step> steps = null;
 	private Workflow workflow = null;
 
-	//for error handling
+	// for error handling
 	private ArrayList<Pair<String, String>> arrayOfParameterSteps = new ArrayList<Pair<String, String>>();
-
-	private static final Logger LOG = Logger.getLogger(EnvironmentGenerator.class);
-
 
 	public String getEnvironmentAsString(Compute compute) throws Exception
 	{
@@ -54,7 +53,7 @@ public class EnvironmentGenerator
 
 				arrayOfParameterSteps.add(new Pair<String, String>(value, step.getName()));
 
-				if(!workflow.parameterHasStepPrefix(value))
+				if (!workflow.parameterHasStepPrefix(value))
 				{
 					userInputParamSet.add(value);
 				}
@@ -62,7 +61,7 @@ public class EnvironmentGenerator
 
 			List<String> autoMappedParameters = step.getAutoMappedParameters();
 
-			for(String s : autoMappedParameters)
+			for (String s : autoMappedParameters)
 			{
 				arrayOfParameterSteps.add(new Pair<String, String>(s, step.getName()));
 			}
@@ -72,7 +71,7 @@ public class EnvironmentGenerator
 		}
 
 		// get all parameters from parameters.csv
-		for (String parameter: userInputParamSet)
+		for (String parameter : userInputParamSet)
 		{
 			String userParameter = Parameters.USER_PREFIX + parameter;
 
@@ -83,21 +82,18 @@ public class EnvironmentGenerator
 				String value = null;
 				for (String col : wt.getAttributeNames())
 				{
-					if (col.equals(userParameter))
-						value = wt.getString(col);
-					if (col.equals(Parameters.USER_PREFIX + Task.TASKID_COLUMN))
-						index = wt.getInt(col);
+					if (col.equals(userParameter)) value = wt.getString(col);
+					if (col.equals(Parameters.USER_PREFIX + Task.TASKID_COLUMN)) index = wt.getInt(col);
 				}
 
 				if (value == null)
 				{
 
-					if(!isFoundAsOutput(parameter, wt))
+					if (!isFoundAsOutput(parameter, wt))
 					{
 						List<String> relatedSteps = findRelatedSteps(parameter);
-						throw new Exception("Parameter '" + parameter +
-								"' used in steps " + relatedSteps.toString() +
-								"does not have value in the parameters (.csv, .properties) files ");
+						throw new Exception("Parameter '" + parameter + "' used in steps " + relatedSteps.toString()
+								+ "does not have value in the parameters (.csv, .properties) files ");
 					}
 					else
 					{
@@ -108,15 +104,14 @@ public class EnvironmentGenerator
 				else
 				{
 					StringBuilder assignment = new StringBuilder();
-					assignment.append(parameter).append("[").append(index).append("]=\"")
-							.append(value).append("\"\n");
+					assignment.append(parameter).append("[").append(index).append("]=\"").append(value).append("\"\n");
 
 					environment.put(parameter + "[" + index + "]", value);
 					output.append(assignment.toString());
 				}
 			}
 		}
-		
+
 		return output.toString();
 	}
 
@@ -124,10 +119,9 @@ public class EnvironmentGenerator
 	{
 		List<String> relatedSteps = new ArrayList<String>();
 
-		for(Pair<String, String> pair : arrayOfParameterSteps)
+		for (Pair<String, String> pair : arrayOfParameterSteps)
 		{
-			if(pair.getA().equalsIgnoreCase(parameter))
-				relatedSteps.add(pair.getB());
+			if (pair.getA().equalsIgnoreCase(parameter)) relatedSteps.add(pair.getB());
 		}
 
 		return relatedSteps;
@@ -135,31 +129,31 @@ public class EnvironmentGenerator
 
 	private boolean isFoundAsOutput(String parameter, MapEntity wt)
 	{
-		for(Step step: workflow.getSteps())
+		for (Step step : workflow.getSteps())
 		{
 			Set<Output> outputs = step.getProtocol().getOutputs();
-			for(Output output : outputs)
+			for (Output output : outputs)
 			{
-				//first search for auto.mapping
+				// first search for auto.mapping
 				String name = output.getName();
-				if(name.equalsIgnoreCase(parameter))
+				if (name.equalsIgnoreCase(parameter))
 				{
 					boolean canBeKnown = checkIfVariableCanbeKnown(step.getName(), parameter);
 
-					if(canBeKnown)
+					if (canBeKnown)
 					{
 						wt.set("user_" + parameter, step.getName() + "_" + parameter);
 						return true;
 					}
 				}
 
-				//else search for step.mapping
+				// else search for step.mapping
 				name = step.getName() + Parameters.STEP_PARAM_SEP_PROTOCOL + output.getName();
-				if(name.equalsIgnoreCase(parameter))
+				if (name.equalsIgnoreCase(parameter))
 				{
 					boolean canBeKnown = checkIfVariableCanbeMapped(step.getName(), parameter);
 
-					if(canBeKnown)
+					if (canBeKnown)
 					{
 						wt.set("user_" + parameter, step.getName() + Parameters.STEP_PARAM_SEP_SCRIPT + parameter);
 						return true;
@@ -172,17 +166,17 @@ public class EnvironmentGenerator
 
 	private boolean checkIfVariableCanbeKnown(String previousStepName, String parameterName)
 	{
-		for(Step step: workflow.getSteps())
+		for (Step step : workflow.getSteps())
 		{
-			for(Input input: step.getProtocol().getInputs())
+			for (Input input : step.getProtocol().getInputs())
 			{
-				if(input.getName().equalsIgnoreCase(parameterName))
+				if (input.getName().equalsIgnoreCase(parameterName))
 				{
-					//this step has input named parameterName
+					// this step has input named parameterName
 					Set<String> previousSteps = step.getPreviousSteps();
-					if(previousSteps.contains(previousStepName))
+					if (previousSteps.contains(previousStepName))
 					{
-						//this step has previous step with output parameterName, so it can be known at run time
+						// this step has previous step with output parameterName, so it can be known at run time
 						input.setKnownRunTime(true);
 						return true;
 					}
@@ -197,9 +191,9 @@ public class EnvironmentGenerator
 		boolean isRunTimeVariable = false;
 		String key = null;
 
-		for(Step step: workflow.getSteps())
+		for (Step step : workflow.getSteps())
 		{
-			if(step.getPreviousSteps().contains(previousStepName))
+			if (step.getPreviousSteps().contains(previousStepName))
 			{
 				Map<String, String> parameterMappings = step.getParametersMapping();
 
@@ -208,7 +202,7 @@ public class EnvironmentGenerator
 					key = entry.getKey();
 					String value = entry.getValue();
 
-					if(value.equalsIgnoreCase(parameterName))
+					if (value.equalsIgnoreCase(parameterName))
 					{
 						isRunTimeVariable = true;
 						break;
@@ -216,53 +210,49 @@ public class EnvironmentGenerator
 				}
 			}
 
-			if(isRunTimeVariable)
-			for(Input input: step.getProtocol().getInputs())
+			if (isRunTimeVariable) for (Input input : step.getProtocol().getInputs())
 			{
-				if(input.getName().equalsIgnoreCase(key))
+				if (input.getName().equalsIgnoreCase(key))
 				{
-						input.setKnownRunTime(true);
-						return isRunTimeVariable;
+					input.setKnownRunTime(true);
+					return isRunTimeVariable;
 				}
 			}
 		}
 		return isRunTimeVariable;
 	}
 
-
 	public HashMap<String, String> generate(Compute compute, String workDir) throws Exception
 	{
 		Parameters.ENVIRONMENT_FULLPATH = workDir + File.separator + Parameters.ENVIRONMENT;
-		
+
 		File env = new File(Parameters.ENVIRONMENT_FULLPATH);
 		env.delete();
 
-			// give user environment to compute
-			String strUserEnvironment = getEnvironmentAsString(compute);
+		// give user environment to compute
+		String strUserEnvironment = getEnvironmentAsString(compute);
 
-			// create new environment file
-			env.createNewFile();
+		// create new environment file
+		env.createNewFile();
 
-			//start global prefix fix
-			StringBuilder prefixedEnvironment = new StringBuilder();
-			String[] lines = strUserEnvironment.split(System.getProperty("line.separator"));
-			for(int i = 0; i < lines.length; i++)
-			{
-				String line = lines[i];
-				if(line.startsWith("#"))
-					prefixedEnvironment.append(line).append('\n');
-				else
-					prefixedEnvironment.append(GLOBAL_PREFIX).append(line).append('\n');
-			}
+		// start global prefix fix
+		StringBuilder prefixedEnvironment = new StringBuilder();
+		String[] lines = strUserEnvironment.split(System.getProperty("line.separator"));
+		for (int i = 0; i < lines.length; i++)
+		{
+			String line = lines[i];
+			if (line.startsWith("#")) prefixedEnvironment.append(line).append('\n');
+			else prefixedEnvironment.append(GLOBAL_PREFIX).append(line).append('\n');
+		}
 
-			String strPrefixed = prefixedEnvironment.toString();
+		String strPrefixed = prefixedEnvironment.toString();
 
-			compute.setUserEnvironment(strPrefixed);
-			//end fix
+		compute.setUserEnvironment(strPrefixed);
+		// end fix
 
-			BufferedWriter output = new BufferedWriter(new FileWriter(env, true));
-			output.write(strPrefixed);
-			output.close();
+		BufferedWriter output = new BufferedWriter(new FileWriter(env, true));
+		output.write(strPrefixed);
+		output.close();
 
 		return environment;
 	}
