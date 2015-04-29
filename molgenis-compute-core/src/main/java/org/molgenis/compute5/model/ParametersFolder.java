@@ -3,7 +3,7 @@ package org.molgenis.compute5.model;
 import au.com.bytecode.opencsv.CSVReader;
 
 import org.molgenis.compute5.ComputeProperties;
-import org.molgenis.compute5.urlreader.UrlReader;
+import org.molgenis.compute5.urlreader.impl.UrlReaderImpl;
 
 import java.io.File;
 import java.io.FileReader;
@@ -26,7 +26,7 @@ public class ParametersFolder
 {
 	//map parameter name and values
 	List<HashMap<String, List<String>>> parameters = new ArrayList<HashMap<String, List<String>>>();
-	private UrlReader urlReader = new UrlReader();
+	private UrlReaderImpl urlReaderImpl = new UrlReaderImpl();
 
 	public void setFromFiles(List<File> fromFiles, ComputeProperties computeProperties)
 	{
@@ -40,7 +40,7 @@ public class ParametersFolder
 				else
 				{
 					String fString = file.getName();
-					File f = urlReader.createFileFromGithub(computeProperties.webWorkflowLocation, fString);
+					File f = urlReaderImpl.createFileFromGithub(computeProperties.webWorkflowLocation, fString);
 					reader = new CSVReader(new FileReader(f));
 				}
 

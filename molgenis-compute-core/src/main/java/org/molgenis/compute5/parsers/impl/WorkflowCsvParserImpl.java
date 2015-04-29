@@ -17,7 +17,7 @@ import org.molgenis.compute5.model.Protocol;
 import org.molgenis.compute5.model.Step;
 import org.molgenis.compute5.model.Workflow;
 import org.molgenis.compute5.parsers.WorkflowCsvParser;
-import org.molgenis.compute5.urlreader.UrlReader;
+import org.molgenis.compute5.urlreader.impl.UrlReaderImpl;
 
 import au.com.bytecode.opencsv.CSVReader;
 
@@ -25,7 +25,7 @@ public class WorkflowCsvParserImpl implements WorkflowCsvParser
 {
 	private Vector<String> stepNames = new Vector<String>();
 	private ProtocolParserImpl parser = new ProtocolParserImpl();
-	private UrlReader urlReader = new UrlReader();
+	private UrlReaderImpl urlReaderImpl = new UrlReaderImpl();
 	private ProtocolAnalyserImpl protocolAnalyserImpl = new ProtocolAnalyserImpl();
 	public static final String WORKFLOW_COMMENT_SIGN = "#";
 	private Map<String, String> resultParsing = null;
@@ -38,7 +38,7 @@ public class WorkflowCsvParserImpl implements WorkflowCsvParser
 		{
 			if (computeProperties.isWebWorkflow)
 			{
-				File workflowFile = urlReader.createFileFromGithub(computeProperties.webWorkflowLocation, workflowPath);
+				File workflowFile = urlReaderImpl.createFileFromGithub(computeProperties.webWorkflowLocation, workflowPath);
 				reader = new CSVReader(new FileReader(workflowFile), ',');
 
 			}

@@ -14,11 +14,11 @@ import org.molgenis.compute5.model.Output;
 import org.molgenis.compute5.model.Parameters;
 import org.molgenis.compute5.model.Protocol;
 import org.molgenis.compute5.parsers.ProtocolParser;
-import org.molgenis.compute5.urlreader.UrlReader;
+import org.molgenis.compute5.urlreader.impl.UrlReaderImpl;
 
 public class ProtocolParserImpl implements ProtocolParser
 {
-	private UrlReader urlReader = new UrlReader();
+	private UrlReaderImpl urlReaderImpl = new UrlReaderImpl();
 
 	@Override
 	public Protocol parse(File workflowDirectory, String protocolPath, ComputeProperties computeProperties)
@@ -31,7 +31,7 @@ public class ProtocolParserImpl implements ProtocolParser
 
 			if (computeProperties.isWebWorkflow)
 			{
-				templateFile = urlReader.createFileFromGithub(computeProperties.webWorkflowLocation, protocolPath);
+				templateFile = urlReaderImpl.createFileFromGithub(computeProperties.webWorkflowLocation, protocolPath);
 			}
 			else
 			{

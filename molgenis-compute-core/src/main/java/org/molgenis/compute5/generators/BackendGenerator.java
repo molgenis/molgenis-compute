@@ -15,7 +15,8 @@ import org.molgenis.compute5.model.Task;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
-import org.molgenis.compute5.urlreader.UrlReader;
+
+import org.molgenis.compute5.urlreader.impl.UrlReaderImpl;
 
 /** Parameters of the backend, either PBS, SGE, GRID, etc */
 public class BackendGenerator
@@ -30,7 +31,7 @@ public class BackendGenerator
 	private String footerTemplate = "";
 	private String submitTemplate = "";
 
-	private UrlReader urlReader = new UrlReader();
+	private UrlReaderImpl urlReaderImpl = new UrlReaderImpl();
 
     private Configuration conf = new Configuration();
     private CommandLineRunContainer container = new CommandLineRunContainer();
@@ -222,7 +223,7 @@ public class BackendGenerator
 			File h = null;
 			if(cp.isWebWorkflow)
 			{
-				h = urlReader.createFileFromGithub(cp.webWorkflowLocation, cp.customHeader);
+				h = urlReaderImpl.createFileFromGithub(cp.webWorkflowLocation, cp.customHeader);
 				if(h != null)
 					this.appendCustomHeader(FileUtils.readFileToString(h));
 				else
@@ -246,7 +247,7 @@ public class BackendGenerator
 			File f = null;
 			if(cp.isWebWorkflow)
 			{
-				f = urlReader.createFileFromGithub(cp.webWorkflowLocation, cp.customFooter);
+				f = urlReaderImpl.createFileFromGithub(cp.webWorkflowLocation, cp.customFooter);
 				if(f != null)
 					this.appendCustomFooter(FileUtils.readFileToString(f));
 				else
@@ -270,7 +271,7 @@ public class BackendGenerator
 			File s = null;
 			if(cp.isWebWorkflow)
 			{
-				s = urlReader.createFileFromGithub(cp.webWorkflowLocation, cp.customSubmit);
+				s = urlReaderImpl.createFileFromGithub(cp.webWorkflowLocation, cp.customSubmit);
 				if(s != null)
 					this.setSubmitTemplate(FileUtils.readFileToString(s));
 				else

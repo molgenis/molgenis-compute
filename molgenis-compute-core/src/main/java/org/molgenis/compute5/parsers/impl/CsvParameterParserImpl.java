@@ -19,7 +19,7 @@ import org.molgenis.compute5.ComputeProperties;
 import org.molgenis.compute5.generators.TupleUtils;
 import org.molgenis.compute5.model.Parameters;
 import org.molgenis.compute5.parsers.CsvParameterParser;
-import org.molgenis.compute5.urlreader.UrlReader;
+import org.molgenis.compute5.urlreader.impl.UrlReaderImpl;
 import org.molgenis.data.Entity;
 import org.molgenis.data.csv.CsvRepository;
 import org.molgenis.data.support.MapEntity;
@@ -32,7 +32,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 	private ComputeProperties properties;
 	private HashMap<String, String> parametersToOverwrite;
 
-	private UrlReader urlReader = new UrlReader();
+	private UrlReaderImpl urlReaderImpl = new UrlReaderImpl();
 
 	@Override
 	public Parameters parse(List<File> files, ComputeProperties computeProperties) throws IOException
@@ -113,7 +113,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 		}
 		else
 		{
-			file = urlReader.createFileFromGithub(properties.webWorkflowLocation, fileName);
+			file = urlReaderImpl.createFileFromGithub(properties.webWorkflowLocation, fileName);
 		}
 
 		// remove file from the set we have to parse
@@ -533,7 +533,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 					for (String value : entity.getList(colName))
 					{
 						// if file has no absolute path, then use the path
-						// of its parent (file f) as path
+						// of its parent
 						if (value.charAt(0) == '/')
 						{
 							fileLocationList.add(value);
