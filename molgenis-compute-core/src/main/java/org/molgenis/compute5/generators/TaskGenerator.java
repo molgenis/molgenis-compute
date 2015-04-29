@@ -3,7 +3,6 @@ package org.molgenis.compute5.generators;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -14,14 +13,14 @@ import java.util.Vector;
 import org.apache.log4j.Logger;
 import org.molgenis.compute5.ComputeProperties;
 import org.molgenis.compute5.model.Compute;
+import org.molgenis.compute5.model.FoldParameters;
 import org.molgenis.compute5.model.Input;
 import org.molgenis.compute5.model.Output;
 import org.molgenis.compute5.model.Parameters;
 import org.molgenis.compute5.model.Protocol;
 import org.molgenis.compute5.model.Step;
 import org.molgenis.compute5.model.Task;
-import org.molgenis.compute5.model.impl.FoldParametersImpl;
-import org.molgenis.compute5.model.impl.WorkflowImpl;
+import org.molgenis.compute5.model.Workflow;
 import org.molgenis.data.Entity;
 import org.molgenis.data.support.MapEntity;
 
@@ -29,7 +28,7 @@ public class TaskGenerator
 {
 	private List<MapEntity> globalParameters = null;
 	private HashMap<String, String> environment = null;
-	private WorkflowImpl workflowImpl = null;
+	private Workflow workflow = null;
 
 	private static final Logger LOG = Logger.getLogger(TaskGenerator.class);
 	private Compute compute;
@@ -40,7 +39,7 @@ public class TaskGenerator
 	public List<Task> generate(Compute compute) throws IOException
 	{
 		this.compute = compute;
-		workflowImpl = compute.getWorkflow();
+		workflow = compute.getWorkflow();
 		Parameters parameters = compute.getParameters();
 		ComputeProperties computeProperties = compute.getComputeProperties();
 		environment = compute.getMapUserEnvironment();
@@ -48,7 +47,7 @@ public class TaskGenerator
 		List<Task> result = new ArrayList<Task>();
 
 		globalParameters = parameters.getValues();
-		for (Step step : workflowImpl.getSteps())
+		for (Step step : workflow.getSteps())
 		{
 			// map global to local parameters
 			List<MapEntity> localParameters = mapGlobalToLocalParameters(globalParameters, step);
@@ -64,7 +63,7 @@ public class TaskGenerator
 			// (ii) taskIndex = id
 			localParameters = addStepIds(localParameters, step);
 
-			List<Task> tasks = generateTasks(step, localParameters, workflowImpl, computeProperties);
+			List<Task> tasks = generateTasks(step, localParameters, workflow, computeProperties);
 			// generate the tasks from template, add step id
 			result.addAll(tasks);
 
@@ -78,7 +77,7 @@ public class TaskGenerator
 		return result;
 	}
 
-	private List<Task> generateTasks(Step step, List<MapEntity> localParameters, WorkflowImpl workflowImpl,
+	private List<Task> generateTasks(Step step, List<MapEntity> localParameters, Workflow workflow,
 			ComputeProperties computeProperties) throws IOException
 	{
 		List<Task> tasks = new ArrayList<Task>();
@@ -129,7 +128,7 @@ public class TaskGenerator
 
 				for (String previousStepName : step.getPreviousSteps())
 				{ // we have jobs on which we depend in this prev step
-					Step prevStep = workflowImpl.getStep(previousStepName);
+					Step prevStep = workflow.getStep(previousStepName);
 					for (Integer id : target.getIntList(Parameters.ID_COLUMN))
 					{
 						String prevJobName = prevStep.getJobName(id);
@@ -240,7 +239,7 @@ public class TaskGenerator
 									{
 										if (input.isKnownRunTime())
 										{
-											value = Arrays.asList(oValue).get(i).toString();
+											value = ((ArrayList<String>) oValue).get(i).toString();
 											value = value.replaceFirst(Parameters.UNDERSCORE,
 													Parameters.STEP_PARAM_SEP_SCRIPT);
 										}
@@ -282,7 +281,7 @@ public class TaskGenerator
 					}
 				}
 
-				performFolding(listInputsToFoldNew, foreachParameters);
+				foldNew(listInputsToFoldNew, foreachParameters);
 
 				parameterHeader
 						.append("\n# Validate that each 'value' parameter has only identical values in its list\n")
@@ -399,11 +398,11 @@ public class TaskGenerator
 		return tasks;
 	}
 
-	private void performFolding(List<Input> list, Hashtable<String, String> foreachParameters)
+	private void foldNew(List<Input> list, Hashtable<String, String> foreachParameters)
 	{
 		for (Input input : list)
 		{
-			FoldParametersImpl originalParameters = compute.getParametersContainer();
+			FoldParameters originalParameters = compute.getParametersContainer();
 			int timeParameterFind = originalParameters.howManyTimesParameterIsFound(input.getName());
 
 			if (timeParameterFind == 1)
@@ -459,14 +458,8 @@ public class TaskGenerator
 				String name = input.getName();
 
 				List<String> arrayList = null;
-				if (newEnvironment.containsKey(name))
-				{
-					arrayList = newEnvironment.get(name);
-				}
-				else
-				{
-					arrayList = Arrays.asList(target.get(name).toString());
-				}
+				if (newEnvironment.containsKey(name)) arrayList = newEnvironment.get(name);
+				else arrayList = (ArrayList<String>) target.get(name);
 
 				name += FreemarkerUtils.LIST_SIGN;
 
@@ -669,7 +662,7 @@ public class TaskGenerator
 				boolean found = false;
 				for (String col : global.getAttributeNames())
 				{
-					if (!workflowImpl.parameterHasStepPrefix(globalName)) parameterNameWithPrefix = Parameters.USER_PREFIX
+					if (!workflow.parameterHasStepPrefix(globalName)) parameterNameWithPrefix = Parameters.USER_PREFIX
 							+ globalName;
 					else parameterNameWithPrefix = globalName;
 
@@ -696,11 +689,11 @@ public class TaskGenerator
 	/**
 	 * Analyze lists in workflow protocols and determine whether these lists should be combined or not
 	 * 
-	 * @param workflowImpl
+	 * @param workflow
 	 */
-	public void determineCombineLists(WorkflowImpl workflowImpl)
+	public void determineCombineLists(Workflow workflow)
 	{
-		for (Step step : workflowImpl.getSteps())
+		for (Step step : workflow.getSteps())
 		{
 			Protocol protocol = step.getProtocol();
 
