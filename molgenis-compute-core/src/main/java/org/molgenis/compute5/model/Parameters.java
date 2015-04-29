@@ -8,11 +8,9 @@ import org.molgenis.data.support.MapEntity;
 /** Container for all parameters */
 public class Parameters
 {
-	//unique column used to distinguish the parameter rows provided
-	
+	// unique column used to distinguish the parameter rows provided
+
 	// SOME OF THESE CONSTANTS SHOULD BE PLACED ELSEWHERE!
-
-
 
 	public static final String STEP_HEADING_IN_WORKFLOW = "step";
 	public static final String PROTOCOL_HEADING_IN_WORKFLOW = "protocol";
@@ -43,17 +41,18 @@ public class Parameters
 	public static final String PARAMETERS_DEFAULT = "parameters.csv";
 	// we may consider changing this to parameterFiles to make it more descriptive:
 	public static final String PARAMETER_COLUMN = "parameters";
-    public static final String CUSTOM_HEADER_COLUMN = "header";
-    public static final String CUSTOM_FOOTER_COLUMN = "footer";
-    public static final String CUSTOM_SUBMIT_COLUMN = "submit";
-    public static final String CUSTOM_HEADER_DEFAULT = "header.ftl";
-    public static final String CUSTOM_FOOTER_DEFAULT = "footer.ftl";
-    public static final String CUSTOM_SUBMIT_DEFAULT = "submit.sh.ftl";
-    public static final String ERROR_LOG = "errorlog"; // parameter name of log file
+	public static final String CUSTOM_HEADER_COLUMN = "header";
+	public static final String CUSTOM_FOOTER_COLUMN = "footer";
+	public static final String CUSTOM_SUBMIT_COLUMN = "submit";
+	public static final String CUSTOM_HEADER_DEFAULT = "header.ftl";
+	public static final String CUSTOM_FOOTER_DEFAULT = "footer.ftl";
+	public static final String CUSTOM_SUBMIT_DEFAULT = "submit.sh.ftl";
+	public static final String ERROR_LOG = "errorlog"; // parameter name of log file
 	public static final String ERROR_LOG_COLUMN = USER_PREFIX + ERROR_LOG;
 	public static final String ERROR_FILE_DEFAULT = "error.log"; // can be changed by user parameter
 	public static final String SOURCE_COMMAND = "source";
-	public static final String ENVIRONMENT_DIR_VARIABLE = "$ENVIRONMENT_DIR"; // Update also header.ftl of ALL backends accordingly!
+	public static final String ENVIRONMENT_DIR_VARIABLE = "$ENVIRONMENT_DIR"; // Update also header.ftl of ALL backends
+																				// accordingly!
 	public static final String ENVIRONMENT_EXTENSION = ".env";
 	public static final String ENVIRONMENT = "user" + ENVIRONMENT_EXTENSION;
 	public static final String NOTAVAILABLE = "notavailable";
@@ -134,10 +133,10 @@ public class Parameters
 	public static final String SCHEDULER_PBS = "pbs";
 	public static final String SCHEDULER_SLURM = "slurm";
 
-    public static final String BATCH = "batch";
+	public static final String BATCH = "batch";
 	public static String ENVIRONMENT_FULLPATH = null; // to be set
 
-	//table with all the values
+	// table with all the values
 	List<MapEntity> values = new ArrayList<MapEntity>();
 
 	public List<MapEntity> getValues()
