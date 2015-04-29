@@ -1,4 +1,4 @@
-package org.molgenis.compute.generators;
+package org.molgenis.compute.generators.impl;
 
 import org.apache.log4j.Logger;
 

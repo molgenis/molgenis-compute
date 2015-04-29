@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.molgenis.compute.ComputeProperties;
-import org.molgenis.compute.generators.BatchAnalyser;
+import org.molgenis.compute.generators.impl.BatchAnalyser;
 import org.molgenis.compute.model.impl.FoldParametersImpl;
 import org.molgenis.compute.model.impl.WorkflowImpl;
 

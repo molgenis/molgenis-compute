@@ -10,7 +10,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.molgenis.compute.db.api.*;
-import org.molgenis.compute.generators.*;
+import org.molgenis.compute.generators.impl.*;
 import org.molgenis.compute.model.*;
 import org.molgenis.compute.model.impl.FoldParametersImpl;
 import org.molgenis.compute.model.impl.WorkflowImpl;
@@ -283,7 +283,7 @@ public class ComputeCommandLine
 		List<Task> tasks = taskGenerator.generate(compute);
 		compute.setTasks(tasks);
 
-		commandLineRunContainer = new BackendGenerator(computeProperties).generate(compute, dir);
+		commandLineRunContainer = new BackendGeneratorImpl(computeProperties).generate(compute, dir);
 
 //TODO:	FIX	generate documentation
 //		new DocTotalParametersCsvGenerator().generate(new File(computeProperties.runDir + "/doc/outputs.csv"),

@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 import org.molgenis.compute.ComputeProperties;
-import org.molgenis.compute.generators.TupleUtils;
+import org.molgenis.compute.generators.impl.TupleUtils;
 import org.molgenis.compute.model.Parameters;
 import org.molgenis.compute.parsers.CsvParameterParser;
 import org.molgenis.compute.urlreader.impl.UrlReaderImpl;
