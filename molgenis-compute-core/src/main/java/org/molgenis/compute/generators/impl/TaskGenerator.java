@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 import org.apache.log4j.Logger;
 import org.molgenis.compute.ComputeProperties;
@@ -151,13 +151,13 @@ public class TaskGenerator
 
 				// now couple input parameters to parameters in sourced
 				// environment
-				Vector<String> presentStrings = new Vector<String>();
+				List<String> presentStrings = new ArrayList<String>();
 				List<Input> listInputsToFoldNew = new ArrayList<Input>();
-				Hashtable<String, String> foreachParameters = new Hashtable<String, String>();
+				Map<String, String> filters = new LinkedHashMap<String, String>();
 				for (Input input : step.getProtocol().getInputs())
 				{
 					if (input.getType().equalsIgnoreCase(Parameters.LIST_INPUT) && !input.isCombineLists()
-							&& compute.getParametersContainer().isMultiParametersFiles())
+							&& compute.getParametersContainer().isMultiParameterFiles())
 					{
 						// a new way of folding
 						// take list of parameters from initial parameter list, where values are the same as for eachOne
@@ -204,7 +204,7 @@ public class TaskGenerator
 									String realValue = environment.get(right);
 									parameterHeader.append(left).append("=").append("\"").append(realValue)
 											.append("\"\n");
-									foreachParameters.put(left, realValue);
+									filters.put(left, realValue);
 									map.put(left, realValue);
 								}
 								else
@@ -267,7 +267,7 @@ public class TaskGenerator
 										String realValue = environment.get(right);
 										parameterHeader.append(left).append("=").append("\"").append(realValue)
 												.append("\"\n");
-										foreachParameters.put(left, realValue);
+										filters.put(left, realValue);
 									}
 									else
 									{
@@ -281,7 +281,7 @@ public class TaskGenerator
 					}
 				}
 
-				foldNew(listInputsToFoldNew, foreachParameters);
+				foldNew(listInputsToFoldNew, filters);
 
 				parameterHeader
 						.append("\n# Validate that each 'value' parameter has only identical values in its list\n")
@@ -398,33 +398,33 @@ public class TaskGenerator
 		return tasks;
 	}
 
-	private void foldNew(List<Input> list, Hashtable<String, String> foreachParameters)
+	private void foldNew(List<Input> inputs, Map<String, String> filters)
 	{
-		for (Input input : list)
+		for (Input input : inputs)
 		{
 			FoldParameters originalParameters = compute.getParametersContainer();
-			int timeParameterFind = originalParameters.howManyTimesParameterIsFound(input.getName());
+			int numberOfFilesContainingParameter = originalParameters.numberOfFilesContainingParameter(input.getName());
 
-			if (timeParameterFind == 1)
+			if (numberOfFilesContainingParameter == 1)
 			{
 				String name = input.getName();
-				List<String> foldedList = originalParameters.folding(name, foreachParameters);
+				List<String> filteredParameterValues = originalParameters.getFilteredParameterValues(name, filters);
 
 				List<String> values = new ArrayList<String>();
-				for (int i = 0; i < foldedList.size(); i++)
+				for (int i = 0; i < filteredParameterValues.size(); i++)
 				{
-					String value = foldedList.get(i);
-					parameterHeader.append(name).append("[").append(i).append("]=\"").append(value).append("\"\n");
+					String value = filteredParameterValues.get(i);
+					parameterHeader.append(String.format("%s[%d]=\"%s\"", name, i, value)).append('\n');
 					values.add(value);
 				}
 				newEnvironment.put(name, values);
 			}
-			else if (timeParameterFind > 1)
+			else if (numberOfFilesContainingParameter > 1)
 			{
 				LOG.error("PARAMETER [" + input.getName() + "] comes is a list, which "
 						+ "requires simple way of folding, but comes from several parameter files");
 			}
-			else if (timeParameterFind == 0)
+			else if (numberOfFilesContainingParameter == 0)
 			{
 				LOG.warn("PARAMETER [" + input.getName() + "] does not found in design time files, "
 						+ "maybe it is the run time list parameter");
