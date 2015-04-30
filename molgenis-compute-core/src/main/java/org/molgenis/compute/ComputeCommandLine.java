@@ -76,7 +76,7 @@ public class ComputeCommandLine
 
 		if (computeProperties.create)
 		{
-			new CreateWorkflowGenerator(computeProperties.createDirName);
+			new WorkflowGenerator(computeProperties.createDirName);
 			return commandLineRunContainer;
 		}
 		else if (computeProperties.clear)
