@@ -36,7 +36,7 @@ public class Task
 
     private int batchNumber = -1;
 
-    public Task(String name)
+	public Task(String name)
 	{
 		this.setName(name);
 	}
