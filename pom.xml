@@ -15,4 +15,47 @@
         <module>molgenis-compute-core</module>
         <module>molgenis-app-compute-db</module>
     </modules>
+    <build>
+    	<plugins>
+    		<!-- specify java 8 compatible plugin version -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.1</version>
+                <configuration>
+                    <additionalparam>-Xdoclint:none</additionalparam>
+                </configuration>
+            </plugin>
+    	</plugins>
+    </build>
+    <reporting>
+        <plugins>
+            <!-- code coverage -->
+            <plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.7.2.201409121644</version>
+			</plugin>
+            <!-- code analysis -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <xmlOutput>true</xmlOutput>
+                </configuration>
+            </plugin>
+            <!-- project reports -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.7</version>
+                <configuration>
+                    <!-- improve report generation performance -->
+                    <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+                    <project.remoteArtifactRepositories>enonic</project.remoteArtifactRepositories>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
 </project>
