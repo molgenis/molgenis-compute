@@ -1,0 +1,4 @@
+step,protocol,dependencies
+step0,protocols/step0.sh,
+step1,protocols/step1.sh,
+step2,protocols/step2.sh,step0;strings=step1.out;input=mapping
