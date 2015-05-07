@@ -23,8 +23,8 @@ Use the "Distribution tarball installation"
 ```asciidoc --backend install bootstrap-docs.zip```
 
 2. Next, checkout the Twitter Bootstrap repositor in the backend folder:
-* ```cd ~/.asciidoc/backends/bootstrap/bootstrap-docs```
-* ```git clone —branch v2.3.2 https://github.com/twbs/bootstrap.git```
+** ```cd ~/.asciidoc/backends/bootstrap/bootstrap-docs```
+** ```git clone —branch v2.3.2 https://github.com/twbs/bootstrap.git```
 
 If you enable the link-assets attribute, then you should also checkout (or symlink) the bootstrap clone in the same directory as the rendered file. You also need to create a symlink to asciidoc.js included in this backend.
 
