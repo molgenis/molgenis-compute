@@ -1,3 +1,4 @@
+#How To Generate The MOLGENIS Compute 5 User Guide
 This file describes how to generate the molgenis-compute-core documents in Bootstrap style
 
 The MOLGENIS Compute 5 User Guide is available at <a href="https://rawgit.com/molgenis/molgenis-compute/master/molgenis-compute-core/README.html"> Molgenis Compute 5 User Guide</a>
