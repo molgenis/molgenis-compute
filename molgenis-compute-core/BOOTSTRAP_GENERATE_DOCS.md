@@ -4,10 +4,11 @@ This file describes how to generate the molgenis-compute-core documents in Boots
 The MOLGENIS Compute 5 User Guide is available at <a href="https://rawgit.com/molgenis/molgenis-compute/master/molgenis-compute-core/README.html"> Molgenis Compute 5 User Guide</a>
 
 ##You will need:
-* README.txt --> contain the content of the guide.
+* README.txt --> contains the content of the guide.
 * Images related to the content.
 * Installation of python
 * Installation of AsciiDoc
+* Installation bootstrap docs backend
 
 ##Install Python
 1. Check if python exists [python —version]
@@ -22,8 +23,8 @@ Use the "Distribution tarball installation"
 ```asciidoc --backend install bootstrap-docs.zip```
 
 2. Next, checkout the Twitter Bootstrap repositor in the backend folder:
-```cd ~/.asciidoc/backends/bootstrap/bootstrap-docs```
-```git clone —branch v2.3.2 https://github.com/twbs/bootstrap.git```
+2.1 ```cd ~/.asciidoc/backends/bootstrap/bootstrap-docs```
+2.2 ```git clone —branch v2.3.2 https://github.com/twbs/bootstrap.git```
 
 If you enable the link-assets attribute, then you should also checkout (or symlink) the bootstrap clone in the same directory as the rendered file. You also need to create a symlink to asciidoc.js included in this backend.
 
