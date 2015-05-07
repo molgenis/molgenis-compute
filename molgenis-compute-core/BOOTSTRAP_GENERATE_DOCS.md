@@ -35,4 +35,4 @@ If you get a error you probablly should create a directory for the generated doc
 
 Adding pictures
 for adding pictures use img tags in the generated html
-<p><img src="images/dashboard.png"></p>
+"<p><img src="images/dashboard.png"></p>"
