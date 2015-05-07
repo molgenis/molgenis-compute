@@ -3,13 +3,13 @@ This file describes how to generate the molgenis-compute-core documents in Boots
 
 The MOLGENIS Compute 5 User Guide is available at <a href="https://rawgit.com/molgenis/molgenis-compute/master/molgenis-compute-core/README.html"> Molgenis Compute 5 User Guide</a>
 
-You will need:
-* README.txt --> contain the content of the guide.
-* Images related to the content.
-* Installation of python
-* Installation of AsciiDoc
+##You will need:
+*README.txt --> contain the content of the guide.
+*Images related to the content.
+*Installation of python
+*Installation of AsciiDoc
 
-Install Python
+##Install Python
 1. Check if python exists [python —version]
 2. You can install Python from (https://www.python.org/downloads/)
 
