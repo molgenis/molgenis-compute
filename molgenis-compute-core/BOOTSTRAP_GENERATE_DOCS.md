@@ -13,26 +13,26 @@ The MOLGENIS Compute 5 User Guide is available at <a href="https://rawgit.com/mo
 1. Check if python exists [python —version]
 2. You can install Python from (https://www.python.org/downloads/)
 
-Install AsciiDocs
+##Install AsciiDocs
 Text based document generation <a href=http://www.methods.co.nz/asciidoc/INSTALL.html />AsciiDoc</a>
 Use the "Distribution tarball installation"
 
-Installation bootstrap docs backend
-To install the bootstrap docs backend, download <a href="https://github.com/downloads/mojavelinux/asciidoc-bootstrap-docs-backend/bootstrap-docs.zip" />bootstrap-docs.zip</a> and install it using the asciidoc command (you will need AsciiDoc version 8.6.6 or newer):
+##Installation bootstrap docs backend
+1. To install the bootstrap docs backend, download <a href="https://github.com/downloads/mojavelinux/asciidoc-bootstrap-docs-backend/bootstrap-docs.zip" />bootstrap-docs.zip</a> and install it using the asciidoc command (you will need AsciiDoc version 8.6.6 or newer):
 ```asciidoc --backend install bootstrap-docs.zip```
 
-Next, checkout the Twitter Bootstrap repositor in the backend folder:
+2. Next, checkout the Twitter Bootstrap repositor in the backend folder:
 ```cd ~/.asciidoc/backends/bootstrap/bootstrap-docs
 git clone —branch v2.3.2 https://github.com/twbs/bootstrap.git```
 
 If you enable the link-assets attribute, then you should also checkout (or symlink) the bootstrap clone in the same directory as the rendered file. You also need to create a symlink to asciidoc.js included in this backend.
 
-Generating file:
+##Generating file:
 asciidoc -b ~/.asciidoc/backends/bootstrap/bootstrap-docs/bootstrap-docs ~/.asciidoc/README.txt
 
-Error: 
+##Error message: 
 If you get a error you probablly should create a directory for the generated doc.
 
-Adding pictures
+##Adding pictures
 for adding pictures use img tags in the generated html
 ```<p><img src="images/dashboard.png"></p>```
