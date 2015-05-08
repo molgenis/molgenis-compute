@@ -32,7 +32,7 @@ If you enable the link-assets attribute, then you should also checkout (or symli
 * ```asciidoc -b ~/.asciidoc/backends/bootstrap/bootstrap-docs/bootstrap-docs ~/.asciidoc/README.txt```
 
 ##Error message: 
-If you get a error you probablly should create a directory for the generated doc.
+If you get a error you probably should create a directory for the generated doc.
 
 ##Adding pictures
 for adding pictures use img tags in the generated html
