@@ -22,7 +22,7 @@ Use the "Distribution tarball installation"
 1. To install the bootstrap docs backend, download <a href="https://github.com/downloads/mojavelinux/asciidoc-bootstrap-docs-backend/bootstrap-docs.zip" />bootstrap-docs.zip</a> and install it using the asciidoc command (you will need AsciiDoc version 8.6.6 or newer):
  * ```asciidoc --backend install bootstrap-docs.zip```
 
-2. Next, checkout the Twitter Bootstrap repositor in the backend folder:
+2. Next, checkout the Twitter Bootstrap repository in the backend folder:
  * ```cd ~/.asciidoc/backends/bootstrap/bootstrap-docs```
  * ```git clone —branch v2.3.2 https://github.com/twbs/bootstrap.git```
 
