@@ -26,7 +26,8 @@ Use the "Distribution tarball installation"
 2. Next, checkout the Twitter Bootstrap repository in the backend folder:
  * ```cd ~/.asciidoc/backends/bootstrap/bootstrap-docs``` if not exists then create this directory ```mkdir -p ~/.asciidoc/backends/bootstrap/bootstrap-docs``` 
  * copy the files from the bootstrap-docs.zip file into this directory
- * be sure that you are in the bootstrap-docs directory ```git clone —branch v2.3.2 https://github.com/twbs/bootstrap.git```
+ * be sure that you are in the bootstrap-docs directory
+ ```git clone —branch v2.3.2 https://github.com/twbs/bootstrap.git```
 
 If you enable the link-assets attribute, then you should also checkout (or symlink) the bootstrap clone in the same directory as the rendered file. You also need to create a symlink to asciidoc.js included in this backend.
 
@@ -35,6 +36,9 @@ If you enable the link-assets attribute, then you should also checkout (or symli
 
 ##Error message: 
 If you get a error you probably should create a directory for the generated doc.
+Select the path from the error message without the html file at the end and create the new directory.
+```mkdir -p PATH/MISSING/DIRECTORY```
+then run again the command that generates the file.
 
 ##Adding pictures
 for adding pictures use img tags in the generated html
