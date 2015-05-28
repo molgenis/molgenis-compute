@@ -21,12 +21,12 @@ Use the "Distribution tarball installation"
 ##Installation bootstrap docs backend
 1. To install the bootstrap docs backend, download <a href="https://github.com/downloads/mojavelinux/asciidoc-bootstrap-docs-backend/bootstrap-docs.zip" />bootstrap-docs.zip</a> and install it using the asciidoc command (you will need AsciiDoc version 8.6.6 or newer):
  * ```asciidoc --backend install bootstrap-docs.zip```
- * If multiple versions of python installed use this:
-  * ```python2.7 <location>/asciidoc.py --backend install bootstrap-docs.zip```
+ * If multiple versions of python installed use this: ```python2.7 <location>/asciidoc.py --backend install bootstrap-docs.zip```
 
 2. Next, checkout the Twitter Bootstrap repository in the backend folder:
- * ```cd ~/.asciidoc/backends/bootstrap/bootstrap-docs```
- * ```git clone —branch v2.3.2 https://github.com/twbs/bootstrap.git```
+ * ```cd ~/.asciidoc/backends/bootstrap/bootstrap-docs``` if not exists then create this directory ```mkdir -p ~/.asciidoc/backends/bootstrap/bootstrap-docs``` 
+ * copy the files from the bootstrap-docs.zip file into this directory
+ * be sure that you are in the bootstrap-docs directory ```git clone —branch v2.3.2 https://github.com/twbs/bootstrap.git```
 
 If you enable the link-assets attribute, then you should also checkout (or symlink) the bootstrap clone in the same directory as the rendered file. You also need to create a symlink to asciidoc.js included in this backend.
 
