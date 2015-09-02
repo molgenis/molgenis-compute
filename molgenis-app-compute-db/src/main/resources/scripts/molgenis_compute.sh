@@ -56,5 +56,5 @@ $(dirname -- "$0")/lib/log4j-1.2.17.jar:\
 $(dirname -- "$0")/lib/xml-apis-1.4.01.jar:\
 $(dirname -- "$0")/lib/molgenis-compute-core-0.0.1-SNAPSHOT.jar:\
 $(dirname -- "$0")/lib/xmlbeans-2.3.0.jar \
-org.molgenis.compute5.ComputeCommandLine \
+org.molgenis.compute.ComputeCommandLine \
 $*
