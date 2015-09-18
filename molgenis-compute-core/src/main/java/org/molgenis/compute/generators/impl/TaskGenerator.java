@@ -373,9 +373,7 @@ public class TaskGenerator
 						}
 					}
 				}
-				script = appendToEnv(script, "", myEnvironmentFile);
-				script += "\n";
-
+				
 				task.setScript(script);
 				task.setStepName(step.getName());
 				task.setParameters(map);
@@ -508,13 +506,6 @@ public class TaskGenerator
 			if (s.equalsIgnoreCase(Parameters.NOTAVAILABLE)) return false;
 		}
 		return true;
-	}
-
-	private String appendToEnv(String script, String string, String thisFile)
-	{
-		String appendString = "echo \"" + string + "\" >> " + thisFile + "\n" + "chmod 755 " + thisFile + "\n";
-
-		return script + "\n" + appendString;
 	}
 
 	private List<MapEntity> addStepIds(List<MapEntity> localParameters, Step step)
