@@ -26,5 +26,5 @@ $(dirname -- "$0")/lib/guava-14.0.1.jar:\
 $(dirname -- "$0")/lib/commons-logging-1.1.1.jar:\
 $(dirname -- "$0")/lib/gson-2.2.2.jar:\
 $(dirname -- "$0")/lib/commons-lang3-3.1.jar \
-org.molgenis.compute5.ComputeCommandLine \
+org.molgenis.compute.ComputeCommandLine \
 $*
