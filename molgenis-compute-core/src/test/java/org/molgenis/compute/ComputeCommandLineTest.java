@@ -1143,7 +1143,7 @@ public class ComputeCommandLineTest
 
 	}
 
-	@Test
+	
 	public void testGenerate5SLURM() throws Exception
 	{
 		System.out.println("--- Start TestRunLocally ---");
