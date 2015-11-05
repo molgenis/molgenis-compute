@@ -511,11 +511,11 @@ public class TaskGenerator
 	}
 
 	private String appendToEnv(String script, String string, String thisFile)		
--	{		
--		String appendString = "echo \"" + string + "\" >> " + thisFile + "\n";		
--		
--		return script + "\n" + appendString;		
--	}
+	{		
+		String appendString = "echo \"" + string + "\" >> " + thisFile + "\n";		
+		
+		return script + "\n" + appendString;		
+	}
 
 	private List<MapEntity> addStepIds(List<MapEntity> localParameters, Step step)
 	{
