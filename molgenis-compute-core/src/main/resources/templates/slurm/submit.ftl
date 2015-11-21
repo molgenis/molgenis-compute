@@ -20,7 +20,7 @@ touch molgenis.submit.started
 skip(){
 echo "0: Skipped --- TASK '$1' --- ON $(date +"%Y-%m-%d %T")" >> molgenis.skipped.log
 }
-=
+
 <#foreach t in tasks>
 #
 ##${t.name}
