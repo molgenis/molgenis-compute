@@ -20,7 +20,7 @@ import freemarker.template.TemplateException;
 
 public class BackendGeneratorImpl implements BackendGenerator
 {
-	private ComputeProperties cp = null;
+	private ComputeProperties computeProperties = null;
 	private static final Logger LOG = Logger.getLogger(BackendGeneratorImpl.class);
 
 	private static final String BATCH = "batch";
@@ -32,108 +32,128 @@ public class BackendGeneratorImpl implements BackendGenerator
 
 	private UrlReaderImpl urlReaderImpl = new UrlReaderImpl();
 
-	private Configuration conf = new Configuration();
-	private CommandLineRunContainer container = new CommandLineRunContainer();
+	private Configuration configuration = new Configuration();
+	private CommandLineRunContainer commandlineRunContainer = new CommandLineRunContainer();
 
 	Template submit = null;
 	Template header = null;
 	Template footer = null;
 
-	public BackendGeneratorImpl(ComputeProperties cp) throws IOException
+	/**
+	 * Instantiates a new backend generator
+	 * 
+	 * @param computeProperties
+	 * @throws IOException
+	 */
+	public BackendGeneratorImpl(ComputeProperties computeProperties) throws IOException
 	{
-		this.cp = cp;
+		this.computeProperties = computeProperties;
 
-		String dir = cp.backend;
+		String directory = computeProperties.backend;
 
-		if (!cp.database.equalsIgnoreCase(Parameters.BACKEND_TYPE_GRID)
-				|| !cp.database.equalsIgnoreCase(Parameters.BACKEND_TYPE_CLOUD))
+		if (!computeProperties.database.equalsIgnoreCase(Parameters.BACKEND_TYPE_GRID)
+				|| !computeProperties.database.equalsIgnoreCase(Parameters.BACKEND_TYPE_CLOUD))
 		{
-			this.setHeaderTemplate(readInClasspath("templates" + File.separator + dir + File.separator + "header.ftl",
-					dir));
-			this.setFooterTemplate(readInClasspath("templates" + File.separator + dir + File.separator + "footer.ftl",
-					dir));
-			this.setSubmitTemplate(readInClasspath("templates" + File.separator + dir + File.separator + "submit.ftl",
-					dir));
+			this.setHeaderTemplate(readInClasspath(
+					"templates" + File.separator + directory + File.separator + "header.ftl", directory));
+			this.setFooterTemplate(readInClasspath(
+					"templates" + File.separator + directory + File.separator + "footer.ftl", directory));
+			this.setSubmitTemplate(readInClasspath(
+					"templates" + File.separator + directory + File.separator + "submit.ftl", directory));
 		}
 
-		if (cp.customHeader != null)
+		if (computeProperties.customHeader != null)
 		{
-			File h = null;
-			if (cp.isWebWorkflow)
+			File customHeaderFile = null;
+			if (computeProperties.isWebWorkflow)
 			{
-				h = urlReaderImpl.createFileFromGithub(cp.webWorkflowLocation, cp.customHeader);
-				if (h != null) this.appendCustomHeader(FileUtils.readFileToString(h));
-				else System.out.println(">> Custom header not found (" + h + ")");
+				customHeaderFile = urlReaderImpl.createFileFromGithub(computeProperties.webWorkflowLocation,
+						computeProperties.customHeader);
+				if (customHeaderFile != null) this.setHeaderTemplate(FileUtils.readFileToString(customHeaderFile));
+				else System.out.println(">> Custom header not found (" + customHeaderFile + ")");
 			}
 			else
 			{
-				h = new File(cp.customHeader);
-				if (h.exists())
+				customHeaderFile = new File(computeProperties.customHeader);
+				if (customHeaderFile.exists())
 				{
-					System.out.println(">> Custom header: " + h);
-					this.appendCustomHeader(FileUtils.readFileToString(h));
+					System.out.println(">> Custom header: " + customHeaderFile);
+					this.setHeaderTemplate(FileUtils.readFileToString(customHeaderFile));
 				}
-				else System.out.println(">> Custom header not found (" + h + ")");
+				else
+				{
+					System.out.println(">> Custom header not found (" + customHeaderFile + ")");
+				}
 			}
 		}
 
-		if (cp.customFooter != null)
+		if (computeProperties.customFooter != null)
 		{
-			File f = null;
-			if (cp.isWebWorkflow)
+			File customFooterFile = null;
+			if (computeProperties.isWebWorkflow)
 			{
-				f = urlReaderImpl.createFileFromGithub(cp.webWorkflowLocation, cp.customFooter);
-				if (f != null) this.appendCustomFooter(FileUtils.readFileToString(f));
-				else System.out.println(">> Custom footer not found (" + f + ")");
+				customFooterFile = urlReaderImpl.createFileFromGithub(computeProperties.webWorkflowLocation,
+						computeProperties.customFooter);
+				if (customFooterFile != null) this.setFooterTemplate(FileUtils.readFileToString(customFooterFile));
+				else System.out.println(">> Custom footer not found (" + customFooterFile + ")");
 			}
 			else
 			{
-				f = new File(cp.customFooter);
-				if (f.exists())
+				customFooterFile = new File(computeProperties.customFooter);
+				if (customFooterFile.exists())
 				{
-					System.out.println(">> Custom footer: " + f);
-					this.appendCustomFooter(FileUtils.readFileToString(f));
+					System.out.println(">> Custom footer: " + customFooterFile);
+					this.setFooterTemplate(FileUtils.readFileToString(customFooterFile));
 				}
-				else System.out.println(">> Custom footer not found (" + f + ")");
+				else System.out.println(">> Custom footer not found (" + customFooterFile + ")");
 			}
 		}
 
-		if (cp.customSubmit != null)
+		if (computeProperties.customSubmit != null)
 		{
-			File s = null;
-			if (cp.isWebWorkflow)
+			File customSubmitFile = null;
+			if (computeProperties.isWebWorkflow)
 			{
-				s = urlReaderImpl.createFileFromGithub(cp.webWorkflowLocation, cp.customSubmit);
-				if (s != null) this.setSubmitTemplate(FileUtils.readFileToString(s));
-				else System.out.println(">> Custom footer not found (" + s + ")");
+				customSubmitFile = urlReaderImpl.createFileFromGithub(computeProperties.webWorkflowLocation,
+						computeProperties.customSubmit);
+				if (customSubmitFile != null) this.setSubmitTemplate(FileUtils.readFileToString(customSubmitFile));
+				else System.out.println(">> Custom submit script not found (" + customSubmitFile + ")");
 			}
 			else
 			{
-				s = new File(cp.customSubmit);
-				if (s.exists())
+				customSubmitFile = new File(computeProperties.customSubmit);
+				if (customSubmitFile.exists())
 				{
-					System.out.println(">> Custom submit script: " + s);
-					this.setSubmitTemplate(FileUtils.readFileToString(s));
+					System.out.println(">> Custom submit script: " + customSubmitFile);
+					this.setSubmitTemplate(FileUtils.readFileToString(customSubmitFile));
 				}
-				else System.out.println(">> Custom submit script not found (" + s + ")");
+				else System.out.println(">> Custom submit script not found (" + customSubmitFile + ")");
 			}
 		}
 
 	}
 
-	public CommandLineRunContainer generate(Compute compute, File targetDir) throws IOException
+	/**
+	 * Generates submit scripts and jobs
+	 * 
+	 * @param compute
+	 * @param targetDirectory
+	 * 
+	 * @return {@link CommandLineRunContainer}
+	 */
+	public CommandLineRunContainer generate(Compute compute, File targetDirectory) throws IOException
 	{
 		List<Task> tasks = compute.getTasks();
 
 		// get templates for header and footer
-		submit = new Template("submit", new StringReader(this.getSubmitTemplate()), conf);
-		header = new Template("header", new StringReader(this.getHeaderTemplate()), conf);
-		footer = new Template("footer", new StringReader(this.getFooterTemplate()), conf);
+		submit = new Template("submit", new StringReader(this.getSubmitTemplate()), configuration);
+		header = new Template("header", new StringReader(this.getHeaderTemplate()), configuration);
+		footer = new Template("footer", new StringReader(this.getFooterTemplate()), configuration);
 
-		if (cp.batchOption == null)
+		if (computeProperties.batchOption == null)
 		{
-			generateSubmit(SUBMIT, tasks, targetDir.getAbsolutePath());
-			generateJobs(tasks, targetDir.getAbsolutePath());
+			generateSubmit(SUBMIT, tasks, targetDirectory.getAbsolutePath());
+			generateJobs(tasks, targetDirectory.getAbsolutePath());
 		}
 		else
 		{
@@ -149,43 +169,58 @@ public class BackendGeneratorImpl implements BackendGenerator
 					}
 				}
 
-				String dir = targetDir.getAbsolutePath() + File.separator + BATCH + i;
+				String dir = targetDirectory.getAbsolutePath() + File.separator + BATCH + i;
 
 				generateSubmit(SUBMIT, batchTasks, dir);
 				generateJobs(batchTasks, dir);
 			}
 		}
 
-		return container;
+		return commandlineRunContainer;
 	}
 
+	/**
+	 * Reads the class path and returns a string with its contents
+	 * 
+	 * @param file
+	 * @param backend
+	 * @throws IOException
+	 */
 	private String readInClasspath(String file, String backend) throws IOException
 	{
-		InputStream in = this.getClass().getClassLoader().getResourceAsStream(file);
+		InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(file);
 
-		if (in == null)
+		if (inputStream == null)
 		{
 			LOG.error("Specified [" + backend + "] is unknown or unavailable");
-			throw new IOException("Specified [" + backend + "] is unknown or unavailable. Create a file " + file);
+			throw new IOException(
+					"Specified [" + backend + "] is unknown or unavailable. Create the following file: " + file);
 		}
-		BufferedReader stream = new BufferedReader(new InputStreamReader(in));
+		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
 
 		StringBuilder result = new StringBuilder();
 		try
 		{
 			String inputLine;
-
-			while ((inputLine = stream.readLine()) != null)
+			while ((inputLine = bufferedReader.readLine()) != null)
+			{
 				result.append(inputLine + "\n");
+			}
 		}
 		finally
 		{
-			stream.close();
+			bufferedReader.close();
 		}
 		return result.toString();
 	}
 
-	// generate the tasks scripts
+	/**
+	 * generates the tasks scripts
+	 * 
+	 * @param tasks
+	 * @param absolutePath
+	 * @throws IOException
+	 */
 	private void generateJobs(List<Task> tasks, String absolutePath) throws IOException
 	{
 		for (Task task : tasks)
@@ -194,20 +229,20 @@ public class BackendGeneratorImpl implements BackendGenerator
 			{
 				GeneratedScript generatedScript = new GeneratedScript();
 				File outFile = new File(absolutePath + File.separator + task.getName() + ".sh");
-				Writer out = new StringWriter();
+				Writer writer = new StringWriter();
 
-				header.process(task.getParameters(), out);
-				out.write("\n" + task.getScript() + "\n");
-				footer.process(task.getParameters(), out);
-				String strScript = out.toString();
+				header.process(task.getParameters(), writer);
+				writer.write("\n" + task.getScript() + "\n");
+				footer.process(task.getParameters(), writer);
+				String strScript = writer.toString();
 				FileUtils.writeStringToFile(outFile, strScript);
-				out.close();
+				writer.close();
 
 				generatedScript.setName(task.getName());
 				generatedScript.setStepName(task.getStepName());
 				generatedScript.setScript(strScript);
 
-				container.addTask(generatedScript);
+				commandlineRunContainer.addTask(generatedScript);
 
 				System.out.println("Generated " + outFile);
 			}
@@ -219,33 +254,38 @@ public class BackendGeneratorImpl implements BackendGenerator
 		}
 	}
 
-	// generate the submit script
-	private void generateSubmit(String s, List<Task> tasks, String targetDir) throws IOException
+	/**
+	 * generates the submit scripts
+	 * 
+	 * @param submitScript
+	 * @param tasks
+	 * @param targetDir
+	 * @throws IOException
+	 */
+	private void generateSubmit(String submitScript, List<Task> tasks, String targetDir) throws IOException
 	{
-
 		try
 		{
-			File outFile = new File(targetDir + File.separator + s);
-			Writer out = new StringWriter();
+			File outFile = new File(targetDir + File.separator + submitScript);
+			Writer writer = new StringWriter();
 
 			Map<String, Object> taskMap = new HashMap<String, Object>();
 			taskMap.put("tasks", tasks);
 
-			submit.process(taskMap, out);
-			String strSubmit = out.toString();
+			submit.process(taskMap, writer);
+			String strSubmit = writer.toString();
 			FileUtils.writeStringToFile(outFile, strSubmit);
-			out.close();
+			writer.close();
 
-			container.setSumbitScript(strSubmit);
+			commandlineRunContainer.setSumbitScript(strSubmit);
 
 			System.out.println("Generated " + outFile);
 		}
 		catch (TemplateException e)
 		{
-			throw new IOException("Backend generation failed for " + this.getClass().getSimpleName()
-					+ "\n\nError is:\n" + e.toString());
+			throw new IOException("Backend generation failed for " + this.getClass().getSimpleName() + "\n\nError is:\n"
+					+ e.toString());
 		}
-
 	}
 
 	public String getHeaderTemplate()
@@ -258,11 +298,6 @@ public class BackendGeneratorImpl implements BackendGenerator
 		this.headerTemplate = headerTemplate;
 	}
 
-	public void appendCustomHeader(String customHeader)
-	{
-		this.headerTemplate += "\n" + customHeader;
-	}
-
 	public String getFooterTemplate()
 	{
 		return footerTemplate;
@@ -271,11 +306,6 @@ public class BackendGeneratorImpl implements BackendGenerator
 	public void setFooterTemplate(String footerTemplate)
 	{
 		this.footerTemplate = footerTemplate;
-	}
-
-	public void appendCustomFooter(String customFooter)
-	{
-		this.footerTemplate += "\n" + customFooter;
 	}
 
 	public String getSubmitTemplate()
@@ -287,5 +317,4 @@ public class BackendGeneratorImpl implements BackendGenerator
 	{
 		this.submitTemplate = submitTemplate;
 	}
-
 }
