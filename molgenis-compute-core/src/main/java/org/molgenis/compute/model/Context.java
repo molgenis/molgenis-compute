@@ -20,7 +20,7 @@ public class Context
 	HashMap<String, String> mapUserEnvironment = null;
 	private FoldParametersImpl foldParameters;
 
-    private BatchAnalyser batchAnalyser = null;
+	private BatchAnalyser batchAnalyser = null;
 
 	public Context(ComputeProperties computeProperties)
 	{
@@ -69,7 +69,7 @@ public class Context
 
 	public void setUserEnvironment(String environment)
 	{
-		this.userEnvironment = environment;		
+		this.userEnvironment = environment;
 	}
 
 	public String getUserEnvironment()
@@ -97,18 +97,18 @@ public class Context
 		return foldParameters;
 	}
 
-    public void createBatchAnalyser(String batchVariable, int batchNumber)
-    {
-        batchAnalyser = new BatchAnalyser(batchVariable, batchNumber);
-    }
+	public void createBatchAnalyser(String batchVariable, int batchNumber)
+	{
+		batchAnalyser = new BatchAnalyser(batchVariable, batchNumber);
+	}
 
-    public int getBatchNumber(Map<String, Object> map)
-    {
-        return batchAnalyser.getBatchNum(map);
-    }
+	public int getBatchNumber(Map<String, Object> map)
+	{
+		return batchAnalyser.getBatchNum(map);
+	}
 
-    public int getBatchesSize()
-    {
-        return batchAnalyser.getBatchesSize();
-    }
+	public int getBatchesSize()
+	{
+		return batchAnalyser.getBatchesSize();
+	}
 }

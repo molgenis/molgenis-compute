@@ -8,8 +8,7 @@ import java.util.Set;
 import com.google.gson.Gson;
 
 /**
- * Generated tasks from steps, with the inputs/outpus prefilled. Includes data
- * dependency graph via previousTasks.
+ * Generated tasks from steps, with the inputs/outpus prefilled. Includes data dependency graph via previousTasks.
  */
 public class Task
 {
@@ -34,9 +33,9 @@ public class Task
 	String workdir;
 	private String stepName;
 
-    private int batchNumber = -1;
+	private int batchNumber = -1;
 
-    public Task(String name)
+	public Task(String name)
 	{
 		this.setName(name);
 	}
@@ -107,11 +106,13 @@ public class Task
 		return stepName;
 	}
 
-    public int getBatchNumber() {
-        return batchNumber;
-    }
+	public int getBatchNumber()
+	{
+		return batchNumber;
+	}
 
-    public void setBatchNumber(int batchNumber) {
-        this.batchNumber = batchNumber;
-    }
+	public void setBatchNumber(int batchNumber)
+	{
+		this.batchNumber = batchNumber;
+	}
 }

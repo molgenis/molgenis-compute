@@ -588,7 +588,8 @@ public class TaskGenerator
 		return tasks;
 	}
 
-	private StringBuilder foldIntoHeaderAndSetEnvironment(List<Input> inputs, Map<String, String> filters, StringBuilder parameterHeader)
+	private StringBuilder foldIntoHeaderAndSetEnvironment(List<Input> inputs, Map<String, String> filters,
+			StringBuilder parameterHeader)
 	{
 		for (Input input : inputs)
 		{

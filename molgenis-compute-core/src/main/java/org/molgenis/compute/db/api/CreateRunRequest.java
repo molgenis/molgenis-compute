@@ -15,7 +15,7 @@ public class CreateRunRequest
 	private final String submitScript;
 
 	public CreateRunRequest(String runName, String backendUrl, Long pollDelay, Iterable<Task> tasks, String environment,
-							String userName, String submitScript)
+			String userName, String submitScript)
 	{
 		this.runName = runName;
 		this.backendUrl = backendUrl;
@@ -51,10 +51,10 @@ public class CreateRunRequest
 		return environment;
 	}
 
-    public String getUserName()
-    {
-        return userName;
-    }
+	public String getUserName()
+	{
+		return userName;
+	}
 
 	public String getSubmitScript()
 	{
