@@ -364,4 +364,9 @@ public class FoldParametersImpl implements FoldParameters
 			throw new ParameterOccursInMultipleFilesException(parameterName);
 		}
 	}
+
+	public String toString()
+	{
+		return parameterCombinationsInFiles.toString();
+	}
 }

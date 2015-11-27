@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.molgenis.compute.CommandLineRunContainer;
-import org.molgenis.compute.model.Compute;
+import org.molgenis.compute.model.Context;
 
 /**
  * This class generates parameters for different backends. These backends include PBS, SGE, and GRID, but could also
@@ -20,5 +20,5 @@ public interface BackendGenerator
 	 * @return A {@link CommandLineRunContainer}
 	 * @throws IOException
 	 */
-	public CommandLineRunContainer generate(Compute compute, File targetDir) throws IOException;
+	public CommandLineRunContainer generate(Context compute, File targetDir) throws IOException;
 }

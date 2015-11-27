@@ -1,21 +1,20 @@
 package org.molgenis.compute.db.api;
 
-import java.util.Collections;
-import java.util.List;
-
 import org.molgenis.compute.model.Task;
+
+import com.google.common.collect.Iterables;
 
 public class CreateRunRequest
 {
 	private final String runName;
 	private final String backendUrl;
 	private final Long pollDelay;
-	private final List<Task> tasks;
+	private final Iterable<Task> tasks;
 	private final String environment;
 	private final String userName;
 	private final String submitScript;
 
-	public CreateRunRequest(String runName, String backendUrl, Long pollDelay, List<Task> tasks, String environment,
+	public CreateRunRequest(String runName, String backendUrl, Long pollDelay, Iterable<Task> tasks, String environment,
 							String userName, String submitScript)
 	{
 		this.runName = runName;
@@ -42,9 +41,9 @@ public class CreateRunRequest
 		return pollDelay;
 	}
 
-	public List<Task> getTasks()
+	public Iterable<Task> getTasks()
 	{
-		return Collections.unmodifiableList(tasks);
+		return Iterables.unmodifiableIterable(tasks);
 	}
 
 	public String getEnvironment()

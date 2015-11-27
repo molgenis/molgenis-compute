@@ -9,30 +9,30 @@ import org.molgenis.compute.generators.impl.BatchAnalyser;
 import org.molgenis.compute.model.impl.FoldParametersImpl;
 import org.molgenis.compute.model.impl.WorkflowImpl;
 
-public class Compute
+public class Context
 {
 	private WorkflowImpl workflowImpl;
 	private Parameters parameters;
-	private List<Task> tasks;
+	private Iterable<Task> tasks;
 	private ComputeProperties computeProperties;
 	private String userEnvironment;
 
 	HashMap<String, String> mapUserEnvironment = null;
-	private FoldParametersImpl parametersContainer;
+	private FoldParametersImpl foldParameters;
 
     private BatchAnalyser batchAnalyser = null;
 
-	public Compute(ComputeProperties computeProperties)
+	public Context(ComputeProperties computeProperties)
 	{
 		this.setComputeProperties(computeProperties);
 	}
 
-	public List<Task> getTasks()
+	public Iterable<Task> getTasks()
 	{
 		return tasks;
 	}
 
-	public void setTasks(List<Task> tasks)
+	public void setTasks(Iterable<Task> tasks)
 	{
 		this.tasks = tasks;
 	}
@@ -87,14 +87,14 @@ public class Compute
 		this.mapUserEnvironment = mapUserEnvironment;
 	}
 
-	public void setParametersContainer(FoldParametersImpl parametersContainer)
+	public void setFoldParameters(FoldParametersImpl foldParameters)
 	{
-		this.parametersContainer = parametersContainer;
+		this.foldParameters = foldParameters;
 	}
 
-	public FoldParametersImpl getParametersContainer()
+	public FoldParametersImpl getFoldParameters()
 	{
-		return parametersContainer;
+		return foldParameters;
 	}
 
     public void createBatchAnalyser(String batchVariable, int batchNumber)

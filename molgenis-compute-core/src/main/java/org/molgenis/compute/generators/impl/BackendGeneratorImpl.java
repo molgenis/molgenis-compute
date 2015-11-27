@@ -9,10 +9,12 @@ import org.molgenis.compute.CommandLineRunContainer;
 import org.molgenis.compute.ComputeProperties;
 import org.molgenis.compute.GeneratedScript;
 import org.molgenis.compute.generators.BackendGenerator;
-import org.molgenis.compute.model.Compute;
+import org.molgenis.compute.model.Context;
 import org.molgenis.compute.model.Parameters;
 import org.molgenis.compute.model.Task;
 import org.molgenis.compute.urlreader.impl.UrlReaderImpl;
+
+import com.google.common.collect.Iterables;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -136,14 +138,14 @@ public class BackendGeneratorImpl implements BackendGenerator
 	/**
 	 * Generates submit scripts and jobs
 	 * 
-	 * @param compute
+	 * @param context
 	 * @param targetDirectory
 	 * 
 	 * @return {@link CommandLineRunContainer}
 	 */
-	public CommandLineRunContainer generate(Compute compute, File targetDirectory) throws IOException
+	public CommandLineRunContainer generate(Context context, File targetDirectory) throws IOException
 	{
-		List<Task> tasks = compute.getTasks();
+		Iterable<Task> tasks = context.getTasks();
 
 		// get templates for header and footer
 		submit = new Template("submit", new StringReader(this.getSubmitTemplate()), configuration);
@@ -157,7 +159,7 @@ public class BackendGeneratorImpl implements BackendGenerator
 		}
 		else
 		{
-			for (int i = 0; i < compute.getBatchesSize(); i++)
+			for (int i = 0; i < context.getBatchesSize(); i++)
 			{
 				List<Task> batchTasks = new ArrayList<Task>();
 
@@ -221,7 +223,7 @@ public class BackendGeneratorImpl implements BackendGenerator
 	 * @param absolutePath
 	 * @throws IOException
 	 */
-	private void generateJobs(List<Task> tasks, String absolutePath) throws IOException
+	private void generateJobs(Iterable<Task> tasks, String absolutePath) throws IOException
 	{
 		for (Task task : tasks)
 		{
@@ -262,7 +264,7 @@ public class BackendGeneratorImpl implements BackendGenerator
 	 * @param targetDir
 	 * @throws IOException
 	 */
-	private void generateSubmit(String submitScript, List<Task> tasks, String targetDir) throws IOException
+	private void generateSubmit(String submitScript, Iterable<Task> tasks, String targetDir) throws IOException
 	{
 		try
 		{
@@ -270,7 +272,8 @@ public class BackendGeneratorImpl implements BackendGenerator
 			Writer writer = new StringWriter();
 
 			Map<String, Object> taskMap = new HashMap<String, Object>();
-			taskMap.put("tasks", tasks);
+			taskMap.put("tasks", tasks.iterator());
+			taskMap.put("tasksIterable", tasks);
 
 			submit.process(taskMap, writer);
 			String strSubmit = writer.toString();

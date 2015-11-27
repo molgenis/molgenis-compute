@@ -152,8 +152,8 @@ public class Parameters
 	public String toString()
 	{
 		String result = "";
-		for (MapEntity t : values)
-			result += t;
+		for (MapEntity value : values)
+			result += value;
 		return result;
 	}
 
