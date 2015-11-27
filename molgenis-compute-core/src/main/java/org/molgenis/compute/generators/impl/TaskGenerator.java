@@ -315,8 +315,8 @@ public class TaskGenerator
 				parameterHeader.append("\nbackend=\"").append(computeProperties.backend).append("\"");
 				parameterHeader.append("\nport=\"").append(computeProperties.port).append("\"");
 				parameterHeader.append("\ninterval=\"").append(computeProperties.interval).append("\"");
-				parameterHeader.append("\npath=\"").append(computeProperties.path).append("\"");
-
+				parameterHeader.append("\npath=\"").append(computeProperties.path).append("\"\n");
+				
 				for (String previousStepName : step.getPreviousSteps())
 				{ // we have jobs on which we depend in this prev step
 					Step prevStep = workflow.getStep(previousStepName);
