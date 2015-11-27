@@ -14,12 +14,12 @@ import org.molgenis.compute.ComputeProperties;
 import org.molgenis.compute.model.FoldParameters;
 import org.molgenis.compute.urlreader.impl.UrlReaderImpl;
 
-import au.com.bytecode.opencsv.CSVReader;
-
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
+import au.com.bytecode.opencsv.CSVReader;
 
 /**
  * Reads parameters from files and filters the combinations.

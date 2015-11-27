@@ -1,7 +1,6 @@
 package org.molgenis.compute.model;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.molgenis.compute.ComputeProperties;

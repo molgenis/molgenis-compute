@@ -1,7 +1,17 @@
 package org.molgenis.compute.generators.impl;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -13,8 +23,6 @@ import org.molgenis.compute.model.Context;
 import org.molgenis.compute.model.Parameters;
 import org.molgenis.compute.model.Task;
 import org.molgenis.compute.urlreader.impl.UrlReaderImpl;
-
-import com.google.common.collect.Iterables;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;

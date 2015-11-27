@@ -1,13 +1,13 @@
 package org.molgenis.compute.generators.impl;
 
-import org.apache.log4j.Logger;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
+import org.apache.log4j.Logger;
 
 public class WorkflowGenerator
 {

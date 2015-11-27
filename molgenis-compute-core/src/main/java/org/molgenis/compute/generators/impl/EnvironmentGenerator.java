@@ -1,10 +1,23 @@
 package org.molgenis.compute.generators.impl;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.molgenis.compute.model.*;
+import org.molgenis.compute.model.Context;
+import org.molgenis.compute.model.Input;
+import org.molgenis.compute.model.Output;
+import org.molgenis.compute.model.Parameters;
+import org.molgenis.compute.model.Step;
+import org.molgenis.compute.model.Task;
 import org.molgenis.compute.model.impl.WorkflowImpl;
 import org.molgenis.data.support.MapEntity;
 import org.molgenis.util.Pair;

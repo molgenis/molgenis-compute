@@ -8,11 +8,9 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.StreamSupport;
 
 import org.molgenis.data.Entity;
 import org.molgenis.data.support.MapEntity;
-import org.springframework.util.StreamUtils;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;

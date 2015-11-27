@@ -1,6 +1,10 @@
 package org.molgenis.compute.generators.impl;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Map;

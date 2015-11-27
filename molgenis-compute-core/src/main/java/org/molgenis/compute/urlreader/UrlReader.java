@@ -4,7 +4,9 @@ import java.io.File;
 
 import org.molgenis.compute.generators.impl.BackendGeneratorImpl;
 import org.molgenis.compute.model.impl.FoldParametersImpl;
+import org.molgenis.compute.parsers.impl.CsvParameterParserImpl;
 import org.molgenis.compute.parsers.impl.ProtocolParserImpl;
+import org.molgenis.compute.parsers.impl.WorkflowCsvParserImpl;
 
 /**
  * Class that handles the reading of URL's and writes URL content to files
