@@ -15,37 +15,29 @@ public class Task
 	public static final String TASKID_INDEX_COLUMN = "taskIdIndex";
 	public static String TASKID_COLUMN = "taskId";
 
-	// unique name of the task
-	String name;
+	private String name;
 
-	// reference to previousTasks (i.e. outputs from previous tasks this task
-	// depends on)
-	Set<String> previousTasks = new HashSet<String>();
+	// reference to previousTasks (i.e. outputs from previous tasks this task depends on)
+	private Set<String> previousTasks = new HashSet<String>();
 
 	// copy of the local input/outputs used
-	Map<String, Object> parameters = new LinkedHashMap<String, Object>();
+	private Map<String, Object> parameters = new LinkedHashMap<String, Object>();
 
 	// the body of the script (backend independent)
-	String script;
+	private String script;
 
 	// working directory (i.e. the directory on the shared storage for this
 	// workflow run)
-	String workdir;
+	private String workdir;
 	private String stepName;
 
 	private int batchNumber = -1;
 
 	public Task(String name)
 	{
-		this.setName(name);
+		this.name = name;
 	}
 
-	public String toString()
-	{
-		return new Gson().toJson(this);
-	}
-
-	// List<TaskDependency> dependencies;
 	public String getName()
 	{
 		return name;
@@ -56,16 +48,6 @@ public class Task
 		this.name = name;
 	}
 
-	public String getScript()
-	{
-		return script;
-	}
-
-	public void setScript(String script)
-	{
-		this.script = script;
-	}
-
 	public Set<String> getPreviousTasks()
 	{
 		return previousTasks;
@@ -74,6 +56,21 @@ public class Task
 	public void setPreviousTasks(Set<String> previousTasks)
 	{
 		this.previousTasks = previousTasks;
+	}
+
+	public String toString()
+	{
+		return new Gson().toJson(this);
+	}
+
+	public String getScript()
+	{
+		return script;
+	}
+
+	public void setScript(String script)
+	{
+		this.script = script;
 	}
 
 	public Map<String, Object> getParameters()

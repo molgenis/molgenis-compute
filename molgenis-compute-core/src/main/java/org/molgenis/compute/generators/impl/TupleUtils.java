@@ -229,15 +229,15 @@ public class TupleUtils
 				for (int i = 0; i < original.getList(idColumn).size(); i++)
 				{
 					MapEntity copy = new MapEntity();
-					for (String col : original.getAttributeNames())
+					for (String attribute : original.getAttributeNames())
 					{
-						if (original.get(col) instanceof List)
+						if (original.get(attribute) instanceof List)
 						{
-							copy.set(col, original.getList(col).get(i));
+							copy.set(attribute, original.getList(attribute).get(i));
 						}
 						else
 						{
-							copy.set(col, original.get(col));
+							copy.set(attribute, original.get(attribute));
 						}
 					}
 					result.add((E) copy);

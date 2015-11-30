@@ -147,11 +147,11 @@ public class BackendGeneratorImpl implements BackendGenerator
 	 * Generates submit scripts and jobs
 	 * 
 	 * @param context
-	 * @param targetDirectory
+	 * @param outputDirectory
 	 * 
 	 * @return {@link CommandLineRunContainer}
 	 */
-	public CommandLineRunContainer generate(Context context, File targetDirectory) throws IOException
+	public CommandLineRunContainer generate(Context context, File outputDirectory) throws IOException
 	{
 		Iterable<Task> tasks = context.getTasks();
 
@@ -162,8 +162,8 @@ public class BackendGeneratorImpl implements BackendGenerator
 
 		if (computeProperties.batchOption == null)
 		{
-			generateSubmit(SUBMIT, tasks, targetDirectory.getAbsolutePath());
-			generateJobs(tasks, targetDirectory.getAbsolutePath());
+			generateSubmit(SUBMIT, tasks, outputDirectory.getAbsolutePath());
+			generateTaskScripts(tasks, outputDirectory.getAbsolutePath());
 		}
 		else
 		{
@@ -179,10 +179,10 @@ public class BackendGeneratorImpl implements BackendGenerator
 					}
 				}
 
-				String dir = targetDirectory.getAbsolutePath() + File.separator + BATCH + i;
+				String dir = outputDirectory.getAbsolutePath() + File.separator + BATCH + i;
 
 				generateSubmit(SUBMIT, batchTasks, dir);
-				generateJobs(batchTasks, dir);
+				generateTaskScripts(batchTasks, dir);
 			}
 		}
 
@@ -225,42 +225,53 @@ public class BackendGeneratorImpl implements BackendGenerator
 	}
 
 	/**
-	 * generates the tasks scripts
+	 * generates the task scripts
 	 * 
 	 * @param tasks
 	 * @param absolutePath
 	 * @throws IOException
 	 */
-	private void generateJobs(Iterable<Task> tasks, String absolutePath) throws IOException
+	private void generateTaskScripts(Iterable<Task> tasks, String absolutePath) throws IOException
 	{
 		for (Task task : tasks)
 		{
-			try
-			{
-				GeneratedScript generatedScript = new GeneratedScript();
-				File outFile = new File(absolutePath + File.separator + task.getName() + ".sh");
-				Writer writer = new StringWriter();
+			generateTaskScript(absolutePath, task);
+		}
+	}
 
-				header.process(task.getParameters(), writer);
-				writer.write("\n" + task.getScript() + "\n");
-				footer.process(task.getParameters(), writer);
-				String strScript = writer.toString();
-				FileUtils.writeStringToFile(outFile, strScript);
-				writer.close();
+	/**
+	 * Generates a single task script
+	 * @param absolutePath
+	 * @param task
+	 * @throws IOException
+	 */
+	private void generateTaskScript(String absolutePath, Task task) throws IOException
+	{
+		try
+		{
+			GeneratedScript generatedScript = new GeneratedScript();
+			File outFile = new File(absolutePath + File.separator + task.getName() + ".sh");
+			Writer writer = new StringWriter();
 
-				generatedScript.setName(task.getName());
-				generatedScript.setStepName(task.getStepName());
-				generatedScript.setScript(strScript);
+			header.process(task.getParameters(), writer);
+			writer.write("\n" + task.getScript() + "\n");
+			footer.process(task.getParameters(), writer);
+			String strScript = writer.toString();
+			FileUtils.writeStringToFile(outFile, strScript);
+			writer.close();
 
-				commandlineRunContainer.addTask(generatedScript);
+			generatedScript.setName(task.getName());
+			generatedScript.setStepName(task.getStepName());
+			generatedScript.setScript(strScript);
 
-				System.out.println("Generated " + outFile);
-			}
-			catch (TemplateException e)
-			{
-				throw new IOException("Backend generation of task '" + task.getName() + "' failed for "
-						+ this.getClass().getSimpleName() + ": " + e.getMessage());
-			}
+			commandlineRunContainer.addTaskScript(generatedScript);
+
+			System.out.println("Generated " + outFile);
+		}
+		catch (TemplateException e)
+		{
+			throw new IOException("Backend generation of task '" + task.getName() + "' failed for "
+					+ this.getClass().getSimpleName() + ": " + e.getMessage());
 		}
 	}
 
@@ -288,7 +299,7 @@ public class BackendGeneratorImpl implements BackendGenerator
 			FileUtils.writeStringToFile(outFile, strSubmit);
 			writer.close();
 
-			commandlineRunContainer.setSumbitScript(strSubmit);
+			commandlineRunContainer.setSubmitScript(strSubmit);
 
 			System.out.println("Generated " + outFile);
 		}

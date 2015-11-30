@@ -1,6 +1,6 @@
 package org.molgenis.compute.generators.impl;
 
-import static com.google.common.collect.Iterables.concat;
+import static com.google.common.collect.Iterables.contains;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,12 +22,10 @@ import org.molgenis.compute.model.Parameters;
 import org.molgenis.compute.model.Protocol;
 import org.molgenis.compute.model.Step;
 import org.molgenis.compute.model.Task;
+import org.molgenis.compute.model.TaskInfo;
 import org.molgenis.compute.model.Workflow;
 import org.molgenis.data.Entity;
 import org.molgenis.data.support.MapEntity;
-
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 
 public class TaskGenerator
 {
@@ -37,22 +35,26 @@ public class TaskGenerator
 	private List<MapEntity> globalParameters = new ArrayList<MapEntity>();
 	private HashMap<String, List<String>> newEnvironment = new HashMap<String, List<String>>();
 
-	public TaskGenerator(Context context)
+	private ScriptGenerator scriptGenerator;
+
+	public TaskGenerator(Context context, ScriptGenerator scriptGenerator)
 	{
 		this.context = context;
+		this.scriptGenerator = scriptGenerator;
+
 		setGlobalParameters();
 	}
 
-	public Iterable<Task> generate() throws IOException
+	public List<TaskInfo> generate() throws IOException
 	{
-		List<Iterable<Task>> tasksList = Lists.newArrayList();
+		List<TaskInfo> taskInfos = new ArrayList<TaskInfo>();
+
 		Workflow workflow = context.getWorkflow();
-		ComputeProperties computeProperties = context.getComputeProperties();
-		HashMap<String, String> environment = context.getMapUserEnvironment();
 
 		for (Step step : workflow.getSteps())
 		{
-			// <ap global to local parameters
+			// map global to local parameters
+			// e.g. input -> in
 			List<MapEntity> localParameters = mapGlobalToLocalParameters(step, workflow);
 
 			// Collapse parameter values
@@ -66,16 +68,20 @@ public class TaskGenerator
 			// (ii) taskIndex = id
 			localParameters = addStepIds(localParameters, step);
 
-			Iterable<Task> tasks = generateTasks(step, localParameters, workflow, computeProperties, environment);
-			// generate the tasks from template, add step id
-			tasksList.add(tasks);
+			// Generate the scripts for each task in this step. 
+			// Add TaskInfo objects to the taskInfos list.
+			taskInfos.addAll(scriptGenerator.generateTaskScripts(generateTasks(step, localParameters, workflow,
+					context.getComputeProperties(), context.getMapUserEnvironment())));
 
 			// uncollapse
 			localParameters = TupleUtils.uncollapse(localParameters, Parameters.ID_COLUMN);
+
 			// add local input/output parameters to the global parameters
+			// e.g. out -> step1.out
 			addLocalToGlobalParameters(step, localParameters);
 		}
-		return concat(tasksList);
+
+		return taskInfos;
 	}
 
 	private List<MapEntity> mapGlobalToLocalParameters(Step step, Workflow workflow) throws IOException
@@ -102,11 +108,11 @@ public class TaskGenerator
 
 				// Check wether the the list of attributes contains the input name
 				Iterable<String> attributes = globalParameter.getAttributeNames();
-				if (Iterables.contains(attributes, globalName))
+				if (contains(attributes, globalName))
 				{
 					local.set(localName, globalParameter.get(globalName));
 				}
-				else if (Iterables.contains(attributes, Parameters.USER_PREFIX + globalName))
+				else if (contains(attributes, Parameters.USER_PREFIX + globalName))
 				{
 					local.set(localName, globalParameter.get(Parameters.USER_PREFIX + globalName));
 				}
@@ -316,7 +322,7 @@ public class TaskGenerator
 				parameterHeader.append("\nport=\"").append(computeProperties.port).append("\"");
 				parameterHeader.append("\ninterval=\"").append(computeProperties.interval).append("\"");
 				parameterHeader.append("\npath=\"").append(computeProperties.path).append("\"\n");
-				
+
 				for (String previousStepName : step.getPreviousSteps())
 				{ // we have jobs on which we depend in this prev step
 					Step prevStep = workflow.getStep(previousStepName);
@@ -585,6 +591,7 @@ public class TaskGenerator
 
 			tasks.add(task);
 		}
+
 		return tasks;
 	}
 

@@ -18,6 +18,7 @@ import org.molgenis.compute.db.api.HttpClientComputeDbApiConnection;
 import org.molgenis.compute.db.api.StartRunRequest;
 import org.molgenis.compute.generators.impl.BackendGeneratorImpl;
 import org.molgenis.compute.generators.impl.EnvironmentGenerator;
+import org.molgenis.compute.generators.impl.ScriptGenerator;
 import org.molgenis.compute.generators.impl.TaskGenerator;
 import org.molgenis.compute.generators.impl.WorkflowGenerator;
 import org.molgenis.compute.model.Context;
@@ -26,6 +27,7 @@ import org.molgenis.compute.model.Parameters;
 import org.molgenis.compute.model.Protocol;
 import org.molgenis.compute.model.Step;
 import org.molgenis.compute.model.Task;
+import org.molgenis.compute.model.TaskInfo;
 import org.molgenis.compute.model.Workflow;
 import org.molgenis.compute.model.impl.FoldParametersImpl;
 import org.molgenis.compute.model.impl.WorkflowImpl;
@@ -304,8 +306,12 @@ public class ComputeCommandLine
 				computeProperties.runDir);
 		context.setMapUserEnvironment(userEnvironment);
 
+		// Create a ScriptGenerator object. This object creates the header, footer, and submit template on
+		// initialization. The object can then be used to create scripts for every generated task.
+		ScriptGenerator scriptGenerator = new ScriptGenerator(computeProperties);
+
 		// Create a TaskGenerator object with the current context object
-		TaskGenerator taskGenerator = new TaskGenerator(context);
+		TaskGenerator taskGenerator = new TaskGenerator(context, scriptGenerator);
 
 		// Analyze lists in workflow protocols.
 		// We need to know if list inputs are coming from the same or from a different parameter file to combine lists
@@ -315,10 +321,11 @@ public class ComputeCommandLine
 			determineCombineLists(workflowImpl);
 		}
 
-		// Generate tasks
-		context.setTasks(taskGenerator.generate());
-
-		commandLineRunContainer = new BackendGeneratorImpl(computeProperties).generate(context, outputDirectory);
+		// Generate tasks, store task names and previous steps in a list of TaskInfo objects
+		List<TaskInfo> taskInfos = taskGenerator.generate();
+		
+		// Generate submit script with the TaskInfo objects
+		scriptGenerator.generateSubmitScript(taskInfos);
 
 		LOG.info("### Task generation has been completed. ###");
 	}
