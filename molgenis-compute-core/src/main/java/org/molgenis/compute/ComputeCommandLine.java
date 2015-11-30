@@ -16,7 +16,6 @@ import org.molgenis.compute.db.api.ComputeDbApiConnection;
 import org.molgenis.compute.db.api.CreateRunRequest;
 import org.molgenis.compute.db.api.HttpClientComputeDbApiConnection;
 import org.molgenis.compute.db.api.StartRunRequest;
-import org.molgenis.compute.generators.impl.BackendGeneratorImpl;
 import org.molgenis.compute.generators.impl.EnvironmentGenerator;
 import org.molgenis.compute.generators.impl.ScriptGenerator;
 import org.molgenis.compute.generators.impl.TaskGenerator;
@@ -323,7 +322,7 @@ public class ComputeCommandLine
 
 		// Generate tasks, store task names and previous steps in a list of TaskInfo objects
 		List<TaskInfo> taskInfos = taskGenerator.generate();
-		
+
 		// Generate submit script with the TaskInfo objects
 		scriptGenerator.generateSubmitScript(taskInfos);
 
