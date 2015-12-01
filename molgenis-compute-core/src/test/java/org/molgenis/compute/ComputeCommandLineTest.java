@@ -7,11 +7,24 @@ import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public class ComputeCommandLineTest
 {
 	private String outputDir = "target/test/benchmark/run";
+
+	@BeforeMethod
+	public void beforeMethod() throws IOException
+	{
+		File f = new File(outputDir);
+		FileUtils.deleteDirectory(f);
+		Assert.assertFalse(f.exists());
+
+		f = new File(".compute.properties");
+		FileUtils.deleteQuietly(f);
+		Assert.assertFalse(f.exists());
+	}
 
 	@Test
 	public void testHelp()
@@ -55,14 +68,6 @@ public class ComputeCommandLineTest
 		// shows nieuwe folding
 		System.out.println("--- Start Test Folding ---");
 
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
-
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/doubleparameter/workflow.csv",
 				"--parameters", "src/main/resources/workflows/doubleparameter/parameters.csv", "--parameters",
@@ -75,14 +80,6 @@ public class ComputeCommandLineTest
 		// shows nieuwe folding
 		System.out.println("--- Start Test Folding ---");
 
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
-
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/doubleparameter/workflow.csv",
 				"--parameters", "src/main/resources/workflows/doubleparameter/parameters.csv", "--parameters",
@@ -94,14 +91,6 @@ public class ComputeCommandLineTest
 	{
 		// shows nieuwe folding
 		System.out.println("--- Start Test Folding ---");
-
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
 
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/doubleparameter/workflow.csv",
@@ -136,14 +125,6 @@ public class ComputeCommandLineTest
 	{
 		System.out.println("--- Start TestCommandLineParametersComputePropertiesFilesCreated ---");
 
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
-
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark/workflow.csv", "--defaults",
 				"src/main/resources/workflows/benchmark/workflow.defaults.csv", "--parameters",
@@ -151,6 +132,9 @@ public class ComputeCommandLineTest
 				"--database", "none", "--runid", "test3"
 
 		});
+
+		// TODO
+		// Create
 
 		System.out.println("--- Test Created Files ---");
 
@@ -195,14 +179,6 @@ public class ComputeCommandLineTest
 	public void testRunID5() throws Exception
 	{
 		System.out.println("--- Start TestCommandLineParametersComputePropertiesFilesCreated ---");
-
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
 
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.csv", "--defaults",
@@ -255,10 +231,6 @@ public class ComputeCommandLineTest
 	public void testBatch() throws Exception
 	{
 		System.out.println("--- Start TestCommandLineParametersComputePropertiesFilesCreated ---");
-
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
 
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--workflow", "src/main/resources/workflows/batchesWorkflow/workflow.csv", "--parameters",
@@ -341,10 +313,6 @@ public class ComputeCommandLineTest
 	{
 		System.out.println("--- Start TestCommandLineParametersComputePropertiesFilesCreated ---");
 
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
 		String superQueue = "#PBS -q super";
 		String queue = "#PBS -q default";
 
@@ -375,14 +343,6 @@ public class ComputeCommandLineTest
 	public void testParameters3Levels() throws Exception
 	{
 		System.out.println("--- Start TestCommandLineParametersComputePropertiesFilesCreated ---");
-
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
 
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark/workflow.csv", "--defaults",
@@ -422,19 +382,11 @@ public class ComputeCommandLineTest
 	{
 		System.out.println("--- Start TestCommandLineParametersComputePropertiesFilesCreated ---");
 
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
-
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark/workflow.csv", "--defaults",
 				"src/main/resources/workflows/benchmark/workflow.defaults.csv", "--parameters",
-				"src/main/resources/workflows/benchmark/parameters.3levels1.properties", "--rundir", outputDir,
-				"--run", "--database", "none", "--runid", "test1" });
+				"src/main/resources/workflows/benchmark/parameters.3levels1.properties", "--rundir", outputDir, "--run",
+				"--database", "none", "--runid", "test1" });
 
 		System.out.println("--- Test Created Files ---");
 
@@ -467,14 +419,6 @@ public class ComputeCommandLineTest
 	public void testRunLocally() throws Exception
 	{
 		System.out.println("--- Start TestRunLocally ---");
-
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
 
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark/workflow.csv", "--defaults",
@@ -526,14 +470,6 @@ public class ComputeCommandLineTest
 	public void testRunLocally5() throws Exception
 	{
 		System.out.println("--- Start TestRunLocally ---");
-
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
 
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.csv", "--defaults",
@@ -587,15 +523,7 @@ public class ComputeCommandLineTest
 	public void testExtraVariable() throws Exception
 	{
 		System.out.println("--- Start TestRunLocally ---");
-
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
-
+		
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.extra.variable.csv",
 				"--defaults", "src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv", "--parameters",
@@ -607,14 +535,6 @@ public class ComputeCommandLineTest
 	public void testReadSpecificHeadersFooters() throws Exception
 	{
 		System.out.println("--- Start TestRunLocally ---");
-
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
 
 		String footer = "# My own custom footer";
 		String header = "# My own custom header";
@@ -641,14 +561,6 @@ public class ComputeCommandLineTest
 	public void testRunLocally5TemplatesOut() throws Exception
 	{
 		System.out.println("--- Start TestRunLocally ---");
-
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
 
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.csv", "--defaults",
@@ -700,14 +612,6 @@ public class ComputeCommandLineTest
 	{
 		System.out.println("--- Start TestRunLocally ---");
 
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
-
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark.5.1.a/workflow.csv",
 				"--parameters", "src/main/resources/workflows/benchmark.5.1.a/parameters.csv", "--rundir",
@@ -756,14 +660,6 @@ public class ComputeCommandLineTest
 	public void testRunLocally5_2parametersFiles() throws Exception
 	{
 		System.out.println("--- Start TestRunLocally ---");
-
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
 
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.csv",
@@ -816,14 +712,6 @@ public class ComputeCommandLineTest
 	{
 		System.out.println("--- Start TestRunLocally ---");
 
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
-
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.a.csv",
 				"--defaults", "src/main/resources/workflows/benchmark.5.1/workflow.defaults.a.csv", "--parameters",
@@ -850,14 +738,6 @@ public class ComputeCommandLineTest
 	{
 		System.out.println("--- Start TestRunLocally ---");
 
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
-
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.b.csv",
 				"--defaults", "src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv", "--parameters",
@@ -877,14 +757,6 @@ public class ComputeCommandLineTest
 	public void testRunLocally5b_runtime_automapping() throws Exception
 	{
 		System.out.println("--- Start TestRunLocally ---");
-
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
 
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--run", "--workflow",
@@ -907,20 +779,11 @@ public class ComputeCommandLineTest
 	{
 		System.out.println("--- Start TestRunLocally ---");
 
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
-
-		ComputeCommandLine
-				.main(new String[]
-				{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow._.csv",
-						"--defaults", "src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv",
-						"--parameters", "src/main/resources/workflows/benchmark.5.1/parameters_.csv", "--rundir",
-						"target/test/benchmark/run" });
+		ComputeCommandLine.main(new String[]
+		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow._.csv",
+				"--defaults", "src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv", "--parameters",
+				"src/main/resources/workflows/benchmark.5.1/parameters_.csv", "--rundir",
+				"target/test/benchmark/run" });
 
 		System.out.println("--- Test Created Files ---");
 
@@ -991,14 +854,6 @@ public class ComputeCommandLineTest
 	{
 		System.out.println("--- Start TestRunLocally ---");
 
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
-
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark/workflow.3.csv", "--defaults",
 				"src/main/resources/workflows/benchmark/workflow.defaults.3.csv", "--parameters",
@@ -1024,14 +879,6 @@ public class ComputeCommandLineTest
 	public void testNumbering() throws Exception
 	{
 		System.out.println("--- Start TestRunLocally ---");
-
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
 
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--workflow", "src/main/resources/workflows/numbering/workflow.csv", "--parameters",
@@ -1087,8 +934,8 @@ public class ComputeCommandLineTest
 		}
 
 		String submitDependencies = "dependencies=\"-W depend=afterok\"\n" + "\t\tif [[ -n \"$01_step0_1\" ]]; then\n"
-				+ "\t\t\tdependenciesExist=true\n" + "\t\t\tdependencies=\"${dependencies}:$01_step0_1\"\n"
-				+ "\t\tfi\n" + "\t\tif [[ -n \"$01_step0_0\" ]]; then\n" + "\t\t\tdependenciesExist=true\n"
+				+ "\t\t\tdependenciesExist=true\n" + "\t\t\tdependencies=\"${dependencies}:$01_step0_1\"\n" + "\t\tfi\n"
+				+ "\t\tif [[ -n \"$01_step0_0\" ]]; then\n" + "\t\t\tdependenciesExist=true\n"
 				+ "\t\t\tdependencies=\"${dependencies}:$01_step0_0\"\n" + "\t\tfi\n"
 				+ "\t\tif [[ -n \"$02_step1_0\" ]]; then\n" + "\t\t\tdependenciesExist=true\n"
 				+ "\t\t\tdependencies=\"${dependencies}:$02_step1_0\"\n" + "\t\tfi\n"
@@ -1108,14 +955,6 @@ public class ComputeCommandLineTest
 	{
 		System.out.println("--- Start TestRunLocally ---");
 
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
-
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.csv", "--defaults",
 				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv", "--parameters",
@@ -1131,8 +970,8 @@ public class ComputeCommandLineTest
 				+ "\tdependencies=\"-W depend=afterok\"\n" + "\t\tif [[ -n \"$step1_1\" ]]; then\n"
 				+ "\t\t\tdependenciesExist=true\n" + "\t\t\tdependencies=\"${dependencies}:$step1_1\"\n" + "\t\tfi\n"
 				+ "\t\tif [[ -n \"$step1_0\" ]]; then\n" + "\t\t\tdependenciesExist=true\n"
-				+ "\t\t\tdependencies=\"${dependencies}:$step1_0\"\n" + "\t\tfi\n"
-				+ "\tif ! $dependenciesExist; then\n" + "\t\tunset dependencies\n" + "\tfi\n" + "\n" + "\tid=step2_0\n"
+				+ "\t\t\tdependencies=\"${dependencies}:$step1_0\"\n" + "\t\tfi\n" + "\tif ! $dependenciesExist; then\n"
+				+ "\t\tunset dependencies\n" + "\tfi\n" + "\n" + "\tid=step2_0\n"
 				+ "\tstep2_0=$(qsub -N step2_0 $dependencies step2_0.sh)\n" + "\techo \"$id:$step2_0\"\n"
 				+ "\tsleep 0\n" + "fi";
 
@@ -1143,25 +982,16 @@ public class ComputeCommandLineTest
 
 	}
 
-	
 	public void testGenerate5SLURM() throws Exception
 	{
 		System.out.println("--- Start TestRunLocally ---");
-
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
 
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.csv", "--defaults",
 				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv", "--parameters",
 				"src/main/resources/workflows/benchmark.5.1/parameters.csv", "--parameters",
-				"src/main/resources/workflows/benchmark.5.1/sysparameters.csv", "--rundir",
-				"target/test/benchmark/run", "--backend", "slurm" });
+				"src/main/resources/workflows/benchmark.5.1/sysparameters.csv", "--rundir", "target/test/benchmark/run",
+				"--backend", "slurm" });
 
 		String script = getFileAsString(outputDir + "/submit.sh");
 
@@ -1187,20 +1017,12 @@ public class ComputeCommandLineTest
 	{
 		System.out.println("--- Start TestRunLocally ---");
 
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
-
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.csv", "--defaults",
 				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv", "--parameters",
 				"src/main/resources/workflows/benchmark.5.1/parameters.csv", "--parameters",
-				"src/main/resources/workflows/benchmark.5.1/sysparameters.csv", "--rundir",
-				"target/test/benchmark/run", "--backend", "slurm", "--errorAddr", "testMail@testServer" });
+				"src/main/resources/workflows/benchmark.5.1/sysparameters.csv", "--rundir", "target/test/benchmark/run",
+				"--backend", "slurm", "--errorAddr", "testMail@testServer" });
 
 		String script = getFileAsString(outputDir + "/step0_0.sh");
 
@@ -1218,14 +1040,6 @@ public class ComputeCommandLineTest
 	{
 		System.out.println("--- Start TestRunLocally ---");
 
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
-
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.csv", "--defaults",
 				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv", "--parameters",
@@ -1237,14 +1051,6 @@ public class ComputeCommandLineTest
 	public void testDoubleParameterNames() throws Exception
 	{
 		System.out.println("--- Start TestCommandLineParametersComputePropertiesFilesCreated ---");
-
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
 
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--workflow", "src/main/resources/workflows/benchmark/workflow.csv", "--defaults",
@@ -1258,14 +1064,6 @@ public class ComputeCommandLineTest
 	public void testHeaderPBS() throws Exception
 	{
 		System.out.println("--- Start TestRunLocally ---");
-
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
 
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--workflow", "src/main/resources/workflows/benchmark/workflowa.csv", "--defaults",
@@ -1293,14 +1091,6 @@ public class ComputeCommandLineTest
 	{
 		System.out.println("--- Start TestCommandLineParametersMissingParameter ---");
 
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
-
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--workflow", "src/main/resources/workflows/benchmark/workflow.csv", "--defaults",
 				"src/main/resources/workflows/benchmark/workflow.defaults.missingparameter.csv", "--parameters",
@@ -1312,14 +1102,6 @@ public class ComputeCommandLineTest
 	public void testParametersMissingValue() throws Exception
 	{
 		System.out.println("--- Start TestCommandLineParametersMissingValue ---");
-
-		File f = new File(outputDir);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
 
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--workflow", "src/main/resources/workflows/benchmark/workflow.csv", "--defaults",
