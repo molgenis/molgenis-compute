@@ -3,71 +3,13 @@ package org.molgenis.compute;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 
-import org.apache.commons.io.FileUtils;
-import org.assertj.core.api.Assertions;
 import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-public class ComputeCommandLineTest
+public class ComputeCommandLineTest extends ScriptComparator
 {
-	private String outputDirectory = "target/test/benchmark/run";
-	private static final FilenameFilter EXTENSION_FILTER = new FilenameFilter()
-	{
-		@Override
-		public boolean accept(File dir, String name)
-		{
-			return name.endsWith(".sh") || name.endsWith(".finished") || name.endsWith(".env")
-					|| name.endsWith(".started");
-		}
-	};
-
-	private static final FilenameFilter BATCH_FILTER = new FilenameFilter()
-	{
-		@Override
-		public boolean accept(File dir, String name)
-		{
-			return name.startsWith("batch");
-		}
-	};
-
-	@BeforeMethod
-	public void beforeMethod() throws IOException
-	{
-		File f = new File(outputDirectory);
-		FileUtils.deleteDirectory(f);
-		Assert.assertFalse(f.exists());
-
-		f = new File(".compute.properties");
-		FileUtils.deleteQuietly(f);
-		Assert.assertFalse(f.exists());
-	}
-
-	private void compareOutputDirToExpectedDir(String expectedDirectory, String subDirectory)
-	{
-		File expectedFilesDirectoryAfterGenerate = new File(expectedDirectory);
-		for (File expectedFile : expectedFilesDirectoryAfterGenerate.listFiles(EXTENSION_FILTER))
-		{
-
-			File actualFile = new File(new File(outputDirectory + File.separator + subDirectory),
-					expectedFile.getName());
-			Assertions.assertThat(actualFile).hasSameContentAs(expectedFile);
-		}
-	}
-
-	private void testOutputDirectoryFiles(String testMethodId) throws Exception
-	{
-		System.out.println("--- Test Created Files in test " + testMethodId + "---");
-		compareOutputDirToExpectedDir("src/test/resources/expected/" + testMethodId, "");
-		for (File file : new File("src/test/resources/expected/" + testMethodId).listFiles(BATCH_FILTER))
-		{
-			compareOutputDirToExpectedDir(file.getPath(), file.getName());
-		}
-	}
-
 	@Test
 	public void testHelp()
 	{
@@ -89,14 +31,14 @@ public class ComputeCommandLineTest
 		try
 		{
 			ComputeCommandLine.main(new String[]
-			{ "--create", outputDirectory });
+			{ "--create", OUTPUT_DIRECTORY });
 		}
 		catch (Exception e)
 		{
 			Assert.fail("--create does not work");
 		}
 
-		File file = new File(outputDirectory + "/parameters.csv");
+		File file = new File(OUTPUT_DIRECTORY + "/parameters.csv");
 		if (!file.exists())
 		{
 			Assert.fail("workflow is not generated correctly");
@@ -107,39 +49,39 @@ public class ComputeCommandLineTest
 	@Test(expectedExceptions = Exception.class)
 	public void testDoubleParameter() throws Exception
 	{
-		// shows nieuwe folding
+		// shows new folding
 		System.out.println("--- Start Test Folding ---");
 
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/doubleparameter/workflow.csv",
 				"--parameters", "src/main/resources/workflows/doubleparameter/parameters.csv", "--parameters",
-				"src/main/resources/workflows/doubleparameter/parameters1.csv", "--rundir", outputDirectory });
+				"src/main/resources/workflows/doubleparameter/parameters1.csv", "--rundir", OUTPUT_DIRECTORY });
 	}
 
 	@Test(expectedExceptions = Exception.class)
 	public void testDoubleParameterProperties() throws Exception
 	{
-		// shows nieuwe folding
+		// shows new folding
 		System.out.println("--- Start Test Folding ---");
 
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/doubleparameter/workflow.csv",
 				"--parameters", "src/main/resources/workflows/doubleparameter/parameters.csv", "--parameters",
 				"src/main/resources/workflows/doubleparameter/parameters_properties.csv", "--rundir",
-				outputDirectory });
+				OUTPUT_DIRECTORY });
 	}
 
 	@Test(expectedExceptions = Exception.class)
 	public void testDoubleParameterPropertiesList() throws Exception
 	{
-		// shows nieuwe folding
+		// shows new folding
 		System.out.println("--- Start Test Folding ---");
 
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/doubleparameter/workflow.csv",
 				"--parameters", "src/main/resources/workflows/doubleparameter/parameters.csv", "--parameters",
 				"src/main/resources/workflows/doubleparameter/parameters_properties_list.csv", "--rundir",
-				outputDirectory });
+				OUTPUT_DIRECTORY });
 	}
 
 	@Test
@@ -172,7 +114,7 @@ public class ComputeCommandLineTest
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark/workflow.csv", "--defaults",
 				"src/main/resources/workflows/benchmark/workflow.defaults.csv", "--parameters",
-				"src/main/resources/workflows/benchmark/parameters.withrunid.csv", "--rundir", outputDirectory,
+				"src/main/resources/workflows/benchmark/parameters.withrunid.csv", "--rundir", OUTPUT_DIRECTORY,
 				"--database", "none", "--runid", "test3"
 
 		});
@@ -188,7 +130,7 @@ public class ComputeCommandLineTest
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.csv", "--defaults",
 				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv", "--parameters",
-				"src/main/resources/workflows/benchmark.5.1/parameters.runid.csv", "--rundir", outputDirectory,
+				"src/main/resources/workflows/benchmark.5.1/parameters.runid.csv", "--rundir", OUTPUT_DIRECTORY,
 				"--database", "none", "--runid", "test1" });
 
 		testOutputDirectoryFiles("testRunID5");
@@ -201,7 +143,7 @@ public class ComputeCommandLineTest
 
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--workflow", "src/main/resources/workflows/batchesWorkflow/workflow.csv", "--parameters",
-				"src/main/resources/workflows/batchesWorkflow/parameters.csv", "--rundir", outputDirectory, "--runid",
+				"src/main/resources/workflows/batchesWorkflow/parameters.csv", "--rundir", OUTPUT_DIRECTORY, "--runid",
 				"test1", "-weave", "-b", "pbs", "-batch", "chr=2"
 
 		});
@@ -216,7 +158,7 @@ public class ComputeCommandLineTest
 
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--workflow", "src/main/resources/workflows/twoQueues/workflow.csv", "--parameters",
-				"src/main/resources/workflows/twoQueues/parameters.csv", "--rundir", outputDirectory, "--runid",
+				"src/main/resources/workflows/twoQueues/parameters.csv", "--rundir", OUTPUT_DIRECTORY, "--runid",
 				"test1", "-weave", "-b", "pbs"
 
 		});
@@ -232,7 +174,7 @@ public class ComputeCommandLineTest
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark/workflow.csv", "--defaults",
 				"src/main/resources/workflows/benchmark/workflow.defaults.csv", "--parameters",
-				"src/main/resources/workflows/benchmark/parameters.3levels.properties", "--rundir", outputDirectory,
+				"src/main/resources/workflows/benchmark/parameters.3levels.properties", "--rundir", OUTPUT_DIRECTORY,
 				"--run", "--database", "none", "--runid", "test1" });
 
 		testOutputDirectoryFiles("testParameters3Levels");
@@ -246,7 +188,7 @@ public class ComputeCommandLineTest
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark/workflow.csv", "--defaults",
 				"src/main/resources/workflows/benchmark/workflow.defaults.csv", "--parameters",
-				"src/main/resources/workflows/benchmark/parameters.3levels1.properties", "--rundir", outputDirectory,
+				"src/main/resources/workflows/benchmark/parameters.3levels1.properties", "--rundir", OUTPUT_DIRECTORY,
 				"--run", "--database", "none", "--runid", "test1" });
 
 		testOutputDirectoryFiles("testParameters3Levels1");
@@ -518,7 +460,7 @@ public class ComputeCommandLineTest
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--workflow", "src/main/resources/workflows/benchmark/workflow.csv", "--defaults",
 				"src/main/resources/workflows/benchmark/workflow.defaults1.csv", "--parameters",
-				"src/main/resources/workflows/benchmark/wrong_parameters1.csv", "--rundir", outputDirectory,
+				"src/main/resources/workflows/benchmark/wrong_parameters1.csv", "--rundir", OUTPUT_DIRECTORY,
 				"--backend", "pbs", "--database", "none", "-header",
 				"src/main/resources/workflows/benchmark/header.ftl", "-footer",
 				"src/main/resources/workflows/benchmark/footer.ftl" });
@@ -532,7 +474,7 @@ public class ComputeCommandLineTest
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--workflow", "src/main/resources/workflows/benchmark/workflowa.csv", "--defaults",
 				"src/main/resources/workflows/benchmark/workflow.defaults.pbs.csv", "--parameters",
-				"src/main/resources/workflows/benchmark/parameters.csv", "--rundir", outputDirectory, "--backend",
+				"src/main/resources/workflows/benchmark/parameters.csv", "--rundir", OUTPUT_DIRECTORY, "--backend",
 				"pbs", "--runid", "testHeaderPBS"});
 
 		testOutputDirectoryFiles("testHeaderPBS");
@@ -546,7 +488,7 @@ public class ComputeCommandLineTest
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--workflow", "src/main/resources/workflows/benchmark/workflow.csv", "--defaults",
 				"src/main/resources/workflows/benchmark/workflow.defaults.missingparameter.csv", "--parameters",
-				"src/main/resources/workflows/benchmark/parameters.csv", "--rundir", outputDirectory, "--backend",
+				"src/main/resources/workflows/benchmark/parameters.csv", "--rundir", OUTPUT_DIRECTORY, "--backend",
 				"pbs", "--database", "none" });
 	}
 
@@ -558,7 +500,7 @@ public class ComputeCommandLineTest
 		ComputeCommandLine.main(new String[]
 		{ "--generate", "--workflow", "src/main/resources/workflows/benchmark/workflow.csv", "--defaults",
 				"src/main/resources/workflows/benchmark/workflow.defaults.missingvalue.csv", "--parameters",
-				"src/main/resources/workflows/benchmark/parameters.csv", "--rundir", outputDirectory, "--backend",
+				"src/main/resources/workflows/benchmark/parameters.csv", "--rundir", OUTPUT_DIRECTORY, "--backend",
 				"pbs", "--database", "none" });
 	}
 
