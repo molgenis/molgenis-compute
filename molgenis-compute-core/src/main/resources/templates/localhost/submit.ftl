@@ -10,7 +10,7 @@ skip(){
 	echo "0: Skipped --- TASK '$1' --- ON $(date +"%Y-%m-%d %T")" >> molgenis.skipped.log
 }
 
-<#foreach t in taskInfos>
+<#foreach t in tasks>
 # Skip this step if step finished already successfully
 if [ -f ${t.name}.sh.finished ]; then
 	skip ${t.name}.sh

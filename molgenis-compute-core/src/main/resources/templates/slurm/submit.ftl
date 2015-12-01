@@ -22,7 +22,7 @@ echo "0: Skipped --- TASK '$1' --- ON $(date +"%Y-%m-%d %T")" >> molgenis.skippe
 }
 <#noparse>echo -e "../../../../tmp/submits/${projectName}_${run}.txt" > zubmitted_jobIDs.txt</#noparse>
 
-<#foreach t in taskInfos>
+<#foreach t in tasks>
 #
 ##${t.name}
 #

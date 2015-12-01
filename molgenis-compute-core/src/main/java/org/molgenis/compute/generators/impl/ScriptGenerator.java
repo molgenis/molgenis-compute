@@ -117,7 +117,7 @@ public class ScriptGenerator
 			BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
 
 			Map<String, Object> templateModel = new HashMap<String, Object>();
-			templateModel.put("taskInfos", taskInfos);
+			templateModel.put("tasks", taskInfos);
 
 			script.getSubmitTemplate().process(templateModel, bufferedWriter);
 			bufferedWriter.close();
