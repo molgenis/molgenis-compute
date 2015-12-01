@@ -2,6 +2,7 @@ package org.molgenis.compute.model;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -41,10 +42,10 @@ public class Protocol
 	private String type = null;
 
 	// list of inputs it expects from user_* or previousStep_*
-	private Set<Input> inputs = new HashSet<Input>();
+	private Set<Input> inputs = new LinkedHashSet<Input>();
 
 	// outputs that this protocol produces
-	private Set<Output> outputs = new HashSet<Output>();
+	private Set<Output> outputs = new LinkedHashSet<Output>();
 
 	// freemarker template of the protocol
 	private String template = null;
