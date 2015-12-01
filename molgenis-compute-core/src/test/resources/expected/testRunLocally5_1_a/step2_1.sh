@@ -118,7 +118,8 @@ database="none"
 backend="localhost"
 port="80"
 interval="2000"
-path="."source $ENVIRONMENT_DIR/step1_2.env
+path="."
+source $ENVIRONMENT_DIR/step1_2.env
 source $ENVIRONMENT_DIR/step1_3.env
 
 

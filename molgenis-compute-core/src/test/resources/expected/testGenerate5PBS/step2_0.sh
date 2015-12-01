@@ -170,7 +170,8 @@ database="none"
 backend="pbs"
 port="80"
 interval="2000"
-path="."source $ENVIRONMENT_DIR/step1_0.env
+path="."
+source $ENVIRONMENT_DIR/step1_0.env
 source $ENVIRONMENT_DIR/step1_1.env
 
 

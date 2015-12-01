@@ -80,7 +80,8 @@ database="none"
 backend="slurm"
 port="80"
 interval="2000"
-path="."source $ENVIRONMENT_DIR/step0_1.env
+path="."
+source $ENVIRONMENT_DIR/step0_1.env
 
 
 # Connect parameters to environment

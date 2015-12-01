@@ -120,8 +120,9 @@ port="80"
 interval="2000"
 path="."
 
+
 # Connect parameters to environment
-in="test3bye"
+in="${runid}bye"
 
 # Validate that each 'value' parameter has only identical values in its list
 # We do that to protect you against parameter values that might not be correctly set at runtime.
