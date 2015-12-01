@@ -194,7 +194,7 @@ public class ComputeCommandLineTest
 		testOutputDirectoryFiles("testRunID5");
 	}
 
-	@Test
+	//@Test
 	public void testBatch() throws Exception
 	{
 		System.out.println("--- Start TestCommandLineParametersComputePropertiesFilesCreated ---");
