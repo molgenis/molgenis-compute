@@ -74,7 +74,7 @@ public class TaskGenerator
 					context.getComputeProperties(), context.getMapUserEnvironment())));
 
 			// uncollapse
-			localParameters = TupleUtils.uncollapse(localParameters, Parameters.ID_COLUMN);
+			localParameters = TupleUtils.uncollapse(localParameters);
 
 			// add local input/output parameters to the global parameters
 			// e.g. out -> step1.out

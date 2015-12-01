@@ -9,8 +9,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.molgenis.compute.model.Parameters;
+import org.molgenis.compute.model.Task;
 import org.molgenis.data.Entity;
 import org.molgenis.data.support.MapEntity;
+
+import com.google.common.collect.Iterables;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -209,43 +213,44 @@ public class TupleUtils
 	/**
 	 * Uncollapse a tuple using an idColumn
 	 * 
-	 * @param values
+	 * @param collapsedEntities
 	 * @param idColumn
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
-	public static <E extends Entity> List<E> uncollapse(List<E> values, String idColumn)
+	public static List<MapEntity> uncollapse(List<MapEntity> collapsedEntities)
 	{
-		List<E> result = new ArrayList<E>();
+		List<MapEntity> result = new ArrayList<MapEntity>();
 
-		for (E original : values)
+		for (MapEntity collapsedEntity : collapsedEntities)
 		{
-			if (!(original.get(idColumn) instanceof List))
+			for (int i = 0; i < collapsedEntity.getList(Parameters.ID_COLUMN).size(); i++)
 			{
-				return values;
-			}
-			else
-			{
-				for (int i = 0; i < original.getList(idColumn).size(); i++)
+				MapEntity copy = new MapEntity();
+				for (String attribute : Iterables.filter(collapsedEntity.getAttributeNames(),
+						TupleUtils::attributesToPreserve))
 				{
-					MapEntity copy = new MapEntity();
-					for (String attribute : original.getAttributeNames())
+
+					if (collapsedEntity.get(attribute) instanceof List)
 					{
-						if (original.get(attribute) instanceof List)
-						{
-							copy.set(attribute, original.getList(attribute).get(i));
-						}
-						else
-						{
-							copy.set(attribute, original.get(attribute));
-						}
+						copy.set(attribute, collapsedEntity.getList(attribute).get(i));
 					}
-					result.add((E) copy);
+					else
+					{
+						copy.set(attribute, collapsedEntity.get(attribute));
+					}
 				}
+				result.add(copy);
 			}
+
 		}
 
 		return result;
+	}
+
+	private static boolean attributesToPreserve(String attributeName)
+	{
+		return attributeName.startsWith(Parameters.USER_PREFIX) || attributeName.endsWith(Task.TASKID_COLUMN)
+				|| attributeName.endsWith(Task.TASKID_INDEX_COLUMN);
 	}
 
 	public void setRunID(String runID)
