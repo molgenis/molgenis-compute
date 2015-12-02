@@ -1,5 +1,7 @@
 package org.molgenis.compute;
 
+import java.util.Set;
+
 /**
  * Created by hvbyelas on 12/15/14.
  */
@@ -8,6 +10,17 @@ public class GeneratedScript
 	private String name;
 	private String stepName;
 	private String script;
+	private Set<String> previousTasks;
+
+	public Set<String> getPreviousTasks()
+	{
+		return previousTasks;
+	}
+
+	public void setPreviousTasks(Set<String> previousTasks)
+	{
+		this.previousTasks = previousTasks;
+	}
 
 	public String getName()
 	{

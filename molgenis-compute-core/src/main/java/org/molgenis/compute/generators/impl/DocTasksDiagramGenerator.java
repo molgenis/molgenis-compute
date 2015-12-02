@@ -22,11 +22,10 @@ public class DocTasksDiagramGenerator
 			// apply
 			File dotFile = new File(dir.getAbsoluteFile() + "/tasks.dot");
 			new FreemarkerUtils().applyTemplate(model, "DocTasksDiagramGenerator.ftl", dotFile);
-			System.out.println("Generated "+dotFile);
-			
+			System.out.println("Generated " + dotFile);
+
 			GraphvizUtils.executeDot(dotFile, "png", true);
-			
-			
+
 		}
 		catch (Exception e)
 		{

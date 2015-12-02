@@ -40,7 +40,8 @@ public class ProtocolParserImpl implements ProtocolParser
 				{
 					// what is going on here?
 					templateFile = new File(protocolPath);
-					if (!templateFile.exists()) throw new IOException("protocol '" + protocolPath + "' cannot be found");
+					if (!templateFile.exists())
+						throw new IOException("protocol '" + protocolPath + "' cannot be found");
 				}
 			}
 
@@ -81,20 +82,20 @@ public class ProtocolParserImpl implements ProtocolParser
 							{
 								for (int i = 1; i < values.size(); i++)
 								{
-									if (values.get(i).startsWith(Parameters.QUEUE)) protocol.setQueue(values.get(i)
-											.substring(Parameters.QUEUE.length() + 1));
+									if (values.get(i).startsWith(Parameters.QUEUE))
+										protocol.setQueue(values.get(i).substring(Parameters.QUEUE.length() + 1));
 
-									if (values.get(i).startsWith(Parameters.WALLTIME)) protocol.setWalltime(values.get(
-											i).substring(Parameters.WALLTIME.length() + 1));
+									if (values.get(i).startsWith(Parameters.WALLTIME))
+										protocol.setWalltime(values.get(i).substring(Parameters.WALLTIME.length() + 1));
 
-									if (values.get(i).startsWith(Parameters.NODES)) protocol.setNodes(values.get(i)
-											.substring(Parameters.NODES.length() + 1));
+									if (values.get(i).startsWith(Parameters.NODES))
+										protocol.setNodes(values.get(i).substring(Parameters.NODES.length() + 1));
 
-									if (values.get(i).startsWith(Parameters.PPN)) protocol.setPpn(values.get(i)
-											.substring(Parameters.PPN.length() + 1));
+									if (values.get(i).startsWith(Parameters.PPN))
+										protocol.setPpn(values.get(i).substring(Parameters.PPN.length() + 1));
 
-									if (values.get(i).startsWith(Parameters.MEMORY)) protocol.setMemory(values.get(i)
-											.substring(Parameters.MEMORY.length() + 1));
+									if (values.get(i).startsWith(Parameters.MEMORY))
+										protocol.setMemory(values.get(i).substring(Parameters.MEMORY.length() + 1));
 
 								}
 							}
@@ -122,8 +123,8 @@ public class ProtocolParserImpl implements ProtocolParser
 								}
 
 								// assume name column
-								if (values.size() < 2) throw new IOException(
-										"param requires 'name', e.g. '#string input1'");
+								if (values.size() < 2)
+									throw new IOException("param requires 'name', e.g. '#string input1'");
 
 								for (int i = 1; i < values.size(); i++)
 								{
@@ -137,8 +138,8 @@ public class ProtocolParserImpl implements ProtocolParser
 							// output, syntax = "#output outputVarName1, outputVarName2"
 							else if (values.get(0).equals("output"))
 							{
-								if (values.size() < 2) throw new IOException(
-										"output requires 'name', e.g. '#output myOutputVariable'");
+								if (values.size() < 2)
+									throw new IOException("output requires 'name', e.g. '#output myOutputVariable'");
 
 								for (int i = 1; i < values.size(); i++)
 								{

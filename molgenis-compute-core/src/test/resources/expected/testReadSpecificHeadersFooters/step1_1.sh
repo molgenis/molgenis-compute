@@ -14,16 +14,17 @@ fi
 taskId="step1_1"
 
 # Make compute.properties available
-rundir="/Users/mdehaan/git/molgenis-compute/molgenis-compute-core/target/test/benchmark/run"
+rundir="TEST_PROPERTY(project.basedir)/target/test/benchmark/run"
 runid="G3fl"
 workflow="src/main/resources/workflows/benchmark.5.1/workflow.csv"
 parameters="src/main/resources/workflows/benchmark.5.1/parameters.csv"
-user="mdehaan"
+user="TEST_PROPERTY(user.name)"
 database="none"
 backend="localhost"
 port="80"
 interval="2000"
-path="."source $ENVIRONMENT_DIR/step0_1.env
+path="."
+source $ENVIRONMENT_DIR/step0_1.env
 
 
 # Connect parameters to environment

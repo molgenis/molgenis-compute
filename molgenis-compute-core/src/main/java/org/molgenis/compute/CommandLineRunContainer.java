@@ -8,26 +8,26 @@ import java.util.List;
  */
 public class CommandLineRunContainer
 {
-	private String sumbitScript;
+	private String submitScript;
 	private List<GeneratedScript> tasks = new ArrayList<GeneratedScript>();
 
-	public String getSumbitScript()
+	public String getSubmitScript()
 	{
-		return sumbitScript;
+		return submitScript;
 	}
 
-	public void setSumbitScript(String sumbitScript)
+	public void setSubmitScript(String submitScript)
 	{
-		this.sumbitScript = sumbitScript;
+		this.submitScript = submitScript;
 	}
 
-	public List<GeneratedScript> getTasks()
+	public List<GeneratedScript> getTaskScripts()
 	{
 		return tasks;
 	}
 
-	public void addTask(GeneratedScript task)
+	public void addTaskScript(GeneratedScript taskScript)
 	{
-		tasks.add(task);
+		tasks.add(taskScript);
 	}
 }

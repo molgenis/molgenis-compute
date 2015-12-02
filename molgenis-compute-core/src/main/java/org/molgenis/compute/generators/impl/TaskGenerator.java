@@ -1,5 +1,7 @@
 package org.molgenis.compute.generators.impl;
 
+import static com.google.common.collect.Iterables.contains;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -12,7 +14,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.molgenis.compute.ComputeProperties;
-import org.molgenis.compute.model.Compute;
+import org.molgenis.compute.model.Context;
 import org.molgenis.compute.model.FoldParameters;
 import org.molgenis.compute.model.Input;
 import org.molgenis.compute.model.Output;
@@ -20,40 +22,43 @@ import org.molgenis.compute.model.Parameters;
 import org.molgenis.compute.model.Protocol;
 import org.molgenis.compute.model.Step;
 import org.molgenis.compute.model.Task;
+import org.molgenis.compute.model.TaskInfo;
 import org.molgenis.compute.model.Workflow;
 import org.molgenis.data.Entity;
 import org.molgenis.data.support.MapEntity;
 
 public class TaskGenerator
 {
-	private List<MapEntity> globalParameters = null;
-	private HashMap<String, String> environment = null;
-	private Workflow workflow = null;
-
 	private static final Logger LOG = Logger.getLogger(TaskGenerator.class);
-	private Compute compute;
-	private StringBuilder parameterHeader = null;
 
+	private Context context;
+	private List<MapEntity> globalParameters = new ArrayList<MapEntity>();
 	private HashMap<String, List<String>> newEnvironment = new HashMap<String, List<String>>();
 
-	public List<Task> generate(Compute compute) throws IOException
+	private ScriptGenerator scriptGenerator;
+
+	public TaskGenerator(Context context, ScriptGenerator scriptGenerator)
 	{
-		this.compute = compute;
-		workflow = compute.getWorkflow();
-		Parameters parameters = compute.getParameters();
-		ComputeProperties computeProperties = compute.getComputeProperties();
-		environment = compute.getMapUserEnvironment();
+		this.context = context;
+		this.scriptGenerator = scriptGenerator;
 
-		List<Task> result = new ArrayList<Task>();
+		setGlobalParameters();
+	}
 
-		globalParameters = parameters.getValues();
+	public List<TaskInfo> generate() throws IOException
+	{
+		List<TaskInfo> taskInfos = new ArrayList<TaskInfo>();
+
+		Workflow workflow = context.getWorkflow();
+
 		for (Step step : workflow.getSteps())
 		{
 			// map global to local parameters
-			List<MapEntity> localParameters = mapGlobalToLocalParameters(globalParameters, step);
+			// e.g. input -> in
+			List<MapEntity> localParameters = mapGlobalToLocalParameters(step, workflow);
 
-			// collapse parameter values
-			localParameters = collapseOnTargets(localParameters, step);
+			// Collapse parameter values
+			localParameters = collapseOnTargets(step, localParameters);
 
 			// add the output templates/values + generate step ids
 			localParameters = addResourceValues(step, localParameters);
@@ -63,25 +68,217 @@ public class TaskGenerator
 			// (ii) taskIndex = id
 			localParameters = addStepIds(localParameters, step);
 
-			List<Task> tasks = generateTasks(step, localParameters, workflow, computeProperties);
-			// generate the tasks from template, add step id
-			result.addAll(tasks);
+			// Generate the scripts for each task in this step. 
+			// Add TaskInfo objects to the taskInfos list.
+			taskInfos.addAll(scriptGenerator.generateTaskScripts(generateTasks(step, localParameters, workflow,
+					context.getComputeProperties(), context.getMapUserEnvironment())));
 
 			// uncollapse
-			localParameters = TupleUtils.uncollapse(localParameters, Parameters.ID_COLUMN);
-			// add local input/output parameters to the global parameters
-			addLocalToGlobalParameters(step, localParameters);
+			localParameters = TupleUtils.uncollapse(localParameters);
 
+			// add local input/output parameters to the global parameters
+			// e.g. out -> step1.out
+			addLocalToGlobalParameters(step, localParameters);
 		}
 
-		return result;
+		return taskInfos;
+	}
+
+	private List<MapEntity> mapGlobalToLocalParameters(Step step, Workflow workflow) throws IOException
+	{
+		List<MapEntity> localParameters = new ArrayList<MapEntity>();
+
+		// Loop through all the global parameters
+		for (Entity globalParameter : globalParameters)
+		{
+			// Include row number to enable uncollapse
+			MapEntity local = new MapEntity(Parameters.ID_COLUMN, globalParameter.get(Parameters.ID_COLUMN));
+
+			// Loop through all the inputs from this particular step
+			for (Input input : step.getProtocol().getInputs())
+			{
+				String localName = input.getName();
+				String globalName = step.getLocalGlobalParameterMap().get(localName);
+
+				// check the mapping, give error if missing
+				if (globalName == null)
+				{
+					globalName = localName;
+				}
+
+				// Check wether the the list of attributes contains the input name
+				Iterable<String> attributes = globalParameter.getAttributeNames();
+				if (contains(attributes, globalName))
+				{
+					local.set(localName, globalParameter.get(globalName));
+				}
+				else if (contains(attributes, Parameters.USER_PREFIX + globalName))
+				{
+					local.set(localName, globalParameter.get(Parameters.USER_PREFIX + globalName));
+				}
+				else
+				{
+					LOG.warn("Parameter [" + localName + "] is not known at design time");
+				}
+			}
+
+			localParameters.add(local);
+		}
+
+		return localParameters;
+	}
+
+	private List<MapEntity> collapseOnTargets(Step step, List<MapEntity> localParameters)
+	{
+		List<String> targets = new ArrayList<String>();
+
+		// For every input, add its name to the list of targets if its of a list type
+		for (Input input : step.getProtocol().getInputs())
+		{
+			// If the input type does not equal to a list
+			if (!Parameters.LIST_INPUT.equals(input.getType()))
+			{
+				targets.add(input.getName());
+			}
+		}
+
+		// No values from user_*, so do not collapse
+		if (targets.size() == 0)
+		{
+			return localParameters;
+		}
+		else
+		{
+			List<MapEntity> collapsed = TupleUtils.collapse(localParameters, targets);
+			return collapsed;
+		}
+	}
+
+	private List<MapEntity> addResourceValues(Step step, List<MapEntity> localParameters)
+	{
+		for (MapEntity localParamater : localParameters)
+		{
+			// add parameters for resource management:
+			Entity defaultResourcesMap = globalParameters.get(0);
+
+			setProtocolQue(step, localParamater, defaultResourcesMap);
+			setProtocolNodes(step, localParamater, defaultResourcesMap);
+			setProtocolPpn(step, localParamater, defaultResourcesMap);
+			setProtocolWalltime(step, localParamater, defaultResourcesMap);
+			setProtocolMemory(step, localParamater, defaultResourcesMap);
+
+			// add protocol parameters
+			step.getProtocol().getOutputs().forEach(output -> localParamater.set(output.getName(), output.getValue()));
+		}
+
+		return localParameters;
+	}
+
+	private void setProtocolMemory(Step step, MapEntity localParamater, Entity defaultResourcesMap)
+	{
+		if (step.getProtocol().getMemory() == null)
+		{
+			String memory = (String) defaultResourcesMap.get("user_" + Parameters.MEMORY);
+			if (memory != null)
+			{
+				localParamater.set(Parameters.MEMORY, memory);
+			}
+			else
+			{
+				localParamater.set(Parameters.MEMORY, step.getProtocol().getDefaultMemory());
+			}
+		}
+		else
+		{
+			localParamater.set(Parameters.MEMORY, step.getProtocol().getMemory());
+		}
+	}
+
+	private void setProtocolWalltime(Step step, MapEntity localParamater, Entity defaultResourcesMap)
+	{
+		if (step.getProtocol().getWalltime() == null)
+		{
+			String walltime = (String) defaultResourcesMap.get("user_" + Parameters.WALLTIME);
+			if (walltime != null)
+			{
+				localParamater.set(Parameters.WALLTIME, walltime);
+			}
+			else
+			{
+				localParamater.set(Parameters.WALLTIME, step.getProtocol().getDefaultWalltime());
+			}
+		}
+		else
+		{
+			localParamater.set(Parameters.WALLTIME, step.getProtocol().getWalltime());
+		}
+	}
+
+	private void setProtocolPpn(Step step, MapEntity localParamater, Entity defaultResourcesMap)
+	{
+		if (step.getProtocol().getPpn() == null)
+		{
+			String ppn = (String) defaultResourcesMap.get("user_" + Parameters.PPN);
+			if (ppn != null)
+			{
+				localParamater.set(Parameters.PPN, ppn);
+			}
+			else
+			{
+				localParamater.set(Parameters.PPN, step.getProtocol().getDefaultPpn());
+			}
+		}
+		else
+		{
+			localParamater.set(Parameters.PPN, step.getProtocol().getPpn());
+		}
+	}
+
+	private void setProtocolNodes(Step step, MapEntity localParamater, Entity defaultResourcesMap)
+	{
+		if (step.getProtocol().getNodes() == null)
+		{
+			String nodes = (String) defaultResourcesMap.get("user_" + Parameters.NODES);
+			if (nodes != null)
+			{
+				localParamater.set(Parameters.NODES, nodes);
+			}
+			else
+			{
+				localParamater.set(Parameters.NODES, step.getProtocol().getDefaultNodes());
+			}
+		}
+		else
+		{
+			localParamater.set(Parameters.NODES, step.getProtocol().getNodes());
+		}
+	}
+
+	private void setProtocolQue(Step step, MapEntity localParamater, Entity defaultResourcesMap)
+	{
+		if (step.getProtocol().getQueue() == null)
+		{
+			String queue = (String) defaultResourcesMap.get("user_" + Parameters.QUEUE);
+			if (queue != null)
+			{
+				localParamater.set(Parameters.QUEUE, queue);
+			}
+			else
+			{
+				localParamater.set(Parameters.QUEUE, step.getProtocol().getDefaultQueue());
+			}
+		}
+		else
+		{
+			localParamater.set(Parameters.QUEUE, step.getProtocol().getQueue());
+		}
 	}
 
 	private List<Task> generateTasks(Step step, List<MapEntity> localParameters, Workflow workflow,
-			ComputeProperties computeProperties) throws IOException
+			ComputeProperties computeProperties, HashMap<String, String> environment) throws IOException
 	{
 		List<Task> tasks = new ArrayList<Task>();
-
+		StringBuilder parameterHeader = null;
 		for (MapEntity target : localParameters)
 		{
 			Task task = new Task(target.getString(Task.TASKID_COLUMN));
@@ -89,14 +286,13 @@ public class TaskGenerator
 			try
 			{
 				Map<String, Object> map = TupleUtils.toMap(target);
-				//
 				String valueWORKDIR = globalParameters.get(0).getString("user_WORKDIR");
 				if (valueWORKDIR != null) map.put("WORKDIR", valueWORKDIR);
 				else map.put("WORKDIR", "UNDEFINED");
 				// remember parameter values
 
-				if (computeProperties.errorMailAddr != null) map.put(Parameters.ERROR_MESSAGE_ADDR,
-						computeProperties.errorMailAddr);
+				if (computeProperties.errorMailAddr != null)
+					map.put(Parameters.ERROR_MESSAGE_ADDR, computeProperties.errorMailAddr);
 
 				// for this step: store which target-ids go into which job
 				for (Integer id : target.getIntList(Parameters.ID_COLUMN))
@@ -124,7 +320,7 @@ public class TaskGenerator
 				parameterHeader.append("\nbackend=\"").append(computeProperties.backend).append("\"");
 				parameterHeader.append("\nport=\"").append(computeProperties.port).append("\"");
 				parameterHeader.append("\ninterval=\"").append(computeProperties.interval).append("\"");
-				parameterHeader.append("\npath=\"").append(computeProperties.path).append("\"");
+				parameterHeader.append("\npath=\"").append(computeProperties.path).append("\"\n");
 
 				for (String previousStepName : step.getPreviousSteps())
 				{ // we have jobs on which we depend in this prev step
@@ -149,24 +345,28 @@ public class TaskGenerator
 
 				parameterHeader.append("\n\n# Connect parameters to environment\n");
 
-				// now couple input parameters to parameters in sourced
-				// environment
+				// now couple input parameters to parameters in sourced environment
 				List<String> presentStrings = new ArrayList<String>();
 				List<Input> listInputsToFoldNew = new ArrayList<Input>();
 				Map<String, String> filters = new LinkedHashMap<String, String>();
+
+				// Loops through all the inputs,
 				for (Input input : step.getProtocol().getInputs())
 				{
+					// If input equals a list, is not a combined list, and the parameters consist of multiple parameter
+					// files
 					if (input.getType().equalsIgnoreCase(Parameters.LIST_INPUT) && !input.isCombineLists()
-							&& compute.getParametersContainer().isMultiParameterFiles())
+							&& context.getFoldParameters().isMultiParameterFiles())
 					{
-						// a new way of folding
-						// take list of parameters from initial parameter list, where values are the same as for eachOne
+						// a new way of folding takes a list of parameters from initial parameter list, where values are
+						// the same as for eachOne
 						listInputsToFoldNew.add(input);
 						continue;
 					}
-					// good all folding
+
 					else
 					{
+						// Start folding
 						String parameterName = input.getName();
 
 						List<String> rowIndex = target.getList(Parameters.ID_COLUMN);
@@ -281,7 +481,7 @@ public class TaskGenerator
 					}
 				}
 
-				foldNew(listInputsToFoldNew, filters);
+				parameterHeader = foldIntoHeaderAndSetEnvironment(listInputsToFoldNew, filters, parameterHeader);
 
 				parameterHeader
 						.append("\n# Validate that each 'value' parameter has only identical values in its list\n")
@@ -292,17 +492,12 @@ public class TaskGenerator
 					boolean isList = Parameters.LIST_INPUT.equals(input.getType());
 					if (!isList)
 					{
-						String p = input.getName();
+						String inputName = input.getName();
 
-						parameterHeader
-								.append("if [[ ! $(IFS=$'\\n' sort -u <<< \"${")
-								.append(p)
+						parameterHeader.append("if [[ ! $(IFS=$'\\n' sort -u <<< \"${").append(inputName)
 								.append("[*]}\" | wc -l | sed -e 's/^[[:space:]]*//') = 1 ]]; then echo \"Error in Step '")
-								.append(step.getName())
-								.append("': input parameter '")
-								.append(p)
-								.append("' is an array with different values. Maybe '")
-								.append(p)
+								.append(step.getName()).append("': input parameter '").append(inputName)
+								.append("' is an array with different values. Maybe '").append(inputName)
 								.append("' is a runtime parameter with 'more variable' values than what was folded on generation-time?\" >&2; exit 1; fi\n");
 					}
 				}
@@ -316,8 +511,8 @@ public class TaskGenerator
 					String weavedScript = weaveProtocol(step.getProtocol(), newEnvironment, environment, target);
 					script = parameterHeader.toString() + weavedScript;
 				}
-				else if (step.getProtocol().getType().equalsIgnoreCase(Protocol.TYPE_SHELL)) script = parameterHeader
-						.toString() + script;
+				else if (step.getProtocol().getType().equalsIgnoreCase(Protocol.TYPE_SHELL))
+					script = parameterHeader.toString() + script;
 				else
 				{
 					script = parameterHeader.toString() + script;
@@ -365,15 +560,15 @@ public class TaskGenerator
 								Object rowIndexObject = rowIndex.get(i);
 								String rowIndexString = rowIndexObject.toString();
 								line += "echo \"" + step.getName() + Parameters.STEP_PARAM_SEP_SCRIPT + p + "["
-										+ rowIndexString + "]=\\\"${" + p + "[" + i + "]}\\\"\" >> "
-										+ myEnvironmentFile + "\n";
+										+ rowIndexString + "]=\\\"${" + p + "[" + i + "]}\\\"\" >> " + myEnvironmentFile
+										+ "\n";
 							}
 
 							script += line;
 						}
 					}
 				}
-				script = appendToEnv(script, "", myEnvironmentFile);				
+				script = appendToEnv(script, "", myEnvironmentFile);
 				script += "\n";
 
 				task.setScript(script);
@@ -382,7 +577,7 @@ public class TaskGenerator
 
 				if (computeProperties.batchOption != null)
 				{
-					int batchNum = compute.getBatchNumber(map);
+					int batchNum = context.getBatchNumber(map);
 					task.setBatchNumber(batchNum);
 				}
 
@@ -395,29 +590,31 @@ public class TaskGenerator
 
 			tasks.add(task);
 		}
+
 		return tasks;
 	}
 
-	private void foldNew(List<Input> inputs, Map<String, String> filters)
+	private StringBuilder foldIntoHeaderAndSetEnvironment(List<Input> inputs, Map<String, String> filters,
+			StringBuilder parameterHeader)
 	{
 		for (Input input : inputs)
 		{
-			FoldParameters originalParameters = compute.getParametersContainer();
-			int numberOfFilesContainingParameter = originalParameters.numberOfFilesContainingParameter(input.getName());
+			FoldParameters foldParameters = context.getFoldParameters();
+			String inputName = input.getName();
+			int numberOfFilesContainingParameter = foldParameters.numberOfFilesContainingParameter(inputName);
 
 			if (numberOfFilesContainingParameter == 1)
 			{
-				String name = input.getName();
-				List<String> filteredParameterValues = originalParameters.getFilteredParameterValues(name, filters);
+				List<String> filteredParameterValues = foldParameters.getFilteredParameterValues(inputName, filters);
 
 				List<String> values = new ArrayList<String>();
 				for (int i = 0; i < filteredParameterValues.size(); i++)
 				{
-					String value = filteredParameterValues.get(i);
-					parameterHeader.append(String.format("%s[%d]=\"%s\"", name, i, value)).append('\n');
-					values.add(value);
+					String parameterValue = filteredParameterValues.get(i);
+					parameterHeader.append(String.format("%s[%d]=\"%s\"", inputName, i, parameterValue)).append('\n');
+					values.add(parameterValue);
 				}
-				newEnvironment.put(name, values);
+				newEnvironment.put(inputName, values);
 			}
 			else if (numberOfFilesContainingParameter > 1)
 			{
@@ -430,6 +627,8 @@ public class TaskGenerator
 						+ "maybe it is the run time list parameter");
 			}
 		}
+
+		return parameterHeader;
 	}
 
 	private String weaveProtocol(Protocol protocol, HashMap<String, List<String>> newEnvironment,
@@ -510,11 +709,11 @@ public class TaskGenerator
 		return true;
 	}
 
-	private String appendToEnv(String script, String string, String thisFile)		
-	{		
-		String appendString = "echo \"" + string + "\" >> " + thisFile + "\n" + "chmod 755 " + thisFile + "\n";		
-		
-		return script + "\n" + appendString;		
+	private String appendToEnv(String script, String string, String thisFile)
+	{
+		String appendString = "echo \"" + string + "\" >> " + thisFile + "\n" + "chmod 755 " + thisFile + "\n";
+
+		return script + "\n" + appendString;
 	}
 
 	private List<MapEntity> addStepIds(List<MapEntity> localParameters, Step step)
@@ -546,175 +745,8 @@ public class TaskGenerator
 		}
 	}
 
-	private List<MapEntity> addResourceValues(Step step, List<MapEntity> localParameters)
+	private void setGlobalParameters()
 	{
-		for (MapEntity target : localParameters)
-		{
-			// add parameters for resource management:
-			Entity defaultResousesMap = globalParameters.get(0);
-
-			// choices to get value for resources
-			// 1. get from protocol
-			// 2. get default from parameters file
-			// 3. get default from protocol file
-
-			if (step.getProtocol().getQueue() == null)
-			{
-				String queue = (String) defaultResousesMap.get("user_" + Parameters.QUEUE);
-				if (queue != null) target.set(Parameters.QUEUE, queue);
-				else target.set(Parameters.QUEUE, step.getProtocol().getDefaultQueue());
-			}
-			else target.set(Parameters.QUEUE, step.getProtocol().getQueue());
-
-			if (step.getProtocol().getNodes() == null)
-			{
-				String nodes = (String) defaultResousesMap.get("user_" + Parameters.NODES);
-				if (nodes != null) target.set(Parameters.NODES, nodes);
-				else target.set(Parameters.NODES, step.getProtocol().getDefaultNodes());
-			}
-			else target.set(Parameters.NODES, step.getProtocol().getNodes());
-
-			if (step.getProtocol().getPpn() == null)
-			{
-				String ppn = (String) defaultResousesMap.get("user_" + Parameters.PPN);
-				if (ppn != null) target.set(Parameters.PPN, ppn);
-				else target.set(Parameters.PPN, step.getProtocol().getDefaultPpn());
-			}
-			else target.set(Parameters.PPN, step.getProtocol().getPpn());
-
-			if (step.getProtocol().getWalltime() == null)
-			{
-				String walltime = (String) defaultResousesMap.get("user_" + Parameters.WALLTIME);
-				if (walltime != null) target.set(Parameters.WALLTIME, walltime);
-				else target.set(Parameters.WALLTIME, step.getProtocol().getDefaultWalltime());
-			}
-			else target.set(Parameters.WALLTIME, step.getProtocol().getWalltime());
-
-			if (step.getProtocol().getMemory() == null)
-			{
-				String memory = (String) defaultResousesMap.get("user_" + Parameters.MEMORY);
-				if (memory != null) target.set(Parameters.MEMORY, memory);
-				else target.set(Parameters.MEMORY, step.getProtocol().getDefaultMemory());
-			}
-			else target.set(Parameters.MEMORY, step.getProtocol().getMemory());
-
-			// add protocol parameters
-			for (Output o : step.getProtocol().getOutputs())
-			{
-				target.set(o.getName(), o.getValue());
-			}
-		}
-
-		return localParameters;
-	}
-
-	private List<MapEntity> collapseOnTargets(List<MapEntity> localParameters, Step step)
-	{
-
-		List<String> targets = new ArrayList<String>();
-
-		for (Input i : step.getProtocol().getInputs())
-		{
-			boolean initialized = true;
-
-			boolean isList = Parameters.LIST_INPUT.equals(i.getType());
-
-			if (!isList && initialized) targets.add(i.getName());
-		}
-
-		if (0 == targets.size()) // no values from user_*, so do not collapse
-		{
-			return localParameters;
-		}
-		else
-		{
-			List<MapEntity> collapsed = TupleUtils.collapse(localParameters, targets);
-			return collapsed;
-		}
-	}
-
-	private List<MapEntity> mapGlobalToLocalParameters(List<MapEntity> globalParameters, Step step) throws IOException
-	{
-		List<MapEntity> localParameters = new ArrayList<MapEntity>();
-
-		for (Entity global : globalParameters)
-		{
-			MapEntity local = new MapEntity();
-
-			// include row number for later to enable uncollapse
-			local.set(Parameters.ID_COLUMN, global.get(Parameters.ID_COLUMN));
-
-			// check and map
-			for (Input i : step.getProtocol().getInputs())
-			{
-				// check the mapping, give error if missing
-				String localName = i.getName();
-				String globalName = step.getLocalGlobalParameterMap().get(localName);
-
-				// appending "user_" if needed
-				String parameterNameWithPrefix = null;
-				if (globalName == null)
-				{
-					// automapping
-					globalName = localName;
-				}
-
-				boolean found = false;
-				for (String col : global.getAttributeNames())
-				{
-					if (!workflow.parameterHasStepPrefix(globalName)) parameterNameWithPrefix = Parameters.USER_PREFIX
-							+ globalName;
-					else parameterNameWithPrefix = globalName;
-
-					if (col.equals(parameterNameWithPrefix))
-					{
-						found = true;
-						break;
-					}
-				}
-
-				if (!found)
-				{
-					LOG.warn("Parameter [" + localName + "] is unknown at design time");
-				}
-				else local.set(localName, global.get(parameterNameWithPrefix));
-			}
-
-			localParameters.add(local);
-		}
-
-		return localParameters;
-	}
-
-	/**
-	 * Analyze lists in workflow protocols and determine whether these lists should be combined or not
-	 * 
-	 * @param workflow
-	 */
-	public void determineCombineLists(Workflow workflow)
-	{
-		for (Step step : workflow.getSteps())
-		{
-			Protocol protocol = step.getProtocol();
-
-			// calculate how many separated lists we have
-			int size = 0;
-			for (Input input : protocol.getInputs())
-			{
-				if (input.getType().equalsIgnoreCase(Input.TYPE_LIST))
-				{
-					size++;
-				}
-			}
-
-			if (size > 1) for (Input input : protocol.getInputs())
-			{
-				if (input.getType().equalsIgnoreCase(Input.TYPE_LIST) && !input.isCombinedListsNotation())
-				{
-					input.setCombineLists(false);
-				}
-			}
-		}
-
+		globalParameters = context.getParameters().getValues();
 	}
 }
