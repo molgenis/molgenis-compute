@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,7 +52,7 @@ public class EnvironmentGenerator
 		output.append("#\n## User parameters\n#\n");
 
 		// user parameters that we want to put in environment
-		HashSet<String> userInputParamSet = new HashSet<String>();
+		HashSet<String> userInputParamSet = new LinkedHashSet<String>();
 
 		steps = compute.getWorkflow().getSteps();
 
