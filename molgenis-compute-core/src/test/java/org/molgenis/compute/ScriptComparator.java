@@ -18,6 +18,9 @@ public class ScriptComparator
 {
 	public static final String OUTPUT_DIRECTORY = "target/test/benchmark/run";
 
+	private static final String EXPECTED_FILES_FOLDER = "target/extra-resources/expected/";
+	private static final String COMPUTE_PROPERTIES_FILE = ".compute.properties";
+
 	private static final FilenameFilter EXTENSION_FILTER = new FilenameFilter()
 	{
 		@Override
@@ -37,9 +40,6 @@ public class ScriptComparator
 		}
 	};
 
-	private static final String EXTRA_RESOURCES_EXPECTED_FOLDER = "target/extra-resources/expected/";
-	private static final String COMPUTE_PROPERTIES_FILE = ".compute.properties";
-
 	@BeforeMethod
 	public void beforeMethod() throws IOException
 	{
@@ -55,8 +55,8 @@ public class ScriptComparator
 	public void testOutputDirectoryFiles(String testMethodId) throws Exception
 	{
 		System.out.println("--- Test created file contents in test: " + testMethodId + "---");
-		compareOutputDirectoryToExpectedDirectory(EXTRA_RESOURCES_EXPECTED_FOLDER + testMethodId, "");
-		for (File file : new File(EXTRA_RESOURCES_EXPECTED_FOLDER + testMethodId).listFiles(BATCH_FILTER))
+		compareOutputDirectoryToExpectedDirectory(EXPECTED_FILES_FOLDER + testMethodId, "");
+		for (File file : new File(EXPECTED_FILES_FOLDER + testMethodId).listFiles(BATCH_FILTER))
 		{
 			compareOutputDirectoryToExpectedDirectory(file.getPath(), file.getName());
 		}
