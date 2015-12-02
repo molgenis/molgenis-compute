@@ -17,7 +17,8 @@ import org.testng.annotations.BeforeMethod;
 public class ScriptComparator
 {
 	public static final String OUTPUT_DIRECTORY = "target/test/benchmark/run";
-	public static final FilenameFilter EXTENSION_FILTER = new FilenameFilter()
+
+	private static final FilenameFilter EXTENSION_FILTER = new FilenameFilter()
 	{
 		@Override
 		public boolean accept(File dir, String name)
@@ -27,7 +28,7 @@ public class ScriptComparator
 		}
 	};
 
-	public static final FilenameFilter BATCH_FILTER = new FilenameFilter()
+	private static final FilenameFilter BATCH_FILTER = new FilenameFilter()
 	{
 		@Override
 		public boolean accept(File dir, String name)
@@ -36,6 +37,9 @@ public class ScriptComparator
 		}
 	};
 
+	private static final String EXTRA_RESOURCES_EXPECTED_FOLDER = "target/extra-resources/expected/";
+	private static final String COMPUTE_PROPERTIES_FILE = ".compute.properties";
+
 	@BeforeMethod
 	public void beforeMethod() throws IOException
 	{
@@ -43,30 +47,29 @@ public class ScriptComparator
 		FileUtils.deleteDirectory(f);
 		Assert.assertFalse(f.exists());
 
-		f = new File(".compute.properties");
+		f = new File(COMPUTE_PROPERTIES_FILE);
 		FileUtils.deleteQuietly(f);
 		Assert.assertFalse(f.exists());
-	}
-
-	public void compareOutputDirToExpectedDir(String expectedDirectory, String subDirectory)
-	{
-		File expectedFilesDirectoryAfterGenerate = new File(expectedDirectory);
-		for (File expectedFile : expectedFilesDirectoryAfterGenerate.listFiles(EXTENSION_FILTER))
-		{
-
-			File actualFile = new File(new File(OUTPUT_DIRECTORY + File.separator + subDirectory),
-					expectedFile.getName());
-			Assertions.assertThat(actualFile).hasSameContentAs(expectedFile);
-		}
 	}
 
 	public void testOutputDirectoryFiles(String testMethodId) throws Exception
 	{
 		System.out.println("--- Test created file contents in test: " + testMethodId + "---");
-		compareOutputDirToExpectedDir("src/test/resources/expected/" + testMethodId, "");
-		for (File file : new File("src/test/resources/expected/" + testMethodId).listFiles(BATCH_FILTER))
+		compareOutputDirectoryToExpectedDirectory(EXTRA_RESOURCES_EXPECTED_FOLDER + testMethodId, "");
+		for (File file : new File(EXTRA_RESOURCES_EXPECTED_FOLDER + testMethodId).listFiles(BATCH_FILTER))
 		{
-			compareOutputDirToExpectedDir(file.getPath(), file.getName());
+			compareOutputDirectoryToExpectedDirectory(file.getPath(), file.getName());
+		}
+	}
+
+	private void compareOutputDirectoryToExpectedDirectory(String expectedDirectory, String subDirectory)
+	{
+		File expectedFilesDirectory = new File(expectedDirectory);
+		for (File expectedFile : expectedFilesDirectory.listFiles(EXTENSION_FILTER))
+		{
+			File actualFile = new File(new File(OUTPUT_DIRECTORY + File.separator + subDirectory),
+					expectedFile.getName());
+			Assertions.assertThat(actualFile).hasSameContentAs(expectedFile);
 		}
 	}
 }

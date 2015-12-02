@@ -31,6 +31,24 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+        		<artifactId>maven-resources-plugin</artifactId>
+        		<executions>
+          			<execution>
+            			<id>copy-resources</id>
+            			<!-- here the phase you need -->
+            			<phase>test</phase>
+            			<goals>
+              				<goal>testResources</goal>
+            			</goals>
+            			<configuration>
+              				<delimiters>
+              					<delimiter>TEST_PROPERTY(*)</delimiter>
+              				</delimiters>
+            			</configuration>
+          			</execution>
+        		</executions>
+      		</plugin>
 		</plugins>
 	</build>
 	<reporting>

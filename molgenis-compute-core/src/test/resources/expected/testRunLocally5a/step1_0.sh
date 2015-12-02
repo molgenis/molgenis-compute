@@ -109,11 +109,11 @@ alloutputsexist()
 taskId="step1_0"
 
 # Make compute.properties available
-rundir="/Users/mdehaan/git/molgenis-compute/molgenis-compute-core/target/test/benchmark/run"
+rundir="TEST_PROPERTY(project.basedir)/target/test/benchmark/run"
 runid="testRunLocally5a"
 workflow="src/main/resources/workflows/benchmark.5.1/workflow.a.csv"
 parameters="src/main/resources/workflows/benchmark.5.1/parameters.csv"
-user="mdehaan"
+user="TEST_PROPERTY(user.name)"
 database="none"
 backend="localhost"
 port="80"
