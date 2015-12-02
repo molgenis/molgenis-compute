@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.collect.Iterables;
-
 import org.apache.log4j.Logger;
 import org.molgenis.compute.db.ComputeDbException;
 import org.molgenis.compute.db.api.RunStatus;
@@ -22,14 +20,14 @@ import org.molgenis.data.DataService;
 import org.molgenis.data.Query;
 import org.molgenis.data.support.QueryImpl;
 import org.molgenis.omx.auth.MolgenisUser;
-import org.molgenis.security.core.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.Iterables;
 
 /**
  * ComputeRun service facade
@@ -60,7 +58,7 @@ public class RunService
 	private DataService dataService;
 
 	public ComputeRun create(String name, String backendUrl, Long pollDelay,
-							 List<Task> tasks, String userEnvironment, String userName, String submitScript)
+							 Iterable<Task> tasks, String userEnvironment, String userName, String submitScript)
 	{
 		Iterable<ComputeBackend> backends = dataService.findAll(ComputeBackend.ENTITY_NAME, new QueryImpl()
 				.eq(ComputeBackend.BACKENDURL, backendUrl), ComputeBackend.class);
