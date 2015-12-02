@@ -243,7 +243,8 @@ public class ComputeCommandLine
 	}
 
 	/**
-	 * Generate all jobs and tasks
+	 * Generate {@link Parameters} and {@link Task}s. After generate is complete, bash scripts will be available to
+	 * submit to the cluster
 	 * 
 	 * @param context
 	 * @param computeProperties
