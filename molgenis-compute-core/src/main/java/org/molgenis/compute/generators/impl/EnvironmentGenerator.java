@@ -7,7 +7,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,12 +38,12 @@ public class EnvironmentGenerator
 
 	public static final String GLOBAL_PREFIX = "global_";
 
-	private HashMap<String, String> environment = new HashMap<String, String>();
+	private HashMap<String, String> environment = new LinkedHashMap<String, String>();
 	private List<Step> steps = null;
 	private WorkflowImpl workflowImpl = null;
 
 	// for error handling
-	private ArrayList<Pair<String, String>> arrayOfParameterSteps = new ArrayList<Pair<String, String>>();
+	private LinkedList<Pair<String, String>> arrayOfParameterSteps = new LinkedList<Pair<String, String>>();
 
 	public String getEnvironmentAsString(Context compute) throws Exception
 	{
