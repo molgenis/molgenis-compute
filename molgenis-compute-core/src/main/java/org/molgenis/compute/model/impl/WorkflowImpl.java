@@ -1,7 +1,7 @@
 package org.molgenis.compute.model.impl;
 
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -13,12 +13,12 @@ import com.google.gson.Gson;
 
 public class WorkflowImpl implements Workflow
 {
-	private List<Step> steps = new LinkedList<Step>();
+	private List<Step> steps = new ArrayList<Step>();
 
 	@Override
 	public Set<String> getUserParameters()
 	{
-		Set<String> result = new LinkedHashSet<String>();
+		Set<String> result = new HashSet<String>();
 		for (Step step : steps)
 		{
 			for (String value : step.getParametersMapping().values())
