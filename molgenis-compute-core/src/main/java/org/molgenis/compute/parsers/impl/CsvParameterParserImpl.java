@@ -76,7 +76,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 			MapEntity t = new MapEntity();
 			for (String attributeName : parameterValue.getAttributeNames())
 			{
-				t.set(Parameters.USER_PREFIX + attributeName, parameterValue.get(attributeName));
+				t.set((Parameters.USER_PREFIX + attributeName).intern(), parameterValue.get(attributeName));
 			}
 			t.set(Parameters.ID_COLUMN, count++);
 			userTargets.add(t);

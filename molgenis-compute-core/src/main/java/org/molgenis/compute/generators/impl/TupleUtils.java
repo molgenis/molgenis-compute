@@ -160,7 +160,7 @@ public class TupleUtils
 						// If the generated template is not the same as it was originally
 						if (!value.equals(original))
 						{
-							parameterValue.set(attribute, value);
+							parameterValue.set(attribute, value.intern());
 						}
 					}
 					catch (Exception e)
@@ -188,7 +188,7 @@ public class TupleUtils
 				String value = entry.getValue();
 				for (MapEntity tuple : map)
 				{
-					tuple.set(key, value);
+					tuple.set(key, value.intern());
 				}
 			}
 		}
