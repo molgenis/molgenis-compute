@@ -43,11 +43,12 @@ public class ComputeCommandLine
 {
 	private static final Logger LOG = Logger.getLogger(ComputeCommandLine.class);
 	private CommandLineRunContainer commandLineRunContainer = null;
+	static {
+		BasicConfigurator.configure();
+	}
 
 	public static void main(String[] args) throws Exception
 	{
-		BasicConfigurator.configure();
-
 		LOG.info("### MOLGENIS COMPUTE ###");
 		String version = ComputeCommandLine.class.getPackage().getImplementationVersion();
 		if (null == version) version = "development";
