@@ -109,19 +109,20 @@ alloutputsexist()
 taskId="step1_0"
 
 # Make compute.properties available
-rundir="/Users/mdehaan/git/molgenis-compute/molgenis-compute-core/target/test/benchmark/run"
+rundir="TEST_PROPERTY(project.basedir)/target/test/benchmark/run"
 runid="test1"
 workflow="src/main/resources/workflows/benchmark/workflow.csv"
 parameters="src/main/resources/workflows/benchmark/parameters.3levels.properties"
-user="mdehaan"
+user="TEST_PROPERTY(user.name)"
 database="none"
 backend="localhost"
 port="80"
 interval="2000"
 path="."
 
+
 # Connect parameters to environment
-in="test1hellopost2post1"
+in="${runid}hellopost2post1"
 
 # Validate that each 'value' parameter has only identical values in its list
 # We do that to protect you against parameter values that might not be correctly set at runtime.

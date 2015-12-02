@@ -1,10 +1,23 @@
 package org.molgenis.compute.generators.impl;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.molgenis.compute.model.*;
+import org.molgenis.compute.model.Context;
+import org.molgenis.compute.model.Input;
+import org.molgenis.compute.model.Output;
+import org.molgenis.compute.model.Parameters;
+import org.molgenis.compute.model.Step;
+import org.molgenis.compute.model.Task;
 import org.molgenis.compute.model.impl.WorkflowImpl;
 import org.molgenis.data.support.MapEntity;
 import org.molgenis.util.Pair;
@@ -29,7 +42,7 @@ public class EnvironmentGenerator
 	// for error handling
 	private ArrayList<Pair<String, String>> arrayOfParameterSteps = new ArrayList<Pair<String, String>>();
 
-	public String getEnvironmentAsString(Compute compute) throws Exception
+	public String getEnvironmentAsString(Context compute) throws Exception
 	{
 		workflowImpl = compute.getWorkflow();
 
@@ -76,21 +89,21 @@ public class EnvironmentGenerator
 		{
 			String userParameter = Parameters.USER_PREFIX + parameter;
 
-			for (MapEntity wt : compute.getParameters().getValues())
+			for (MapEntity parameterValues : compute.getParameters().getValues())
 			{
 				// retrieve index and value for that index
 				Integer index = null;
 				String value = null;
-				for (String col : wt.getAttributeNames())
+				for (String col : parameterValues.getAttributeNames())
 				{
-					if (col.equals(userParameter)) value = wt.getString(col);
-					if (col.equals(Parameters.USER_PREFIX + Task.TASKID_COLUMN)) index = wt.getInt(col);
+					if (col.equals(userParameter)) value = parameterValues.getString(col);
+					if (col.equals(Parameters.USER_PREFIX + Task.TASKID_COLUMN)) index = parameterValues.getInt(col);
 				}
 
 				if (value == null)
 				{
 
-					if (!isFoundAsOutput(parameter, wt))
+					if (!isFoundAsOutput(parameter, parameterValues))
 					{
 						List<String> relatedSteps = findRelatedSteps(parameter);
 						throw new Exception("Parameter '" + parameter + "' used in steps " + relatedSteps.toString()
@@ -223,7 +236,7 @@ public class EnvironmentGenerator
 		return isRunTimeVariable;
 	}
 
-	public HashMap<String, String> generate(Compute compute, String workDir) throws Exception
+	public HashMap<String, String> generate(Context compute, String workDir) throws Exception
 	{
 		Parameters.ENVIRONMENT_FULLPATH = workDir + File.separator + Parameters.ENVIRONMENT;
 

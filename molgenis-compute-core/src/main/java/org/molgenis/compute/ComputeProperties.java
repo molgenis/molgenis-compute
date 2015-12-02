@@ -1,7 +1,8 @@
 package org.molgenis.compute;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -19,14 +20,15 @@ import com.google.common.base.Joiner;
 
 public class ComputeProperties
 {
-    private static final Logger LOG = Logger.getLogger(ComputeProperties.class);
+	private static final Logger LOG = Logger.getLogger(ComputeProperties.class);
+
+	private String[] parameterFiles =
+	{ Parameters.PARAMETERS_DEFAULT };
 
 	public String path = Parameters.PATH_DEFAULT;
 	public String workFlow = Parameters.WORKFLOW_DEFAULT;
 	public String defaults = null;
 	public String defaultsCommandLine = null;
-	public String[] parameters =
-	{ Parameters.PARAMETERS_DEFAULT };
 	public String customHeader = null;
 	public String customFooter = null;
 	public String customSubmit = null;
@@ -75,16 +77,17 @@ public class ComputeProperties
 	{
 		options = createOptions();
 		// validate command line args
-		CommandLine cl = null;
+		CommandLine commandLine = null;
+		this.showHelp = true;
 		try
 		{
-			cl = new PosixParser().parse(options, args);
+			commandLine = new PosixParser().parse(options, args);
+			this.showHelp = commandLine.hasOption(Parameters.HELP) || 0 == commandLine.getOptions().length;
 		}
 		catch (ParseException e)
 		{
 			e.printStackTrace();
 		}
-		this.showHelp = cl.hasOption(Parameters.HELP) || 0 == cl.getOptions().length;
 
 		if (this.showHelp || this.create) return;
 
@@ -137,8 +140,8 @@ public class ComputeProperties
 			workflowName = workflowName.substring(0, workflowName.indexOf('.')); // strip
 																					// extension
 
-			File defaultsFileTest = new File(workflowFilePath + File.separator + workflowName + "."
-					+ Parameters.DEFAULTS_DEFAULT);
+			File defaultsFileTest = new File(
+					workflowFilePath + File.separator + workflowName + "." + Parameters.DEFAULTS_DEFAULT);
 			if (defaultsFileTest.exists())
 			{ // first check [workflow].defaults.csv
 				this.defaults = defaultsFileTest.toString();
@@ -160,10 +163,11 @@ public class ComputeProperties
 		this.workFlow = updatePath(path, this.workFlow);
 
 		ArrayList<String> pathParameters = new ArrayList<String>();
-		for (String p : this.parameters)
-			pathParameters.add(updatePath(path, p));
-		this.parameters = pathParameters.toArray(new String[pathParameters.size()]);
-
+		for (String parameterFile : this.getParameterFiles())
+		{
+			pathParameters.add(updatePath(path, parameterFile));
+		}
+		this.setParameterFiles(pathParameters.toArray(new String[pathParameters.size()]));
 	}
 
 	/**
@@ -249,8 +253,8 @@ public class ComputeProperties
 
 			// generate only if -g or if -w and -p present
 			this.generate = cmd.hasOption(Parameters.GENERATE_CMNDLINE_OPTION)
-					|| (cmd.hasOption(Parameters.WORKFLOW_CMNDLINE_OPTION) && cmd
-							.hasOption(Parameters.PARAMETERS_CMNDLINE_OPTION));
+					|| (cmd.hasOption(Parameters.WORKFLOW_CMNDLINE_OPTION)
+							&& cmd.hasOption(Parameters.PARAMETERS_CMNDLINE_OPTION));
 
 			this.clear = cmd.hasOption(Parameters.CLEAR);
 			this.weave = cmd.hasOption(Parameters.WEAVE);
@@ -275,7 +279,7 @@ public class ComputeProperties
 			this.list = cmd.hasOption(Parameters.LIST);
 
 			String[] cmdParameters = cmd.getOptionValues(Parameters.PARAMETERS_CMNDLINE_OPTION);
-			if (null != cmdParameters) this.parameters = cmdParameters;
+			if (null != cmdParameters) this.setParameterFiles(cmdParameters);
 		}
 		catch (ParseException e)
 		{
@@ -334,7 +338,7 @@ public class ComputeProperties
 
 	public String parametersString()
 	{
-		return Joiner.on(",").join(this.parameters);
+		return Joiner.on(",").join(this.getParameterFiles());
 	}
 
 	/**
@@ -385,12 +389,12 @@ public class ComputeProperties
 		options.addOption(b);
 		options.addOption(runDir);
 		options.addOption(runId);
-		options.addOption(OptionBuilder
-				.withDescription("Host, location of database. Default: " + Parameters.DATABASE_DEFAULT).hasArg()
-				.withLongOpt(Parameters.DATABASE).create(Parameters.DATABASE_CMNDLINE_OPTION));
-		options.addOption(OptionBuilder
-				.withDescription("Port used to connect to databasae. Default: " + Parameters.PORT_DEFAULT).hasArg()
-				.withLongOpt(Parameters.PORT).create(Parameters.PORT_CMNDLINE_OPTION));
+		options.addOption(
+				OptionBuilder.withDescription("Host, location of database. Default: " + Parameters.DATABASE_DEFAULT)
+						.hasArg().withLongOpt(Parameters.DATABASE).create(Parameters.DATABASE_CMNDLINE_OPTION));
+		options.addOption(
+				OptionBuilder.withDescription("Port used to connect to databasae. Default: " + Parameters.PORT_DEFAULT)
+						.hasArg().withLongOpt(Parameters.PORT).create(Parameters.PORT_CMNDLINE_OPTION));
 		options.addOption(OptionBuilder.withDescription("Starts the database").withLongOpt(Parameters.DATABASE_START)
 				.create(Parameters.DATABASE_START_CMNDLINE_OPTION));
 		options.addOption(OptionBuilder.withDescription("End the database").withLongOpt(Parameters.DATABASE_END)
@@ -406,16 +410,21 @@ public class ComputeProperties
 				.withDescription(
 						"Run jobs from current directory on current backend. When using --database this will return a 'id' for --pilot.")
 				.withLongOpt(Parameters.RUN).create(Parameters.RUN_CMNDLINE_OPTION));
-		options.addOption(OptionBuilder
-				.withDescription("Supply user name to login to molgenis database. Default is your own user name.")
-				.hasArg().withLongOpt(Parameters.MOLGENIS_USER_CMNDLINE)
-				.create(Parameters.MOLGENIS_USER_CMNDLINE_OPTION));
+		options.addOption(
+				OptionBuilder
+						.withDescription(
+								"Supply user name to login to molgenis database. Default is your own user name.")
+						.hasArg().withLongOpt(Parameters.MOLGENIS_USER_CMNDLINE)
+						.create(Parameters.MOLGENIS_USER_CMNDLINE_OPTION));
 		options.addOption(OptionBuilder.withDescription("Supply user pass to login to molgenis. Default is not saved.")
 				.hasArg().withLongOpt(Parameters.MOLGENIS_PASS_CMNDLINE)
 				.create(Parameters.MOLGENIS_PASS_CMNDLINE_OPTION));
-		options.addOption(OptionBuilder
-				.withDescription("Supply user name to login to execution backend. Default is your own user name.")
-				.hasArg().withLongOpt(Parameters.BACKEND_USER_CMNDLINE).create(Parameters.BACKEND_USER_CMNDLINE_OPTION));
+		options.addOption(
+				OptionBuilder
+						.withDescription(
+								"Supply user name to login to execution backend. Default is your own user name.")
+						.hasArg().withLongOpt(Parameters.BACKEND_USER_CMNDLINE)
+						.create(Parameters.BACKEND_USER_CMNDLINE_OPTION));
 		options.addOption(OptionBuilder
 				.withDescription("Supply user pass to login to execution backend. Default is not saved.").hasArg()
 				.withLongOpt(Parameters.BACKEND_PASS_CMNDLINE).create(Parameters.BACKEND_PASS_CMNDLINE_OPTION));
@@ -424,11 +433,9 @@ public class ComputeProperties
 				.create(Parameters.CLEAR));
 		options.addOption(OptionBuilder.withDescription("Weave parameters to the actual script")
 				.withLongOpt(Parameters.WEAVE).create(Parameters.WEAVE));
-		options.addOption(OptionBuilder
-				.hasArg()
-				.withDescription(
-						"Location of the workflow in the public github repository. The other"
-								+ "parameters should be specified relatively to specified github root.")
+		options.addOption(OptionBuilder.hasArg()
+				.withDescription("Location of the workflow in the public github repository. The other"
+						+ "parameters should be specified relatively to specified github root.")
 				.withLongOpt(Parameters.WEB).create(Parameters.WEB));
 
 		options.addOption(OptionBuilder
@@ -462,5 +469,15 @@ public class ComputeProperties
 	public HashMap<String, String> getParametersToOverwrite()
 	{
 		return parametersToOverwriteMap;
+	}
+
+	public String[] getParameterFiles()
+	{
+		return parameterFiles;
+	}
+
+	public void setParameterFiles(String[] parameters)
+	{
+		this.parameterFiles = parameters;
 	}
 }

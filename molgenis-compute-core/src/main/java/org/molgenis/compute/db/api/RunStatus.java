@@ -10,14 +10,14 @@ public class RunStatus
 	private final int failed;
 	private final int done;
 	private final int cancelled;
-    private final int submitted;
-    private final int started;
-    private final int jobsubmitted;
+	private final int submitted;
+	private final int started;
+	private final int jobsubmitted;
 
-    private final boolean isComplete;
+	private final boolean isComplete;
 
 	public RunStatus(int generated, int ready, int running, int failed, int done, int cancelled, int jobsubmitted,
-                     int submitted, int started, boolean isComplete)
+			int submitted, int started, boolean isComplete)
 	{
 		this.generated = generated;
 		this.ready = ready;
@@ -25,10 +25,10 @@ public class RunStatus
 		this.done = done;
 		this.failed = failed;
 		this.cancelled = cancelled;
-        this.jobsubmitted = jobsubmitted;
-        this.submitted = submitted;
-        this.started = started;
-        this.isComplete = isComplete;
+		this.jobsubmitted = jobsubmitted;
+		this.submitted = submitted;
+		this.started = started;
+		this.isComplete = isComplete;
 	}
 
 	public int getGenerated()
@@ -62,26 +62,26 @@ public class RunStatus
 	}
 
 	public int getSubmitted()
-    {
-        return submitted;
-    }
+	{
+		return submitted;
+	}
 
 	public int getJobsubmitted()
-    {
-        return jobsubmitted;
-    }
+	{
+		return jobsubmitted;
+	}
 
-    public int getStarted()
-    {
-        return started;
-    }
+	public int getStarted()
+	{
+		return started;
+	}
 
-    public boolean isComplete()
-    {
-        return isComplete;
-    }
+	public boolean isComplete()
+	{
+		return isComplete;
+	}
 
-    @Override
+	@Override
 	public String toString()
 	{
 		return ToStringBuilder.reflectionToString(this);

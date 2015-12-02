@@ -1,17 +1,22 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-    <properties>
-        <molgenis.version>1.2.0</molgenis.version>
-    </properties>
+	<properties>
+		<molgenis.version>1.2.0</molgenis.version>
+	</properties>
 	<parent>
 		<groupId>org.molgenis</groupId>
 		<artifactId>molgenis-compute</artifactId>
 		<version>1.2.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>molgenis-compute-core</artifactId>
-
 	<build>
+		<testResources>
+			<testResource>
+				<directory>src/test/resources</directory>
+				<filtering>true</filtering>
+			</testResource>
+		</testResources>
 		<plugins>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
@@ -31,38 +36,48 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<configuration>
+					<filtering>true</filtering>
+					<useDefaultDelimiters>false</useDefaultDelimiters>
+					<delimiters>
+						<delimiter>TEST_PROPERTY(*)</delimiter>
+					</delimiters>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 	<reporting>
-        <plugins>
-            <!-- code coverage -->
-            <plugin>
+		<plugins>
+			<!-- code coverage -->
+			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.7.2.201409121644</version>
 			</plugin>
-            <!-- code analysis -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
-                <version>3.0.0</version>
-                <configuration>
-                    <xmlOutput>true</xmlOutput>
-                </configuration>
-            </plugin>
-            <!-- project reports -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-project-info-reports-plugin</artifactId>
-                <version>2.7</version>
-                <configuration>
-                    <!-- improve report generation performance -->
-                    <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
-                    <project.remoteArtifactRepositories>enonic</project.remoteArtifactRepositories>
-                </configuration>
-            </plugin>
-        </plugins>
-    </reporting>	
+			<!-- code analysis -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>findbugs-maven-plugin</artifactId>
+				<version>3.0.0</version>
+				<configuration>
+					<xmlOutput>true</xmlOutput>
+				</configuration>
+			</plugin>
+			<!-- project reports -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>2.7</version>
+				<configuration>
+					<!-- improve report generation performance -->
+					<dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+					<project.remoteArtifactRepositories>enonic</project.remoteArtifactRepositories>
+				</configuration>
+			</plugin>
+		</plugins>
+	</reporting>
 	<dependencies>
 		<dependency>
 			<groupId>commons-cli</groupId>
@@ -70,15 +85,15 @@
 			<version>1.2</version>
 		</dependency>
 		<dependency>
+		        <groupId>org.molgenis</groupId>
+		        <artifactId>molgenis-core</artifactId>
+		        <version>${molgenis.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.molgenis</groupId>
-			<artifactId>molgenis-core</artifactId>
+			<artifactId>molgenis-data</artifactId>
 			<version>${molgenis.version}</version>
 		</dependency>
-        <dependency>
-            <groupId>org.molgenis</groupId>
-            <artifactId>molgenis-data</artifactId>
-            <version>${molgenis.version}</version>
-        </dependency>
         <dependency>
             <groupId>org.molgenis</groupId>
             <artifactId>molgenis-data-excel</artifactId>
@@ -97,7 +112,7 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>14.0.1</version>
+			<version>18.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -105,10 +120,10 @@
 			<version>3.1</version>
 		</dependency>
 		<dependency>
-  			<groupId>org.assertj</groupId>
-  			<artifactId>assertj-core</artifactId>
-  			<version>2.2.0</version>
- 			<scope>test</scope>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<version>3.2.0</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>

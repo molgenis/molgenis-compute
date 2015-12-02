@@ -71,16 +71,17 @@ touch step0_1.sh.started
 taskId="step0_1"
 
 # Make compute.properties available
-rundir="/Users/mdehaan/git/molgenis-compute/molgenis-compute-core/target/test/benchmark/run"
+rundir="TEST_PROPERTY(project.basedir)/target/test/benchmark/run"
 runid="testGenerate5ErrorMail"
 workflow="src/main/resources/workflows/benchmark.5.1/workflow.csv"
 parameters="src/main/resources/workflows/benchmark.5.1/parameters.csv,src/main/resources/workflows/benchmark.5.1/sysparameters.csv"
-user="mdehaan"
+user="TEST_PROPERTY(user.name)"
 database="none"
 backend="slurm"
 port="80"
 interval="2000"
 path="."
+
 
 # Connect parameters to environment
 input="bye"
