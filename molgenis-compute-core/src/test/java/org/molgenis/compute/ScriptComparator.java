@@ -18,7 +18,7 @@ public class ScriptComparator
 {
 	public static final String OUTPUT_DIRECTORY = "target/test/benchmark/run";
 
-	private static final String EXPECTED_FILES_FOLDER = "target/extra-resources/expected/";
+	private static final String EXPECTED_FILES_FOLDER = "target/test-classes/expected/";
 	private static final String COMPUTE_PROPERTIES_FILE = ".compute.properties";
 
 	private static final FilenameFilter EXTENSION_FILTER = new FilenameFilter()
