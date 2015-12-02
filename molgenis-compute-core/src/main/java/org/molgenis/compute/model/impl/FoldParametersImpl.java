@@ -178,10 +178,10 @@ public class FoldParametersImpl implements FoldParameters
 			for (int lineIndex = 1; lineIndex < allLines.size(); lineIndex++)
 			{
 				String str = allLines.get(lineIndex)[columnIndex];
-				columnValues.add(str);
+				columnValues.add(str.intern());
 			}
 			assertParameterIsNotYetRead(columnName);
-			result.put(columnName, columnValues);
+			result.put(columnName.intern(), columnValues);
 		}
 		return result;
 	}
@@ -214,13 +214,13 @@ public class FoldParametersImpl implements FoldParameters
 				String name = line[0].substring(0, eq);
 				String value = line[0].substring(eq + 1);
 
-				values.add(value);
+				values.add(value.intern());
 
 				for (int i = 1; i < line.length; i++)
-					values.add(line[i].trim());
+					values.add(line[i].trim().intern());
 
 				assertParameterIsNotYetRead(name);
-				result.put(name, values);
+				result.put(name.intern(), values);
 			}
 		}
 		return result;

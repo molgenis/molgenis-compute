@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -23,6 +24,7 @@ import org.molgenis.compute.parsers.CsvParameterParser;
 import org.molgenis.compute.urlreader.impl.UrlReaderImpl;
 import org.molgenis.data.Entity;
 import org.molgenis.data.csv.CsvRepository;
+import org.molgenis.data.processor.CellProcessor;
 import org.molgenis.data.support.MapEntity;
 
 public class CsvParameterParserImpl implements CsvParameterParser
@@ -216,7 +218,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 					{
 						// expanded wt
 						MapEntity ewt = new MapEntity(wt);
-						ewt.set(col, v);
+						ewt.set(col, v.intern());
 						expandedTupleLstTmp.add(ewt);
 					}
 				}
@@ -401,7 +403,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 			{
 				String key = keySetIterator.next().toString();
 				String value = properties.getProperty(key);
-				keyValueEntity.set(key, value);
+				keyValueEntity.set(key.intern(), value.intern());
 			}
 
 			tupleList.add(keyValueEntity);
@@ -426,7 +428,29 @@ public class CsvParameterParserImpl implements CsvParameterParser
 				}
 			}
 
-			for (Entity entity : new CsvRepository(file, null))
+			CellProcessor interningCellProcessor = new CellProcessor()
+			{
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public boolean processHeader()
+				{
+					return true;
+				}
+
+				@Override
+				public boolean processData()
+				{
+					return true;
+				}
+
+				@Override
+				public String process(String value)
+				{
+					return value.intern();
+				}
+			};
+			for (Entity entity : new CsvRepository(file, Collections.singletonList(interningCellProcessor)))
 			{
 				tupleList.add(entity);
 			}
@@ -477,11 +501,11 @@ public class CsvParameterParserImpl implements CsvParameterParser
 							// of its parent as path
 							if (value.charAt(0) == '/')
 							{
-								fileSet.add(value);
+								fileSet.add(value.intern());
 							}
 							else
 							{
-								fileSet.add(file.getParent() + File.separator + value);
+								fileSet.add((file.getParent() + File.separator + value).intern());
 							}
 						}
 					}
@@ -532,11 +556,11 @@ public class CsvParameterParserImpl implements CsvParameterParser
 						// of its parent
 						if (value.charAt(0) == '/')
 						{
-							fileLocationList.add(value);
+							fileLocationList.add(value.intern());
 						}
 						else
 						{
-							fileLocationList.add(file.getParent() + File.separator + value);
+							fileLocationList.add((file.getParent() + File.separator + value).intern());
 						}
 					}
 
