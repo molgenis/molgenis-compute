@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=${project}_${taskId}
+#SBATCH --job-name=${taskId}
 #SBATCH --output=${taskId}.out
 #SBATCH --error=${taskId}.err
 #SBATCH --partition=${queue}
