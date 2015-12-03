@@ -32,25 +32,25 @@
 			<outputDirectory>/lib</outputDirectory>
 			<unpack>false</unpack>
 			<includes>
-				<include>org.molgenis:molgenis-core:1.2.0</include>
-				<include>org.molgenis:molgenis-compute-core:1.2.0</include>
-				<include>org.molgenis:molgenis-data:1.2.0</include>
-				<include>org.molgenis:molgenis-data-excel:1.2.0</include>
-				<include>org.molgenis:molgenis-data-csv:1.2.0</include>
-				<include>commons-cli:commons-cli:1.2</include>
-				<include>org.freemarker:freemarker:2.3.18</include>
-				<include>log4j:log4j:1.2.17</include>
-				<include>net.sf.opencsv:opencsv:2.3</include>
-				<include>commons-io:commons-io:2.4</include>
-				<include>org.apache.httpcomponents:httpclient:4.2.5</include>
-                <include>org.apache.httpcomponents:httpcore:4.2.4</include>
-                <include>com.google.guava:guava:18.0</include>
-				<include>org.apache.commons:commons-lang3:3-3.1</include>
-                <include>commons-logging:commons-logging:1.1.1</include>
-                <include>com.google.code.gson:gson:2.2.4</include>
-                <include>org.springframework:spring-core:4.1.6</include>
-                <include>org.springframework:spring-context:4.1.6</include>
-                <include>org.springframework:spring-beans4.1.6</include>
+				<include>org.molgenis:molgenis-core</include>
+				<include>org.molgenis:molgenis-compute-core</include>
+				<include>org.molgenis:molgenis-data</include>
+				<include>org.molgenis:molgenis-data-excel</include>
+				<include>org.molgenis:molgenis-data-csv</include>
+				<include>commons-cli:commons-cli</include>
+				<include>org.freemarker:freemarker</include>
+				<include>log4j:log4j</include>
+				<include>net.sf.opencsv:opencsv</include>
+				<include>commons-io:commons-io</include>
+				<include>org.apache.httpcomponents:httpclient</include>
+                <include>org.apache.httpcomponents:httpcore</include>
+                <include>com.google.guava:guava</include>
+				<include>org.apache.commons:commons-lang3</include>
+                <include>commons-logging:commons-logging</include>
+                <include>com.google.code.gson:gson</include>
+                <include>org.springframework:spring-core</include>
+                <include>org.springframework:spring-context</include>
+                <include>org.springframework:spring-beans</include>
 			</includes>
 		</dependencySet>
 	</dependencySets>
