@@ -1,5 +1,10 @@
 package org.molgenis.compute;
 
+import static com.google.common.base.Strings.repeat;
+import static com.google.common.io.Resources.getResource;
+import static com.google.common.io.Resources.readLines;
+import static freemarker.log.Logger.selectLoggerLibrary;
+
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -34,6 +39,8 @@ import org.molgenis.compute.parsers.impl.CsvParameterParserImpl;
 import org.molgenis.compute.parsers.impl.WorkflowCsvParserImpl;
 import org.molgenis.compute.sysexecutor.impl.SystemCommandExecutorImpl;
 
+import com.google.common.base.Charsets;
+
 /**
  * Commandline program for compute5. Usage: -w workflow.csv -p parameters.csv [-p moreParameters.csv]
  * 
@@ -43,16 +50,22 @@ public class ComputeCommandLine
 {
 	private static final Logger LOG = Logger.getLogger(ComputeCommandLine.class);
 	private CommandLineRunContainer commandLineRunContainer = null;
-	static {
+
+	static
+	{
 		BasicConfigurator.configure();
 	}
 
 	public static void main(String[] args) throws Exception
 	{
-		LOG.info("### MOLGENIS COMPUTE ###");
+		System.out.println(repeat("-", 80));
+		for (String line : readLines(getResource("banner.txt"), Charsets.UTF_8))
+		{
+			System.out.println(line);
+		}
 		String version = ComputeCommandLine.class.getPackage().getImplementationVersion();
-		if (null == version) version = "development";
-		LOG.info("Version: " + version);
+		System.out.println("Version: " + (version != null ? version : "DEVELOPMENT"));
+		System.out.println(repeat("-", 80));
 
 		// disable freemarker logging
 		freemarker.log.Logger.selectLoggerLibrary(freemarker.log.Logger.LIBRARY_NONE);
