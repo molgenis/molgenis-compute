@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -39,7 +40,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 	{
 		properties = computeProperties;
 		Parameters parameters = null;
-		Set<String> uniqueFiles = new HashSet<String>();
+		Set<String> uniqueFiles = new LinkedHashSet<String>();
 
 		if (!properties.isWebWorkflow)
 		{
