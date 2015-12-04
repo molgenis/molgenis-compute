@@ -17,6 +17,7 @@ public class StringStore
 
 	public String intern(String s)
 	{
-		return strings.putIfAbsent(s, s);
+		strings.putIfAbsent(s, s);
+		return strings.get(s);
 	}
 }
