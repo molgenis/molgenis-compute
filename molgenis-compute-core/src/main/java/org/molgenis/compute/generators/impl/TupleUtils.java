@@ -12,8 +12,7 @@ import java.util.Map;
 import org.molgenis.compute.model.Parameters;
 import org.molgenis.compute.model.StringStore;
 import org.molgenis.compute.model.Task;
-import org.molgenis.data.Entity;
-import org.molgenis.data.support.MapEntity;
+import org.molgenis.compute.model.impl.DataEntity;
 
 import com.google.common.collect.Iterables;
 
@@ -41,14 +40,14 @@ public class TupleUtils
 
 	/**
 	 * 
-	 * @param parameters
+	 * @param localParameters
 	 * @param targets
-	 * @return A list of {@link MapEntity}
+	 * @return A list of {@link DataEntity}
 	 */
-	public static List<MapEntity> collapse(List<MapEntity> parameters, List<String> targets)
+	public static List<DataEntity> collapse(List<DataEntity> localParameters, List<String> targets)
 	{
-		Map<String, MapEntity> result = new LinkedHashMap<String, MapEntity>();
-		for (Entity parameter : parameters)
+		Map<String, DataEntity> result = new LinkedHashMap<String, DataEntity>();
+		for (DataEntity parameter : localParameters)
 		{
 			// generate key
 			String key = generateKeyFromTargets(targets, parameter);
@@ -56,7 +55,7 @@ public class TupleUtils
 			// Create tuple if the key is not present, create lists for non-targets
 			if (result.get(key) == null)
 			{
-				MapEntity collapsedRow = new MapEntity();
+				DataEntity collapsedRow = new DataEntity();
 				for (String attribute : parameter.getAttributeNames())
 				{
 					if (targets.contains(attribute))
@@ -87,7 +86,7 @@ public class TupleUtils
 			}
 		}
 
-		return new ArrayList<MapEntity>(result.values());
+		return new ArrayList<DataEntity>(result.values());
 	}
 
 	/**
@@ -97,7 +96,7 @@ public class TupleUtils
 	 * @param parameter
 	 * @return The generated key
 	 */
-	private static String generateKeyFromTargets(List<String> targets, Entity parameter)
+	private static String generateKeyFromTargets(List<String> targets, DataEntity parameter)
 	{
 		String key = "";
 		for (String target : targets)
@@ -113,7 +112,7 @@ public class TupleUtils
 	 * @throws IOException
 	 * @throws TemplateException
 	 */
-	public void solve(List<MapEntity> parameterValues) throws IOException
+	public void solve(List<DataEntity> parameterValues) throws IOException
 	{
 		// Freemarker configuration
 		Configuration freeMarkerConfiguration = new Configuration();
@@ -122,7 +121,7 @@ public class TupleUtils
 		replaceParameters(parameterValues);
 
 		// For every Parameter value
-		for (MapEntity parameterValue : parameterValues)
+		for (DataEntity parameterValue : parameterValues)
 		{
 			// For every attribute within this parameterValue map
 			for (String attribute : parameterValue.getAttributeNames())
@@ -184,7 +183,7 @@ public class TupleUtils
 	 * 
 	 * @param map
 	 */
-	private void replaceParameters(List<MapEntity> map)
+	private void replaceParameters(List<DataEntity> map)
 	{
 		if (parametersToOverwrite != null)
 		{
@@ -192,7 +191,7 @@ public class TupleUtils
 			{
 				String key = entry.getKey();
 				String value = entry.getValue();
-				for (MapEntity tuple : map)
+				for (DataEntity tuple : map)
 				{
 					tuple.set(key, stringStore.intern(value));
 				}
@@ -203,15 +202,15 @@ public class TupleUtils
 	/**
 	 * Convert a tuple into a map. Columns with a '_' in them will be nested submaps.
 	 * 
-	 * @param parameterValue
+	 * @param target
 	 * @return A {@link Map} of String Object key value pairs
 	 */
-	public static Map<String, Object> toMap(Entity parameterValue)
+	public static Map<String, Object> toMap(DataEntity target)
 	{
 		Map<String, Object> result = new LinkedHashMap<String, Object>();
-		for (String attribute : parameterValue.getAttributeNames())
+		for (String attribute : target.getAttributeNames())
 		{
-			result.put(attribute, parameterValue.get(attribute));
+			result.put(attribute, target.get(attribute));
 		}
 		return result;
 	}
@@ -223,15 +222,15 @@ public class TupleUtils
 	 * @param idColumn
 	 * @return
 	 */
-	public static List<MapEntity> uncollapse(List<MapEntity> collapsedEntities)
+	public static List<DataEntity> uncollapse(List<DataEntity> collapsedEntities)
 	{
-		List<MapEntity> result = new ArrayList<MapEntity>();
+		List<DataEntity> result = new ArrayList<DataEntity>();
 
-		for (MapEntity collapsedEntity : collapsedEntities)
+		for (DataEntity collapsedEntity : collapsedEntities)
 		{
 			for (int i = 0; i < collapsedEntity.getList(Parameters.ID_COLUMN).size(); i++)
 			{
-				MapEntity copy = new MapEntity();
+				DataEntity copy = new DataEntity();
 				for (String attribute : Iterables.filter(collapsedEntity.getAttributeNames(),
 						TupleUtils::attributesToPreserve))
 				{

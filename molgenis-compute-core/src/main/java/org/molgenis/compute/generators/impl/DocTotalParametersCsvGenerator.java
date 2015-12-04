@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.util.List;
 
 import org.molgenis.compute.model.Parameters;
+import org.molgenis.compute.model.impl.DataEntity;
 import org.molgenis.data.csv.CsvWriter;
-import org.molgenis.data.support.MapEntity;
 
 /** Generates graphvis diagram */
 public class DocTotalParametersCsvGenerator
@@ -17,7 +17,7 @@ public class DocTotalParametersCsvGenerator
 		try
 		{
 			file.getParentFile().mkdirs();
-			List<MapEntity> values = parameters.getValues();
+			List<DataEntity> values = parameters.getValues();
 
 			CsvWriter w = new CsvWriter(new FileWriter(file));
 

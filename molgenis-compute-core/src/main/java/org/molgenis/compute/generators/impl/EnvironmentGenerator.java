@@ -19,8 +19,8 @@ import org.molgenis.compute.model.Output;
 import org.molgenis.compute.model.Parameters;
 import org.molgenis.compute.model.Step;
 import org.molgenis.compute.model.Task;
+import org.molgenis.compute.model.impl.DataEntity;
 import org.molgenis.compute.model.impl.WorkflowImpl;
-import org.molgenis.data.support.MapEntity;
 import org.molgenis.util.Pair;
 
 /**
@@ -90,7 +90,7 @@ public class EnvironmentGenerator
 		{
 			String userParameter = Parameters.USER_PREFIX + parameter;
 
-			for (MapEntity parameterValues : compute.getParameters().getValues())
+			for (DataEntity parameterValues : compute.getParameters().getValues())
 			{
 				// retrieve index and value for that index
 				Integer index = null;
@@ -142,7 +142,7 @@ public class EnvironmentGenerator
 		return relatedSteps;
 	}
 
-	private boolean isFoundAsOutput(String parameter, MapEntity wt)
+	private boolean isFoundAsOutput(String parameter, DataEntity wt)
 	{
 		for (Step step : workflowImpl.getSteps())
 		{

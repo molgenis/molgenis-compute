@@ -21,6 +21,7 @@ import org.molgenis.compute.ComputeProperties;
 import org.molgenis.compute.generators.impl.TupleUtils;
 import org.molgenis.compute.model.Parameters;
 import org.molgenis.compute.model.StringStore;
+import org.molgenis.compute.model.impl.DataEntity;
 import org.molgenis.compute.parsers.CsvParameterParser;
 import org.molgenis.compute.urlreader.impl.UrlReaderImpl;
 import org.molgenis.data.Entity;
@@ -79,10 +80,10 @@ public class CsvParameterParserImpl implements CsvParameterParser
 
 		// mark all columns as 'user_*'
 		int count = 0;
-		List<MapEntity> userTargets = new ArrayList<MapEntity>();
-		for (MapEntity parameterValue : parameters.getValues())
+		List<DataEntity> userTargets = new ArrayList<DataEntity>();
+		for (DataEntity parameterValue : parameters.getValues())
 		{
-			MapEntity t = new MapEntity();
+			DataEntity t = new DataEntity();
 			for (String attributeName : parameterValue.getAttributeNames())
 			{
 				t.set(stringStore.intern(Parameters.USER_PREFIX + attributeName), parameterValue.get(attributeName));
@@ -154,7 +155,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 			parsedParamFiles.add(fileName);
 
 			// get file as list of tuples
-			List<Entity> tupleList = asTuples(file);
+			List<DataEntity> tupleList = asTuples(file);
 
 			// If path to workflow is relative then prepend its parent's path
 			tupleList = updatePath(tupleList, Parameters.WORKFLOW, file);
@@ -202,16 +203,16 @@ public class CsvParameterParserImpl implements CsvParameterParser
 	 * 
 	 * @param tupleLst
 	 */
-	private List<Entity> expand(List<Entity> tupleLst)
+	private List<DataEntity> expand(List<DataEntity> tupleLst)
 	{
 		// all expanded tuples
-		List<Entity> resultLst = new ArrayList<Entity>();
+		List<DataEntity> resultLst = new ArrayList<DataEntity>();
 
-		for (Entity t : tupleLst)
+		for (DataEntity t : tupleLst)
 		{
 			// expanded tuples for this tuple
-			List<MapEntity> expandedTupleLst = new ArrayList<MapEntity>();
-			expandedTupleLst.add(new MapEntity(t));
+			List<DataEntity> expandedTupleLst = new ArrayList<DataEntity>();
+			expandedTupleLst.add(new DataEntity(t));
 
 			for (String col : t.getAttributeNames())
 			{
@@ -221,13 +222,13 @@ public class CsvParameterParserImpl implements CsvParameterParser
 
 				// expand each of the tuples in expandedTupleLst with values in
 				// this column
-				List<MapEntity> expandedTupleLstTmp = new ArrayList<MapEntity>();
-				for (MapEntity wt : expandedTupleLst)
+				List<DataEntity> expandedTupleLstTmp = new ArrayList<DataEntity>();
+				for (DataEntity wt : expandedTupleLst)
 				{
 					for (String v : values)
 					{
 						// expanded wt
-						MapEntity ewt = new MapEntity(wt);
+						DataEntity ewt = new DataEntity(wt);
 						ewt.set(col, stringStore.intern(v));
 						expandedTupleLstTmp.add(ewt);
 					}
@@ -250,7 +251,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 	 * @param colName
 	 * @return A list of Entity columns
 	 */
-	private static List<String> asList(Entity entity, String colName)
+	private static List<String> asList(DataEntity entity, String colName)
 	{
 		String value = entity.getString(colName);
 
@@ -290,7 +291,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 	 */
 	private static Parameters addParsedFile(Parameters parameters, Set<String> parsedParameterFiles)
 	{
-		for (MapEntity target : parameters.getValues())
+		for (DataEntity target : parameters.getValues())
 		{
 			target.set(Parameters.PARAMETER_COLUMN, parsedParameterFiles);
 		}
@@ -304,13 +305,13 @@ public class CsvParameterParserImpl implements CsvParameterParser
 	 * @param targets
 	 * @param newTuples
 	 */
-	private Parameters join(Parameters targets, List<Entity> newTuples)
+	private Parameters join(Parameters targets, List<DataEntity> newTuples)
 	{
 		// joined tuples that we want to return
-		List<MapEntity> joinedTuples = new ArrayList<MapEntity>();
+		List<DataEntity> joinedTuples = new ArrayList<DataEntity>();
 
 		// current tuples
-		List<MapEntity> currentTuples = targets.getValues();
+		List<DataEntity> currentTuples = targets.getValues();
 
 		if (0 == newTuples.size())
 		{
@@ -320,9 +321,9 @@ public class CsvParameterParserImpl implements CsvParameterParser
 		else if (0 == currentTuples.size())
 		{
 			// nothing to join, convert 'right' into targets
-			for (Entity newTuple : newTuples)
+			for (DataEntity newTuple : newTuples)
 			{
-				MapEntity newValue = new MapEntity(newTuple);
+				DataEntity newValue = new DataEntity(newTuple);
 				joinedTuples.add(newValue);
 			}
 		}
@@ -345,9 +346,9 @@ public class CsvParameterParserImpl implements CsvParameterParser
 			joinedFields.remove(Parameters.PARAMETER_COLUMN);
 			joinedFields.retainAll(newFields);
 
-			for (Entity currentTuple : currentTuples)
+			for (DataEntity currentTuple : currentTuples)
 			{
-				for (Entity newTuple : newTuples)
+				for (DataEntity newTuple : newTuples)
 				{
 					// determine whether tuples match and thus should be joinded
 					boolean match = true;
@@ -362,7 +363,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 					// that to 'joined'
 					if (match)
 					{
-						MapEntity tupleMap = new MapEntity();
+						DataEntity tupleMap = new DataEntity();
 						tupleMap.set(newTuple);
 						tupleMap.set(currentTuple);
 						joinedTuples.add(tupleMap);
@@ -385,9 +386,9 @@ public class CsvParameterParserImpl implements CsvParameterParser
 	 * @return A list of entities
 	 * @throws IOException
 	 */
-	private List<Entity> asTuples(File file) throws IOException
+	private List<DataEntity> asTuples(File file) throws IOException
 	{
-		List<Entity> tupleList = new ArrayList<Entity>();
+		List<DataEntity> tupleList = new ArrayList<DataEntity>();
 
 		if (file.toString().endsWith(".properties"))
 		{
@@ -407,7 +408,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 			}
 
 			// set this.variables
-			Entity keyValueEntity = new MapEntity();
+			DataEntity keyValueEntity = new DataEntity();
 			Iterator<Object> keySetIterator = properties.keySet().iterator();
 			while (keySetIterator.hasNext())
 			{
@@ -462,7 +463,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 			};
 			for (Entity entity : new CsvRepository(file, Collections.singletonList(interningCellProcessor)))
 			{
-				tupleList.add(entity);
+				tupleList.add(new DataEntity(entity));
 			}
 		}
 
@@ -478,7 +479,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 	 * @return set of files (in AbsoluteFile notation) to be included
 	 * @throws IOException
 	 */
-	private HashSet<String> getParamFiles(List<Entity> tupleList, File file) throws IOException
+	private HashSet<String> getParamFiles(List<DataEntity> tupleList, File file) throws IOException
 	{
 		boolean noParamColumnFoundYet = true;
 
@@ -489,7 +490,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 		// transform list into file set
 		HashSet<String> fileSet = new HashSet<String>();
 
-		for (Entity entity : tupleList)
+		for (DataEntity entity : tupleList)
 		{
 			for (String columnName : entity.getAttributeNames())
 			{
@@ -545,13 +546,13 @@ public class CsvParameterParserImpl implements CsvParameterParser
 	 * @param tupleList
 	 * @return A list of entities
 	 */
-	private List<Entity> updatePath(List<Entity> tupleList, String columnName, File file)
+	private List<DataEntity> updatePath(List<DataEntity> tupleList, String columnName, File file)
 	{
-		List<Entity> updatedTupleList = new ArrayList<Entity>();
+		List<DataEntity> updatedTupleList = new ArrayList<DataEntity>();
 
-		for (Entity entity : tupleList)
+		for (DataEntity entity : tupleList)
 		{
-			Entity tuple = new MapEntity(entity);
+			DataEntity tuple = new DataEntity(entity);
 
 			for (String colName : entity.getAttributeNames())
 			{

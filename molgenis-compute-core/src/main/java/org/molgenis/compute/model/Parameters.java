@@ -3,7 +3,7 @@ package org.molgenis.compute.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.molgenis.data.support.MapEntity;
+import org.molgenis.compute.model.impl.DataEntity;
 
 /** Container for all parameters */
 public class Parameters
@@ -137,14 +137,14 @@ public class Parameters
 	public static String ENVIRONMENT_FULLPATH = null; // to be set
 
 	// table with all the values
-	List<MapEntity> values = new ArrayList<MapEntity>();
+	List<DataEntity> values = new ArrayList<DataEntity>();
 
-	public List<MapEntity> getValues()
+	public List<DataEntity> getValues()
 	{
 		return values;
 	}
 
-	public void setValues(List<MapEntity> values)
+	public void setValues(List<DataEntity> values)
 	{
 		this.values = values;
 	}
@@ -152,7 +152,7 @@ public class Parameters
 	public String toString()
 	{
 		String result = "";
-		for (MapEntity value : values)
+		for (DataEntity value : values)
 			result += value;
 		return result;
 	}
