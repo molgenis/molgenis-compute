@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.molgenis.compute.model.Parameters;
+import org.molgenis.compute.model.StringStore;
 import org.molgenis.compute.model.Task;
 import org.molgenis.data.Entity;
 import org.molgenis.data.support.MapEntity;
@@ -31,6 +32,12 @@ public class TupleUtils
 {
 	private String runID = null;
 	private HashMap<String, String> parametersToOverwrite = null;
+	private final StringStore stringStore;
+
+	public TupleUtils(StringStore stringStore)
+	{
+		this.stringStore = stringStore;
+	}
 
 	/**
 	 * 
@@ -109,7 +116,6 @@ public class TupleUtils
 	public void solve(List<MapEntity> parameterValues) throws IOException
 	{
 		// Freemarker configuration
-		@SuppressWarnings("deprecation")
 		Configuration freeMarkerConfiguration = new Configuration();
 		Template template;
 
@@ -160,7 +166,7 @@ public class TupleUtils
 						// If the generated template is not the same as it was originally
 						if (!value.equals(original))
 						{
-							parameterValue.set(attribute, value.intern());
+							parameterValue.set(attribute, stringStore.intern(value));
 						}
 					}
 					catch (Exception e)
@@ -188,7 +194,7 @@ public class TupleUtils
 				String value = entry.getValue();
 				for (MapEntity tuple : map)
 				{
-					tuple.set(key, value.intern());
+					tuple.set(key, stringStore.intern(value));
 				}
 			}
 		}

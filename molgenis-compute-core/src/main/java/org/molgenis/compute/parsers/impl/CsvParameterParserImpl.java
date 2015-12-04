@@ -20,6 +20,7 @@ import org.apache.log4j.Logger;
 import org.molgenis.compute.ComputeProperties;
 import org.molgenis.compute.generators.impl.TupleUtils;
 import org.molgenis.compute.model.Parameters;
+import org.molgenis.compute.model.StringStore;
 import org.molgenis.compute.parsers.CsvParameterParser;
 import org.molgenis.compute.urlreader.impl.UrlReaderImpl;
 import org.molgenis.data.Entity;
@@ -37,12 +38,20 @@ public class CsvParameterParserImpl implements CsvParameterParser
 
 	private UrlReaderImpl urlReaderImpl = new UrlReaderImpl();
 
+	private final StringStore stringStore;
+
+	public CsvParameterParserImpl(StringStore stringStore)
+	{
+		this.stringStore = stringStore;
+	}
+
 	@Override
 	public Parameters parse(List<File> parameterFiles, ComputeProperties computeProperties) throws IOException
 	{
 		properties = computeProperties;
 		Parameters parameters = null;
 		Set<String> uniqueFiles = new LinkedHashSet<String>();
+		StringStore stringStore = computeProperties.stringStore;
 
 		if (!properties.isWebWorkflow)
 		{
@@ -63,7 +72,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 		}
 
 		// solve the templates
-		TupleUtils tupleUtils = new TupleUtils();
+		TupleUtils tupleUtils = new TupleUtils(stringStore);
 		tupleUtils.setRunID(runID);
 		if (parametersToOverwrite != null) tupleUtils.setParametersToOverwrite(parametersToOverwrite);
 		tupleUtils.solve(parameters.getValues());
@@ -76,7 +85,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 			MapEntity t = new MapEntity();
 			for (String attributeName : parameterValue.getAttributeNames())
 			{
-				t.set((Parameters.USER_PREFIX + attributeName).intern(), parameterValue.get(attributeName));
+				t.set(stringStore.intern(Parameters.USER_PREFIX + attributeName), parameterValue.get(attributeName));
 			}
 			t.set(Parameters.ID_COLUMN, count++);
 			userTargets.add(t);
@@ -88,6 +97,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 		return parameters;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Parameters parseParamFiles(Parameters parameters, Set<String> paramFileSet) throws IOException
 	{
@@ -192,7 +202,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 	 * 
 	 * @param tupleLst
 	 */
-	private static List<Entity> expand(List<Entity> tupleLst)
+	private List<Entity> expand(List<Entity> tupleLst)
 	{
 		// all expanded tuples
 		List<Entity> resultLst = new ArrayList<Entity>();
@@ -218,7 +228,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 					{
 						// expanded wt
 						MapEntity ewt = new MapEntity(wt);
-						ewt.set(col, v.intern());
+						ewt.set(col, stringStore.intern(v));
 						expandedTupleLstTmp.add(ewt);
 					}
 				}
@@ -375,7 +385,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 	 * @return A list of entities
 	 * @throws IOException
 	 */
-	private static List<Entity> asTuples(File file) throws IOException
+	private List<Entity> asTuples(File file) throws IOException
 	{
 		List<Entity> tupleList = new ArrayList<Entity>();
 
@@ -403,7 +413,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 			{
 				String key = keySetIterator.next().toString();
 				String value = properties.getProperty(key);
-				keyValueEntity.set(key.intern(), value.intern());
+				keyValueEntity.set(stringStore.intern(key), stringStore.intern(value));
 			}
 
 			tupleList.add(keyValueEntity);
@@ -447,7 +457,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 				@Override
 				public String process(String value)
 				{
-					return value.intern();
+					return stringStore.intern(value);
 				}
 			};
 			for (Entity entity : new CsvRepository(file, Collections.singletonList(interningCellProcessor)))
@@ -468,7 +478,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 	 * @return set of files (in AbsoluteFile notation) to be included
 	 * @throws IOException
 	 */
-	private static HashSet<String> getParamFiles(List<Entity> tupleList, File file) throws IOException
+	private HashSet<String> getParamFiles(List<Entity> tupleList, File file) throws IOException
 	{
 		boolean noParamColumnFoundYet = true;
 
@@ -501,11 +511,11 @@ public class CsvParameterParserImpl implements CsvParameterParser
 							// of its parent as path
 							if (value.charAt(0) == '/')
 							{
-								fileSet.add(value.intern());
+								fileSet.add(stringStore.intern(value));
 							}
 							else
 							{
-								fileSet.add((file.getParent() + File.separator + value).intern());
+								fileSet.add(stringStore.intern(file.getParent() + File.separator + value));
 							}
 						}
 					}
@@ -535,7 +545,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 	 * @param tupleList
 	 * @return A list of entities
 	 */
-	private static List<Entity> updatePath(List<Entity> tupleList, String columnName, File file)
+	private List<Entity> updatePath(List<Entity> tupleList, String columnName, File file)
 	{
 		List<Entity> updatedTupleList = new ArrayList<Entity>();
 
@@ -556,11 +566,11 @@ public class CsvParameterParserImpl implements CsvParameterParser
 						// of its parent
 						if (value.charAt(0) == '/')
 						{
-							fileLocationList.add(value.intern());
+							fileLocationList.add(stringStore.intern(value));
 						}
 						else
 						{
-							fileLocationList.add((file.getParent() + File.separator + value).intern());
+							fileLocationList.add(stringStore.intern(file.getParent() + File.separator + value));
 						}
 					}
 
