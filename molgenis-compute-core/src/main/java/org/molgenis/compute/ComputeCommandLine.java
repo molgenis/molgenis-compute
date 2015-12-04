@@ -282,7 +282,7 @@ public class ComputeCommandLine
 		}
 
 		// Parse all parameters
-		CsvParameterParserImpl parser = new CsvParameterParserImpl();
+		CsvParameterParserImpl parser = new CsvParameterParserImpl(computeProperties.stringStore);
 
 		// This run ID will be passed to the TupleUtils "to solve" method
 		parser.setRunID(computeProperties.runId);
