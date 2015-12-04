@@ -126,17 +126,16 @@ public class ScriptUtils
 				customSubmitFile = URL_READER.createFileFromGithub(computeProperties.webWorkflowLocation,
 						computeProperties.customSubmit);
 				if (customSubmitFile != null) return readFileToString(customSubmitFile);
-				else LOG.warn(">> Custom submit script not found (" + customSubmitFile + ")");
+				else LOG.warn("Custom submit script not found (" + customSubmitFile + ")");
 			}
 			else
 			{
 				customSubmitFile = new File(computeProperties.customSubmit);
 				if (customSubmitFile.exists())
 				{
-					System.out.println(">> Custom submit script: " + customSubmitFile);
 					return readFileToString(customSubmitFile);
 				}
-				else LOG.warn(">> Custom submit script not found (" + customSubmitFile + ")");
+				else LOG.warn("Custom submit script not found (" + customSubmitFile + ")");
 			}
 		}
 		else
