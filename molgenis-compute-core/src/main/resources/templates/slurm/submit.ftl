@@ -45,12 +45,11 @@ unset dependencies
 fi
 output=$(sbatch $dependencies ${t.name}.sh)
 id=${t.name}
-${t.name}=<#noparse>${output##"Submitted batch job "}</#noparse>
-echo "$id:$${t.name}"<#noparse> 
+${t.name}=<#noparse>${output##"Submitted batch job "}</#noparse> 
 echo "$id:$${t.name}" >> submitted_jobIDs.txt
 fi
 
-</#foreach>
 chmod g+w submitted_jobIDs.txt
-</#noparse>
+
+</#foreach>
 touch molgenis.submit.finished
