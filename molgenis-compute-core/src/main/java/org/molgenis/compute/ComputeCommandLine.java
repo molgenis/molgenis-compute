@@ -43,7 +43,9 @@ public class ComputeCommandLine
 {
 	private static final Logger LOG = Logger.getLogger(ComputeCommandLine.class);
 	private CommandLineRunContainer commandLineRunContainer = null;
-	static {
+
+	static
+	{
 		BasicConfigurator.configure();
 	}
 
@@ -327,8 +329,8 @@ public class ComputeCommandLine
 
 		// Generate submit script with the TaskInfo objects
 		scriptGenerator.generateSubmitScript(taskInfos);
-
-		LOG.info("### Task generation has been completed. ###");
+		LOG.info("All scripts have been generated.");
+		LOG.info("You can find them in: " + outputDirectory);
 	}
 
 	/**
