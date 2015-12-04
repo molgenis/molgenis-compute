@@ -340,8 +340,8 @@ public class ComputeCommandLine
 
 		// Generate submit script with the TaskInfo objects
 		scriptGenerator.generateSubmitScript(taskInfos);
-
-		LOG.info("### Task generation has been completed. ###");
+		LOG.info("All scripts have been generated.");
+		LOG.info("You can find them in: " + outputDirectory);
 	}
 
 	/**
