@@ -14,7 +14,7 @@ $(dirname -- "$0")/lib/molgenis-core-1.2.0.jar:\
 $(dirname -- "$0")/lib/molgenis-data-1.2.0.jar:\
 $(dirname -- "$0")/lib/molgenis-data-excel-1.2.0.jar:\
 $(dirname -- "$0")/lib/molgenis-data-csv-1.2.0.jar:\
-$(dirname -- "$0")/lib/molgenis-compute-core-1.1.0-SNAPSHOT.jar:\
+$(dirname -- "$0")/lib/molgenis-compute-core-1.1.1-SNAPSHOT.jar:\
 $(dirname -- "$0")/lib/commons-cli-1.2.jar:\
 $(dirname -- "$0")/lib/commons-io-2.4.jar:\
 $(dirname -- "$0")/lib/freemarker-2.3.18.jar:\
@@ -26,5 +26,5 @@ $(dirname -- "$0")/lib/guava-14.0.1.jar:\
 $(dirname -- "$0")/lib/commons-logging-1.1.1.jar:\
 $(dirname -- "$0")/lib/gson-2.2.2.jar:\
 $(dirname -- "$0")/lib/commons-lang3-3.1.jar \
-org.molgenis.compute5.ComputeCommandLine \
+org.molgenis.compute.ComputeCommandLine \
 $*
