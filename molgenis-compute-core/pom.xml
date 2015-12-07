@@ -1,9 +1,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<properties>
-		<molgenis.version>1.2.0</molgenis.version>
-	</properties>
+    <properties>
+        <molgenis.version>1.2.0</molgenis.version>
+        <compute.version>15.12.2</compute.version>
+    </properties>
 	<parent>
 		<groupId>org.molgenis</groupId>
 		<artifactId>molgenis-compute</artifactId>
@@ -22,7 +23,11 @@
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>2.6</version>
 				<configuration>
-					<descriptor>assembly.xml</descriptor>
+					<finalName>molgenis-compute-v${compute.version}</finalName>
+					<appendAssemblyId>false</appendAssemblyId>
+					<descriptors>
+						<descriptor>assembly.xml</descriptor>
+					</descriptors>
 				</configuration>
 				<executions>
 					<execution>
