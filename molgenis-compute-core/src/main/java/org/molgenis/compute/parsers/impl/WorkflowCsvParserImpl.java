@@ -38,7 +38,8 @@ public class WorkflowCsvParserImpl implements WorkflowCsvParser
 		{
 			if (computeProperties.isWebWorkflow)
 			{
-				File workflowFile = urlReaderImpl.createFileFromGithub(computeProperties.webWorkflowLocation, workflowPath);
+				File workflowFile = urlReaderImpl.createFileFromGithub(computeProperties.webWorkflowLocation,
+						workflowPath);
 				reader = new CSVReader(new FileReader(workflowFile), ',');
 
 			}
@@ -56,14 +57,15 @@ public class WorkflowCsvParserImpl implements WorkflowCsvParser
 				{
 					if (row[0].equalsIgnoreCase(Parameters.STEP_HEADING_IN_WORKFLOW)
 							&& row[1].equalsIgnoreCase(Parameters.PROTOCOL_HEADING_IN_WORKFLOW)
-							&& row[2].equalsIgnoreCase(Parameters.PARAMETER_MAPPING_HEADING_IN_WORKFLOW)) isFirstRow = false;
+							&& row[2].equalsIgnoreCase(Parameters.PARAMETER_MAPPING_HEADING_IN_WORKFLOW))
+						isFirstRow = false;
 					else throw new IOException("Error in the header of workflow file");
 				}
 				else
 				{
 
-					if ((row[0] == null) || (row[0].length() == 0)) throw new IOException("required column '"
-							+ Parameters.STEP_HEADING_IN_WORKFLOW + "' is missing in row " + row);
+					if ((row[0] == null) || (row[0].length() == 0)) throw new IOException(
+							"required column '" + Parameters.STEP_HEADING_IN_WORKFLOW + "' is missing in row " + row);
 					if ((row[1] == null) || (row[1].length() == 0)) throw new IOException("required column '"
 							+ Parameters.PROTOCOL_HEADING_IN_WORKFLOW + "' is missing in row " + row);
 
@@ -103,10 +105,10 @@ public class WorkflowCsvParserImpl implements WorkflowCsvParser
 		}
 		catch (IOException e)
 		{
-			throw new IOException("Parsing of workflow failed: " + e.getMessage()
-					+ ".\nThe workflow csv requires columns " + Parameters.STEP_HEADING_IN_WORKFLOW + ","
-					+ Parameters.PROTOCOL_HEADING_IN_WORKFLOW + "," + Parameters.PARAMETER_MAPPING_HEADING_IN_WORKFLOW
-					+ ".");
+			throw new IOException(
+					"Parsing of workflow failed: " + e.getMessage() + ".\nThe workflow csv requires columns "
+							+ Parameters.STEP_HEADING_IN_WORKFLOW + "," + Parameters.PROTOCOL_HEADING_IN_WORKFLOW + ","
+							+ Parameters.PARAMETER_MAPPING_HEADING_IN_WORKFLOW + ".");
 		}
 		finally
 		{

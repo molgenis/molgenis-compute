@@ -9,8 +9,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.molgenis.compute.model.Parameters;
+import org.molgenis.compute.model.StringStore;
+import org.molgenis.compute.model.Task;
 import org.molgenis.data.Entity;
 import org.molgenis.data.support.MapEntity;
+
+import com.google.common.collect.Iterables;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -25,50 +30,58 @@ import freemarker.template.TemplateException;
  */
 public class TupleUtils
 {
-	
 	private String runID = null;
 	private HashMap<String, String> parametersToOverwrite = null;
+	private final StringStore stringStore;
 
-	public static List<MapEntity> collapse(List<? extends Entity> parameters, List<String> targets)
+	public TupleUtils(StringStore stringStore)
+	{
+		this.stringStore = stringStore;
+	}
+
+	/**
+	 * 
+	 * @param parameters
+	 * @param targets
+	 * @return A list of {@link MapEntity}
+	 */
+	public static List<MapEntity> collapse(List<MapEntity> parameters, List<String> targets)
 	{
 		Map<String, MapEntity> result = new LinkedHashMap<String, MapEntity>();
-
-		for (Entity row : parameters)
+		for (Entity parameter : parameters)
 		{
 			// generate key
-			String key = "";
-			for (String target : targets)
-				key += row.getString(target) + "_";
+			String key = generateKeyFromTargets(targets, parameter);
 
-			// if first, create tuple, create lists for non-targets
+			// Create tuple if the key is not present, create lists for non-targets
 			if (result.get(key) == null)
 			{
 				MapEntity collapsedRow = new MapEntity();
-				for (String col : row.getAttributeNames())
+				for (String attribute : parameter.getAttributeNames())
 				{
-					if (targets.contains(col))
+					if (targets.contains(attribute))
 					{
-						collapsedRow.set(col, row.get(col));
+						collapsedRow.set(attribute, parameter.get(attribute));
 					}
 					else
 					{
 						List<Object> list = new ArrayList<Object>();
-						list.add(row.get(col));
-						collapsedRow.set(col, list);
+						list.add(parameter.get(attribute));
+						collapsedRow.set(attribute, list);
 					}
 				}
 				result.put(key, collapsedRow);
 			}
 			else
 			{
-				for (String col : row.getAttributeNames())
+				for (String attribute : parameter.getAttributeNames())
 				{
-					if (!targets.contains(col))
+					if (!targets.contains(attribute))
 					{
 						@SuppressWarnings("unchecked")
-						List<String> list = (List<String>) result.get(key).get(col);
-						list.add(row.getString(col));
-						result.get(key).set(col, list);
+						List<String> list = (List<String>) result.get(key).get(attribute);
+						list.add(parameter.getString(attribute));
+						result.get(key).set(attribute, list);
 					}
 				}
 			}
@@ -78,149 +91,172 @@ public class TupleUtils
 	}
 
 	/**
-	 * Tuples can have values that are freemarker templates, e.g. ${other
-	 * column}. This method will solve that
+	 * Generates a key based on the values of the parameter map
+	 * 
+	 * @param targets
+	 * @param parameter
+	 * @return The generated key
+	 */
+	private static String generateKeyFromTargets(List<String> targets, Entity parameter)
+	{
+		String key = "";
+		for (String target : targets)
+		{
+			key += parameter.getString(target) + "_";
+		}
+		return key;
+	}
+
+	/**
+	 * Tuples can have values that are freemarker templates, e.g. ${other column}. This method will solve that
 	 * 
 	 * @throws IOException
 	 * @throws TemplateException
 	 */
-	public void solve(List<MapEntity> values) throws IOException
+	public void solve(List<MapEntity> parameterValues) throws IOException
 	{
 		// Freemarker configuration
-		Configuration conf = new Configuration();
+		Configuration freeMarkerConfiguration = new Configuration();
+		Template template;
 
-		boolean done = false;
-		replaceParameters(values);
+		replaceParameters(parameterValues);
 
-		while (!done)
+		// For every Parameter value
+		for (MapEntity parameterValue : parameterValues)
 		{
-			boolean updated = false;
-
-			String original, value;
-			Template template;
-			StringWriter out;
-			String unsolved = "";
-
-			for (MapEntity t : values)
+			// For every attribute within this parameterValue map
+			for (String attribute : parameterValue.getAttributeNames())
 			{
-				for (String col : t.getAttributeNames())
+				// Store the original
+				String original = parameterValue.getString(attribute);
+
+				// If the original contains freemarker syntax
+				if (original.contains("${"))
 				{
-					original = t.getString(col);
-
-					if (original.contains("${"))
+					// Check for self reference (??)
+					if (original.contains("${" + attribute + "}"))
 					{
-						// check for self reference (??)
-						if (original.contains("${" + col + "}"))
-							throw new IOException("could not solve " + col + "='"
-								+ original + "' because template references to self");
+						throw new IOException("could not solve " + attribute + "='" + original
+								+ "' because template references to self");
+					}
 
-						template = new Template(col, new StringReader(original), conf);
-						out = new StringWriter();
-						try
+					// Create a new template for every attribute. Very expensive!!!
+					// TODO can we reuse the same template?
+					try
+					{
+						template = freeMarkerConfiguration.getTemplate(attribute);
+					}
+					catch (IOException e)
+					{
+						template = new Template(attribute, new StringReader(original), freeMarkerConfiguration);
+					}
+
+					StringWriter writer = new StringWriter();
+					try
+					{
+						Map<String, Object> map = toMap(parameterValue);
+
+						// ??
+						map.put("runid", runID);
+
+						// Reads the created template, and writes it to a String object.
+						template.process(map, writer);
+						String value = writer.toString();
+
+						// If the generated template is not the same as it was originally
+						if (!value.equals(original))
 						{
-							Map<String, Object> map = toMap(t);
-							//I do not know, how to fix it differently
-							map.put("runid", runID);
-							template.process(map, out);
-							value = out.toString();
-							if (!value.equals(original))
-							{
-								updated = true;
-								t.set(col, value);
-							}
-						}
-						catch (Exception e)
-						{
-							unsolved += "could not solve " + col + "='" + original + "': " + e.getMessage() + "\n";
+							parameterValue.set(attribute, stringStore.intern(value));
 						}
 					}
+					catch (Exception e)
+					{
+						throw new IOException(
+								"could not solve " + attribute + "='" + original + "': " + e.getMessage() + "\n");
+					}
 				}
-			}
-
-			if (!updated)
-			{
-				if (unsolved.length() > 0)
-				{
-					throw new IOException(unsolved);
-				}
-				done = true;
 			}
 		}
 	}
 
+	/**
+	 * Replaces parameters
+	 * 
+	 * @param map
+	 */
 	private void replaceParameters(List<MapEntity> map)
 	{
-		if(parametersToOverwrite != null)
+		if (parametersToOverwrite != null)
 		{
 			for (Map.Entry<String, String> entry : parametersToOverwrite.entrySet())
 			{
 				String key = entry.getKey();
 				String value = entry.getValue();
-				for(MapEntity tuple: map)
+				for (MapEntity tuple : map)
 				{
-					tuple.set(key, value);
+					tuple.set(key, stringStore.intern(value));
 				}
 			}
 		}
 	}
 
-	/** 
+	/**
 	 * Convert a tuple into a map. Columns with a '_' in them will be nested submaps.
 	 * 
-	 * @param t
+	 * @param parameterValue
 	 * @return A {@link Map} of String Object key value pairs
 	 */
-	public static Map<String, Object> toMap(Entity t)
+	public static Map<String, Object> toMap(Entity parameterValue)
 	{
 		Map<String, Object> result = new LinkedHashMap<String, Object>();
-		for (String key : t.getAttributeNames())
+		for (String attribute : parameterValue.getAttributeNames())
 		{
-				result.put(key, t.get(key));
+			result.put(attribute, parameterValue.get(attribute));
 		}
 		return result;
 	}
 
-	
-	/** 
+	/**
 	 * Uncollapse a tuple using an idColumn
-	 *  
-	 * @param values
+	 * 
+	 * @param collapsedEntities
 	 * @param idColumn
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
-	public static <E extends Entity> List<E> uncollapse(List<E> values, String idColumn)
+	public static List<MapEntity> uncollapse(List<MapEntity> collapsedEntities)
 	{
-		List<E> result = new ArrayList<E>();
+		List<MapEntity> result = new ArrayList<MapEntity>();
 
-		for (E original : values)
+		for (MapEntity collapsedEntity : collapsedEntities)
 		{
-			if (!(original.get(idColumn) instanceof List))
+			for (int i = 0; i < collapsedEntity.getList(Parameters.ID_COLUMN).size(); i++)
 			{
-				return values;
-			}
-			else
-			{
-				for (int i = 0; i < original.getList(idColumn).size(); i++)
+				MapEntity copy = new MapEntity();
+				for (String attribute : Iterables.filter(collapsedEntity.getAttributeNames(),
+						TupleUtils::attributesToPreserve))
 				{
-					MapEntity copy = new MapEntity();
-					for (String col : original.getAttributeNames())
+
+					if (collapsedEntity.get(attribute) instanceof List)
 					{
-						if (original.get(col) instanceof List)
-						{
-							copy.set(col, original.getList(col).get(i));
-						}
-						else
-						{
-							copy.set(col, original.get(col));
-						}
+						copy.set(attribute, collapsedEntity.getList(attribute).get(i));
 					}
-					result.add((E) copy);
+					else
+					{
+						copy.set(attribute, collapsedEntity.get(attribute));
+					}
 				}
+				result.add(copy);
 			}
+
 		}
 
 		return result;
+	}
+
+	private static boolean attributesToPreserve(String attributeName)
+	{
+		return attributeName.startsWith(Parameters.USER_PREFIX) || attributeName.endsWith(Task.TASKID_COLUMN)
+				|| attributeName.endsWith(Task.TASKID_INDEX_COLUMN);
 	}
 
 	public void setRunID(String runID)

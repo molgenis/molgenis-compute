@@ -7,22 +7,21 @@ import java.util.Map;
 
 import org.molgenis.compute.model.impl.WorkflowImpl;
 
-
 /** Generates graphvis diagram */
 public class DocWorkflowDiagramGenerator
 {
 	public void generate(File dir, WorkflowImpl workflowImpl) throws IOException
 	{
-		//model
+		// model
 		Map<String, Object> model = new LinkedHashMap<String, Object>();
 		model.put("workflow", workflowImpl);
 
-		//apply
+		// apply
 		File dotFile = new File(dir.getAbsoluteFile() + "/workflow.dot");
 		new FreemarkerUtils().applyTemplate(model, "DocWorkflowDiagramGenerator.ftl", dotFile);
-		
-		System.out.println("Generated "+dotFile);
-		
+
+		System.out.println("Generated " + dotFile);
+
 		GraphvizUtils.executeDot(dotFile, "png", true);
 	}
 }

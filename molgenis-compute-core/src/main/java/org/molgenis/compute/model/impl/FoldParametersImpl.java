@@ -12,14 +12,15 @@ import java.util.Set;
 
 import org.molgenis.compute.ComputeProperties;
 import org.molgenis.compute.model.FoldParameters;
+import org.molgenis.compute.model.StringStore;
 import org.molgenis.compute.urlreader.impl.UrlReaderImpl;
-
-import au.com.bytecode.opencsv.CSVReader;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
+import au.com.bytecode.opencsv.CSVReader;
 
 /**
  * Reads parameters from files and filters the combinations.
@@ -29,6 +30,7 @@ public class FoldParametersImpl implements FoldParameters
 	// Lists the parameter combinations found in each file
 	// Each element in the list maps parameter name to a list of values
 	private final List<Map<String, List<String>>> parameterCombinationsInFiles;
+	private StringStore stringStore;
 
 	/**
 	 * Creates a new instance of {@link FoldParametersImpl}.
@@ -42,6 +44,7 @@ public class FoldParametersImpl implements FoldParameters
 	public FoldParametersImpl(List<File> parameterFiles, ComputeProperties computeProperties)
 	{
 		parameterCombinationsInFiles = new ArrayList<Map<String, List<String>>>();
+		stringStore = computeProperties.stringStore;
 		for (File parameterFile : parameterFiles)
 		{
 			tryReadParameterCombinationsFromFile(parameterFile, computeProperties);
@@ -178,10 +181,10 @@ public class FoldParametersImpl implements FoldParameters
 			for (int lineIndex = 1; lineIndex < allLines.size(); lineIndex++)
 			{
 				String str = allLines.get(lineIndex)[columnIndex];
-				columnValues.add(str);
+				columnValues.add(stringStore.intern(str));
 			}
 			assertParameterIsNotYetRead(columnName);
-			result.put(columnName, columnValues);
+			result.put(stringStore.intern(columnName), columnValues);
 		}
 		return result;
 	}
@@ -214,13 +217,13 @@ public class FoldParametersImpl implements FoldParameters
 				String name = line[0].substring(0, eq);
 				String value = line[0].substring(eq + 1);
 
-				values.add(value);
+				values.add(stringStore.intern(value));
 
 				for (int i = 1; i < line.length; i++)
-					values.add(line[i].trim());
+					values.add(stringStore.intern(line[i].trim()));
 
 				assertParameterIsNotYetRead(name);
-				result.put(name, values);
+				result.put(stringStore.intern(name), values);
 			}
 		}
 		return result;
@@ -363,5 +366,10 @@ public class FoldParametersImpl implements FoldParameters
 		{
 			throw new ParameterOccursInMultipleFilesException(parameterName);
 		}
+	}
+
+	public String toString()
+	{
+		return parameterCombinationsInFiles.toString();
 	}
 }

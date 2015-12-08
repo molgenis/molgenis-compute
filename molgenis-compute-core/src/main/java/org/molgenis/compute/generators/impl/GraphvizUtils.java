@@ -4,11 +4,10 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.log4j.Logger;
-import org.molgenis.generators.doc.DotDocGen;
 
 public class GraphvizUtils
 {
-	private static final Logger logger = Logger.getLogger(DotDocGen.class);
+	private static final Logger logger = Logger.getLogger(GraphvizUtils.class);
 
 	// need to add input and output file
 	public final static String GRAPHVIZ_COMMAND_WINDOWS = "dot";
@@ -17,27 +16,10 @@ public class GraphvizUtils
 	{
 		// write script to disc
 		String command = "";
-		// String error = "";
 		String result = "";
-		// String output = "";
-		// File inputfile = null;
-		// File outputfile = null;
+
 		try
 		{
-
-			// execute the scripts
-			// if
-			// (System.getProperty("os.name").toLowerCase().indexOf("windows")
-			// == -1)
-			// {
-			// // make tempfiles executable
-			// // command = "chmod 777 "+inputfile.getCanonicalPath()+"\n";
-			// // logger.debug("added chmod 777 on input file");
-			// command += GRAPHVIZ_COMMAND_WINDOWS;
-			// }
-			// else
-			// windows
-			// command flags infile outfile
 			command += "" + GRAPHVIZ_COMMAND_WINDOWS + " -T" + type + " -O \"" + dotFile.getAbsolutePath() + "\"";
 
 			Process p;
@@ -85,7 +67,7 @@ public class GraphvizUtils
 				{ "/bin/sh", "-c", command });
 			}
 			if (wait) p.waitFor();
-			
+
 			logger.debug("Data model image was generated succesfully.\nOutput:\n" + result);
 
 		}
@@ -98,11 +80,6 @@ public class GraphvizUtils
 		{
 			throw new IOException("Generation of graphical documentation failed: return code " + e.getMessage()
 					+ ". Install GraphViz and put dot.exe on your path.");
-		}
-		finally
-		{
-			// inputfile.delete();
-			// outputfile.delete();
 		}
 	}
 }

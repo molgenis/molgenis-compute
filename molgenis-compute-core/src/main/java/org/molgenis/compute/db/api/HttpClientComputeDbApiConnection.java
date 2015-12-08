@@ -37,7 +37,8 @@ public class HttpClientComputeDbApiConnection implements ComputeDbApiConnection
 	private final DefaultHttpClient httpClient = new DefaultHttpClient();
 	private final HttpHost targetHost;
 
-	public HttpClientComputeDbApiConnection(String host, String strPort, String apiBaseUri, String username, String password)
+	public HttpClientComputeDbApiConnection(String host, String strPort, String apiBaseUri, String username,
+			String password)
 	{
 		this.apiBaseUri = apiBaseUri;
 		int port = Integer.parseInt(strPort);

@@ -21,19 +21,18 @@ public class DocTotalParametersCsvGenerator
 
 			CsvWriter w = new CsvWriter(new FileWriter(file));
 
-
 			for (int i = 0; i < values.size(); i++)
 			{
 
 			}
-			
+
 			w.close();
-			
-			System.out.println("Generated "+file.getAbsolutePath());
+
+			System.out.println("Generated " + file.getAbsolutePath());
 		}
 		catch (Exception e)
 		{
-			throw new IOException("Failed to write all parameters to "+file+": " + e.getMessage());
+			throw new IOException("Failed to write all parameters to " + file + ": " + e.getMessage());
 		}
 	}
 }

@@ -5,9 +5,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -18,10 +20,12 @@ import org.apache.log4j.Logger;
 import org.molgenis.compute.ComputeProperties;
 import org.molgenis.compute.generators.impl.TupleUtils;
 import org.molgenis.compute.model.Parameters;
+import org.molgenis.compute.model.StringStore;
 import org.molgenis.compute.parsers.CsvParameterParser;
 import org.molgenis.compute.urlreader.impl.UrlReaderImpl;
 import org.molgenis.data.Entity;
 import org.molgenis.data.csv.CsvRepository;
+import org.molgenis.data.processor.CellProcessor;
 import org.molgenis.data.support.MapEntity;
 
 public class CsvParameterParserImpl implements CsvParameterParser
@@ -34,71 +38,81 @@ public class CsvParameterParserImpl implements CsvParameterParser
 
 	private UrlReaderImpl urlReaderImpl = new UrlReaderImpl();
 
+	private final StringStore stringStore;
+
+	public CsvParameterParserImpl(StringStore stringStore)
+	{
+		this.stringStore = stringStore;
+	}
+
 	@Override
-	public Parameters parse(List<File> files, ComputeProperties computeProperties) throws IOException
+	public Parameters parse(List<File> parameterFiles, ComputeProperties computeProperties) throws IOException
 	{
 		properties = computeProperties;
-		Parameters targets = null;
-		Set<String> uniqueFiles = new HashSet<String>();
+		Parameters parameters = null;
+		Set<String> uniqueFiles = new LinkedHashSet<String>();
+		StringStore stringStore = computeProperties.stringStore;
 
 		if (!properties.isWebWorkflow)
 		{
-			for (File file : files)
+			for (File file : parameterFiles)
 			{
 				uniqueFiles.add(file.getAbsolutePath().toString());
 			}
 
-			targets = parseParamFiles(null, uniqueFiles);
+			parameters = parseParamFiles(null, uniqueFiles);
 		}
 		else
 		{
-			for (File file : files)
+			for (File file : parameterFiles)
 			{
 				uniqueFiles.add(file.toString());
 			}
-			targets = parseParamFiles(null, uniqueFiles);
+			parameters = parseParamFiles(null, uniqueFiles);
 		}
 
 		// solve the templates
-		TupleUtils tupleUtils = new TupleUtils();
+		TupleUtils tupleUtils = new TupleUtils(stringStore);
 		tupleUtils.setRunID(runID);
 		if (parametersToOverwrite != null) tupleUtils.setParametersToOverwrite(parametersToOverwrite);
-		tupleUtils.solve(targets.getValues());
+		tupleUtils.solve(parameters.getValues());
 
 		// mark all columns as 'user_*'
 		int count = 0;
 		List<MapEntity> userTargets = new ArrayList<MapEntity>();
-		for (MapEntity v : targets.getValues())
+		for (MapEntity parameterValue : parameters.getValues())
 		{
 			MapEntity t = new MapEntity();
-			for (String col : v.getAttributeNames())
+			for (String attributeName : parameterValue.getAttributeNames())
 			{
-				t.set(Parameters.USER_PREFIX + col, v.get(col));
+				t.set(stringStore.intern(Parameters.USER_PREFIX + attributeName), parameterValue.get(attributeName));
 			}
 			t.set(Parameters.ID_COLUMN, count++);
 			userTargets.add(t);
 		}
 
-		targets = new Parameters();
-		targets.setValues(userTargets);
+		parameters = new Parameters();
+		parameters.setValues(userTargets);
 
-		return targets;
+		return parameters;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public Parameters parseParamFiles(Parameters targets, Set<String> paramFileSet) throws IOException
+	public Parameters parseParamFiles(Parameters parameters, Set<String> paramFileSet) throws IOException
 	{
-		// ensure targets are initialized
-		if (targets == null)
+
+		// ensure parameters are initialized
+		if (parameters == null)
 		{
-			targets = new Parameters();
+			parameters = new Parameters();
 		}
 
 		// if no files to parse, then we're done
 		if (paramFileSet.isEmpty())
 		{
 			LOG.warn("No parameter files found, continuing without one...");
-			return targets;
+			return parameters;
 		}
 
 		LOG.info("Start of parseParamFiles " + paramFileSet.toString());
@@ -120,24 +134,24 @@ public class CsvParameterParserImpl implements CsvParameterParser
 		paramFileSet.remove(fileName);
 
 		// initialize set of files we have parsed
-		Set<String> paramFileSetDone = new HashSet<String>();
+		Set<String> parsedParamFiles = new HashSet<String>();
 
 		// if targets exist then get parsed file set
-		if (0 < targets.getValues().size())
+		if (!parameters.getValues().isEmpty())
 		{
-			paramFileSetDone = (Set<String>) targets.getValues().get(0).get(Parameters.PARAMETER_COLUMN);
+			parsedParamFiles = (Set<String>) parameters.getValues().get(0).get(Parameters.PARAMETER_COLUMN);
 		}
 
 		// if we have already parsed this file then skip file f
-		if (paramFileSetDone.contains(fileName))
+		if (parsedParamFiles.contains(fileName))
 		{
-			return parseParamFiles(targets, paramFileSet);
+			return parseParamFiles(parameters, paramFileSet);
 		}
 		else
 		{
 			// add parsed file to the list of parsed files and ensure we'll not
 			// do this file again
-			paramFileSetDone.add(fileName);
+			parsedParamFiles.add(fileName);
 
 			// get file as list of tuples
 			List<Entity> tupleList = asTuples(file);
@@ -151,7 +165,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 			HashSet<String> newParameterFileSet = getParamFiles(tupleList, file);
 
 			// Remove all files that are already done
-			newParameterFileSet.removeAll(paramFileSetDone);
+			newParameterFileSet.removeAll(parsedParamFiles);
 
 			// merge new paramFileSet with current one
 			paramFileSet.addAll(newParameterFileSet);
@@ -161,13 +175,13 @@ public class CsvParameterParserImpl implements CsvParameterParser
 			tupleList = expand(tupleList);
 
 			// join on overlapping col's (except 'parameters')
-			targets = join(targets, tupleList);
+			parameters = join(parameters, tupleList);
 
 			// update targets with 'parsed file'
-			targets = addParsedFile(targets, paramFileSetDone);
+			parameters = addParsedFile(parameters, parsedParamFiles);
 
 			// parse rest of param files
-			return parseParamFiles(targets, paramFileSet);
+			return parseParamFiles(parameters, paramFileSet);
 		}
 	}
 
@@ -188,7 +202,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 	 * 
 	 * @param tupleLst
 	 */
-	private static List<Entity> expand(List<Entity> tupleLst)
+	private List<Entity> expand(List<Entity> tupleLst)
 	{
 		// all expanded tuples
 		List<Entity> resultLst = new ArrayList<Entity>();
@@ -214,7 +228,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 					{
 						// expanded wt
 						MapEntity ewt = new MapEntity(wt);
-						ewt.set(col, v);
+						ewt.set(col, stringStore.intern(v));
 						expandedTupleLstTmp.add(ewt);
 					}
 				}
@@ -271,17 +285,17 @@ public class CsvParameterParserImpl implements CsvParameterParser
 	/**
 	 * Update targets with actual parsed files
 	 * 
-	 * @param targets
-	 * @param paramFileSetDone
+	 * @param parameters
+	 * @param parsedParameterFiles
 	 */
-	private static Parameters addParsedFile(Parameters targets, Set<String> paramFileSetDone)
+	private static Parameters addParsedFile(Parameters parameters, Set<String> parsedParameterFiles)
 	{
-		for (MapEntity target : targets.getValues())
+		for (MapEntity target : parameters.getValues())
 		{
-			target.set(Parameters.PARAMETER_COLUMN, paramFileSetDone);
+			target.set(Parameters.PARAMETER_COLUMN, parsedParameterFiles);
 		}
 
-		return targets;
+		return parameters;
 	}
 
 	/**
@@ -371,7 +385,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 	 * @return A list of entities
 	 * @throws IOException
 	 */
-	private static List<Entity> asTuples(File file) throws IOException
+	private List<Entity> asTuples(File file) throws IOException
 	{
 		List<Entity> tupleList = new ArrayList<Entity>();
 
@@ -399,7 +413,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 			{
 				String key = keySetIterator.next().toString();
 				String value = properties.getProperty(key);
-				keyValueEntity.set(key, value);
+				keyValueEntity.set(stringStore.intern(key), stringStore.intern(value));
 			}
 
 			tupleList.add(keyValueEntity);
@@ -424,7 +438,29 @@ public class CsvParameterParserImpl implements CsvParameterParser
 				}
 			}
 
-			for (Entity entity : new CsvRepository(file, null))
+			CellProcessor interningCellProcessor = new CellProcessor()
+			{
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public boolean processHeader()
+				{
+					return true;
+				}
+
+				@Override
+				public boolean processData()
+				{
+					return true;
+				}
+
+				@Override
+				public String process(String value)
+				{
+					return stringStore.intern(value);
+				}
+			};
+			for (Entity entity : new CsvRepository(file, Collections.singletonList(interningCellProcessor)))
 			{
 				tupleList.add(entity);
 			}
@@ -442,7 +478,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 	 * @return set of files (in AbsoluteFile notation) to be included
 	 * @throws IOException
 	 */
-	private static HashSet<String> getParamFiles(List<Entity> tupleList, File file) throws IOException
+	private HashSet<String> getParamFiles(List<Entity> tupleList, File file) throws IOException
 	{
 		boolean noParamColumnFoundYet = true;
 
@@ -475,28 +511,22 @@ public class CsvParameterParserImpl implements CsvParameterParser
 							// of its parent as path
 							if (value.charAt(0) == '/')
 							{
-								fileSet.add(value);
+								fileSet.add(stringStore.intern(value));
 							}
 							else
 							{
-								fileSet.add(file.getParent() + File.separator + value);
+								fileSet.add(stringStore.intern(file.getParent() + File.separator + value));
 							}
 						}
 					}
 					else
 					{
-						if (!entity.getString(columnName).equals(paramFilesString)) throw new IOException(
-								"Values in '"
-										+ Parameters.PARAMETER_COLUMN
-										+ "' column are not equal in file '"
-										+ file.toString()
-										+ "', please fix:\n'"
-										+ entity.getString(columnName)
-										+ "' is different from '"
-										+ paramFilesString
-										+ "'.\n"
-										+ "You could put all values 'comma-separated' in each cell and repeat that on each line in your file, e.g.:\n"
-										+ "\"" + entity.getString(columnName) + "," + paramFilesString + "\"");
+						if (!entity.getString(columnName).equals(paramFilesString))
+							throw new IOException("Values in '" + Parameters.PARAMETER_COLUMN
+									+ "' column are not equal in file '" + file.toString() + "', please fix:\n'"
+									+ entity.getString(columnName) + "' is different from '" + paramFilesString + "'.\n"
+									+ "You could put all values 'comma-separated' in each cell and repeat that on each line in your file, e.g.:\n"
+									+ "\"" + entity.getString(columnName) + "," + paramFilesString + "\"");
 					}
 				}
 			}
@@ -515,7 +545,7 @@ public class CsvParameterParserImpl implements CsvParameterParser
 	 * @param tupleList
 	 * @return A list of entities
 	 */
-	private static List<Entity> updatePath(List<Entity> tupleList, String columnName, File file)
+	private List<Entity> updatePath(List<Entity> tupleList, String columnName, File file)
 	{
 		List<Entity> updatedTupleList = new ArrayList<Entity>();
 
@@ -536,11 +566,11 @@ public class CsvParameterParserImpl implements CsvParameterParser
 						// of its parent
 						if (value.charAt(0) == '/')
 						{
-							fileLocationList.add(value);
+							fileLocationList.add(stringStore.intern(value));
 						}
 						else
 						{
-							fileLocationList.add(file.getParent() + File.separator + value);
+							fileLocationList.add(stringStore.intern(file.getParent() + File.separator + value));
 						}
 					}
 
