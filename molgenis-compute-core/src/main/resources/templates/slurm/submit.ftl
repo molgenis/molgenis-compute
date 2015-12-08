@@ -3,15 +3,6 @@
 MOLGENIS_scriptsDir=$( cd -P "$( dirname "$0" )" && pwd )
 echo "cd $MOLGENIS_scriptsDir"
 cd $MOLGENIS_scriptsDir
-cd ../
-runnumber=`pwd`
-echo basename $runnumber
-run=$(basename $runnumber)
-
-cd ..
-project=`pwd`
-projectName=$(basename $project)
-cd $MOLGENIS_scriptsDir
 </#noparse>
 
 touch molgenis.submit.started
@@ -20,7 +11,7 @@ touch molgenis.submit.started
 skip(){
 echo "0: Skipped --- TASK '$1' --- ON $(date +"%Y-%m-%d %T")" >> molgenis.skipped.log
 }
-<#noparse>echo -e "../../../../tmp/submits/${projectName}_${run}.txt" > zubmitted_jobIDs.txt</#noparse>
+
 
 <#foreach t in tasks>
 #
@@ -47,13 +38,9 @@ fi
 output=$(sbatch $dependencies ${t.name}.sh)
 id=${t.name}
 ${t.name}=<#noparse>${output##"Submitted batch job "}</#noparse>
-echo "$id:$${t.name}"<#noparse> | tee -a ../../../../tmp/submits/${projectName}_${run}.txt</#noparse>
-echo "$id:$${t.name}" >> zubmitted_jobIDs.txt
+echo "$id:$${t.name}"
 fi
 
 </#foreach>
-<#noparse> echo "jobIDs are in ../../../../tmp/submits/${projectName}_${run}.txt"
-chmod g+w ../../../../tmp/submits/${projectName}_${run}.txt
-chmod g+w zubmitted_jobIDs.txt
-</#noparse>
+
 touch molgenis.submit.finished
