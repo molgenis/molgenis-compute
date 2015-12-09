@@ -122,7 +122,7 @@ path="."
 
 
 # Connect parameters to environment
-in="${runid}hellopost2post1"
+in="test1hellopost2post1"
 
 # Validate that each 'value' parameter has only identical values in its list
 # We do that to protect you against parameter values that might not be correctly set at runtime.
