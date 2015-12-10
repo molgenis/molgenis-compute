@@ -155,7 +155,7 @@ public class TupleUtils
 						try
 						{
 							// Transform MapEntity to map so the template model can use it
-							Map<String, Object> map = toMap(mapEntityValue);
+							Map<String, Object> map = mapEntityValue.getValueMap();
 
 							map.put("runid", runID);
 
@@ -208,22 +208,6 @@ public class TupleUtils
 				}
 			}
 		}
-	}
-
-	/**
-	 * Convert a tuple into a map. Columns with a '_' in them will be nested submaps.
-	 * 
-	 * @param target
-	 * @return A {@link Map} of String Object key value pairs
-	 */
-	public static Map<String, Object> toMap(DataEntity target)
-	{
-		Map<String, Object> result = new LinkedHashMap<String, Object>();
-		for (String attribute : target.getAttributeNames())
-		{
-			result.put(attribute, target.get(attribute));
-		}
-		return result;
 	}
 
 	/**

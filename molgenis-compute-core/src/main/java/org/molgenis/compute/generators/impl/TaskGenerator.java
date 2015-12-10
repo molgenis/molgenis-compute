@@ -284,7 +284,7 @@ public class TaskGenerator
 
 			try
 			{
-				Map<String, Object> map = TupleUtils.toMap(target);
+				Map<String, Object> map = target.getValueMap();
 				String valueWORKDIR = globalParameters.get(0).getString("user_WORKDIR");
 				if (valueWORKDIR != null) map.put("WORKDIR", valueWORKDIR);
 				else map.put("WORKDIR", "UNDEFINED");

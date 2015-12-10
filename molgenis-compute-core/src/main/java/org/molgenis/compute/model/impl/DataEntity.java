@@ -54,6 +54,11 @@ public class DataEntity extends AbstractEntity
 		this.idAttributeName = entityMetaData.getIdAttribute().getName();
 	}
 
+	public Map<String, Object> getValueMap()
+	{
+		return values;
+	}
+
 	@Override
 	public Object get(String attributeName)
 	{
@@ -125,5 +130,4 @@ public class DataEntity extends AbstractEntity
 	{
 		return entityMetaData;
 	}
-
 }
