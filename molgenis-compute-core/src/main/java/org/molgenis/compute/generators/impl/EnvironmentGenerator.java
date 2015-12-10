@@ -93,14 +93,8 @@ public class EnvironmentGenerator
 
 			for (DataEntity parameterValues : compute.getParameters().getValues())
 			{
-				// retrieve index and value for that index
-				Integer index = null;
-				String value = null;
-				for (String col : parameterValues.getAttributeNames())
-				{
-					if (col.equals(userParameter)) value = parameterValues.getString(col);
-					if (col.equals(Parameters.USER_PREFIX + Task.TASKID_COLUMN)) index = parameterValues.getInt(col);
-				}
+				String value = parameterValues.getString(userParameter);
+				Integer index = parameterValues.getInt(Parameters.USER_PREFIX + Task.TASKID_COLUMN);
 
 				if (value == null)
 				{
