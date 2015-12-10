@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -27,7 +28,6 @@ import org.molgenis.compute.urlreader.impl.UrlReaderImpl;
 import org.molgenis.data.Entity;
 import org.molgenis.data.csv.CsvRepository;
 import org.molgenis.data.processor.CellProcessor;
-import org.molgenis.data.support.MapEntity;
 
 public class CsvParameterParserImpl implements CsvParameterParser
 {
@@ -78,18 +78,21 @@ public class CsvParameterParserImpl implements CsvParameterParser
 		if (parametersToOverwrite != null) tupleUtils.setParametersToOverwrite(parametersToOverwrite);
 		tupleUtils.solve(parameters.getValues());
 
-		// mark all columns as 'user_*'
 		int count = 0;
 		List<DataEntity> userTargets = new ArrayList<DataEntity>();
-		for (DataEntity parameterValue : parameters.getValues())
+		ListIterator<DataEntity> iterator = parameters.getValues().listIterator();
+		while (iterator.hasNext())
 		{
-			DataEntity t = new DataEntity();
+			DataEntity parameterValue = iterator.next();
+			DataEntity copy = new DataEntity();
 			for (String attributeName : parameterValue.getAttributeNames())
 			{
-				t.set(stringStore.intern(Parameters.USER_PREFIX + attributeName), parameterValue.get(attributeName));
+				// mark all columns as 'user_*'
+				copy.set(stringStore.intern(Parameters.USER_PREFIX + attributeName), parameterValue.get(attributeName));
 			}
-			t.set(Parameters.ID_COLUMN, count++);
-			userTargets.add(t);
+			copy.set(Parameters.ID_COLUMN, count++);
+			userTargets.add(copy);
+			iterator.remove();
 		}
 
 		parameters = new Parameters();
