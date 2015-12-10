@@ -46,10 +46,12 @@ fi
 output=$(sbatch $dependencies ${t.name}.sh)
 id=${t.name}
 ${t.name}=<#noparse>${output##"Submitted batch job "}</#noparse> 
+echo "$id:$${t.name}"
 echo "$id:$${t.name}" >> submitted_jobIDs.txt
 fi
 
-chmod g+w submitted_jobIDs.txt
+
 
 </#foreach>
+chmod g+w submitted_jobIDs.txt
 touch molgenis.submit.finished
