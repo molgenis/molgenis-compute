@@ -527,45 +527,36 @@ public class TaskGenerator
 				script = script + "\n# Save output in environment file: '" + myEnvironmentFile
 						+ "' with the output vars of this step\n";
 
-				Iterator<String> itParam = map.keySet().iterator();
-				while (itParam.hasNext())
+				Iterator<Output> itOutput = step.getProtocol().getOutputs().iterator();
+				while (itOutput.hasNext())
 				{
-					String p = itParam.next();
-
-					// add to environment only if this is an output
-					// iterate through outputs to check that
-					Iterator<Output> itOutput = step.getProtocol().getOutputs().iterator();
-					while (itOutput.hasNext())
+					String parameterName = itOutput.next().getName();
+					if (map.containsKey(parameterName))
 					{
-						Output o = itOutput.next();
-						if (o.getName().equals(p))
+						// If parameter not set at runtime then ERROR
+						String line = "if [[ -z \"$" + parameterName + "\" ]]; then echo \"In step '" + step.getName()
+								+ "', parameter '" + parameterName + "' has no value! Please assign a value to parameter '" + parameterName
+								+ "'." + "\" >&2; exit 1; fi\n";
+
+						// Else set parameters at right indexes.
+						// Explanation: if param file is collapsed in this
+						// template, then we should not output a single
+						// value but a list of values because next step may
+						// be run in uncollapsed fashion
+
+						List<String> rowIndex = target.getList(Parameters.ID_COLUMN);
+						for (int i = 0; i < rowIndex.size(); i++)
 						{
-							// we've found a match
-
-							// If parameter not set then ERROR
-							String line = "if [[ -z \"$" + p + "\" ]]; then echo \"In step '" + step.getName()
-									+ "', parameter '" + p + "' has no value! Please assign a value to parameter '" + p
-									+ "'." + "\" >&2; exit 1; fi\n";
-
-							// Else set parameters at right indexes.
-							// Explanation: if param file is collapsed in this
-							// template, then we should not output a single
-							// value but a list of values because next step may
-							// be run in uncollapsed fashion
-
-							List<String> rowIndex = target.getList(Parameters.ID_COLUMN);
-							for (int i = 0; i < rowIndex.size(); i++)
-							{
-								Object rowIndexObject = rowIndex.get(i);
-								String rowIndexString = rowIndexObject.toString();
-								line += "echo \"" + step.getName() + Parameters.STEP_PARAM_SEP_SCRIPT + p + "["
-										+ rowIndexString + "]=\\\"${" + p + "[" + i + "]}\\\"\" >> " + myEnvironmentFile
-										+ "\n";
-							}
-
-							script += line;
+							Object rowIndexObject = rowIndex.get(i);
+							String rowIndexString = rowIndexObject.toString();
+							line += "echo \"" + step.getName() + Parameters.STEP_PARAM_SEP_SCRIPT + parameterName + "["
+									+ rowIndexString + "]=\\\"${" + parameterName + "[" + i + "]}\\\"\" >> " + myEnvironmentFile
+									+ "\n";
 						}
+
+						script += line;
 					}
+
 				}
 				script = appendToEnv(script, "", myEnvironmentFile);
 				script += "\n";
@@ -591,6 +582,7 @@ public class TaskGenerator
 		}
 
 		return tasks;
+
 	}
 
 	private StringBuilder foldIntoHeaderAndSetEnvironment(List<Input> inputs, Map<String, String> filters,
