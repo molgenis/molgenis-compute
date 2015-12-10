@@ -120,7 +120,7 @@ public class TupleUtils
 		// Freemarker configuration
 		Configuration configuration = new Configuration();
 
-		Template template;
+		Map<String, Template> templates = new HashMap<>();
 		String original;
 		String value;
 		StringWriter out;
@@ -139,30 +139,34 @@ public class TupleUtils
 
 					if (original.contains("${"))
 					{
-						// check for self reference (??)
+						// check for self reference
 						if (original.contains("${" + attribute + "}")) throw new IOException("could not solve "
 								+ attribute + "='" + original + "' because template references to self");
 
-						// Generate a new template 
-						template = new Template(attribute, new StringReader(original), configuration);
+						Template template = templates.get(original);
+						if (template == null)
+						{
+							// Generate a new template
+							template = new Template(attribute, new StringReader(original), configuration);
+							templates.put(original, template);
+						}
+
 						out = new StringWriter();
 						try
 						{
 							// Transform MapEntity to map so the template model can use it
 							Map<String, Object> map = toMap(mapEntityValue);
-							
-							// I do not know, how to fix it differently
+
 							map.put("runid", runID);
-							
+
 							// Replace the values within ${} with the actual values
 							template.process(map, out);
-							
-							// Store the output of the 
+
 							value = out.toString();
 							if (!value.equals(original))
 							{
 								updated = true;
-								mapEntityValue.set(attribute, value);
+								mapEntityValue.set(attribute, stringStore.intern(value));
 							}
 						}
 						catch (Exception e)
