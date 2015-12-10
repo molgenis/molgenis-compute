@@ -107,73 +107,80 @@ public class TupleUtils
 	}
 
 	/**
-	 * Tuples can have values that are freemarker templates, e.g. ${other column}. This method will solve that
+	 * This methods solves Tuple values containing freemarker syntax e.g. ${other column}.
 	 * 
 	 * @throws IOException
 	 * @throws TemplateException
 	 */
-	public void solve(List<DataEntity> parameterValues) throws IOException
+	public void solve(List<DataEntity> values) throws IOException
 	{
+		// Replace parameters with those from the global parameter map
+		replaceParameters(values);
+
 		// Freemarker configuration
-		Configuration freeMarkerConfiguration = new Configuration();
+		Configuration configuration = new Configuration();
+
 		Template template;
+		String original;
+		String value;
+		StringWriter out;
+		String unsolved;
 
-		replaceParameters(parameterValues);
-
-		// For every Parameter value
-		for (DataEntity parameterValue : parameterValues)
+		boolean done = false;
+		while (!done)
 		{
-			// For every attribute within this parameterValue map
-			for (String attribute : parameterValue.getAttributeNames())
+			boolean updated = false;
+			unsolved = "";
+			for (DataEntity mapEntityValue : values)
 			{
-				// Store the original
-				String original = parameterValue.getString(attribute);
-
-				// If the original contains freemarker syntax
-				if (original.contains("${"))
+				for (String attribute : mapEntityValue.getAttributeNames())
 				{
-					// Check for self reference (??)
-					if (original.contains("${" + attribute + "}"))
+					original = mapEntityValue.getString(attribute);
+
+					if (original.contains("${"))
 					{
-						throw new IOException("could not solve " + attribute + "='" + original
-								+ "' because template references to self");
-					}
+						// check for self reference (??)
+						if (original.contains("${" + attribute + "}")) throw new IOException("could not solve "
+								+ attribute + "='" + original + "' because template references to self");
 
-					// Create a new template for every attribute. Very expensive!!!
-					// TODO can we reuse the same template?
-					try
-					{
-						template = freeMarkerConfiguration.getTemplate(attribute);
-					}
-					catch (IOException e)
-					{
-						template = new Template(attribute, new StringReader(original), freeMarkerConfiguration);
-					}
-
-					StringWriter writer = new StringWriter();
-					try
-					{
-						Map<String, Object> map = toMap(parameterValue);
-
-						// ??
-						map.put("runid", runID);
-
-						// Reads the created template, and writes it to a String object.
-						template.process(map, writer);
-						String value = writer.toString();
-
-						// If the generated template is not the same as it was originally
-						if (!value.equals(original))
+						// Generate a new template 
+						template = new Template(attribute, new StringReader(original), configuration);
+						out = new StringWriter();
+						try
 						{
-							parameterValue.set(attribute, stringStore.intern(value));
+							// Transform MapEntity to map so the template model can use it
+							Map<String, Object> map = toMap(mapEntityValue);
+							
+							// I do not know, how to fix it differently
+							map.put("runid", runID);
+							
+							// Replace the values within ${} with the actual values
+							template.process(map, out);
+							
+							// Store the output of the 
+							value = out.toString();
+							if (!value.equals(original))
+							{
+								updated = true;
+								mapEntityValue.set(attribute, value);
+							}
+						}
+						catch (Exception e)
+						{
+							unsolved += "could not solve " + attribute + "='" + original + "': " + e.getMessage()
+									+ "\n";
 						}
 					}
-					catch (Exception e)
-					{
-						throw new IOException(
-								"could not solve " + attribute + "='" + original + "': " + e.getMessage() + "\n");
-					}
 				}
+			}
+
+			if (!updated)
+			{
+				if (unsolved.length() > 0)
+				{
+					throw new IOException(unsolved);
+				}
+				done = true;
 			}
 		}
 	}
