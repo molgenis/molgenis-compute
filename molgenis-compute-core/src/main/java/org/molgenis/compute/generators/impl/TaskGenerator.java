@@ -655,16 +655,16 @@ public class TaskGenerator
 
 				if (checkIfAllAvailable(arrayList))
 				{
-					String strList = "";
+					StringBuilder strList = new StringBuilder("");
 					for (String s : arrayList)
 					{
-						s = addQuotes(s);
-						strList += s + " ";
+						strList.append('"');
+						strList.append(s);
+						strList.append('"').append(' ');
 					}
-					strList = strList.trim();
 					name = formFreemarker(name);
 					name = addQuotes(name);
-					values.put(name, strList);
+					values.put(name, strList.toString().trim());
 				}
 				else
 				{
