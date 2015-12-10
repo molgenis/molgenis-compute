@@ -21,7 +21,7 @@ public class DataEntity extends AbstractEntity
 {
 	private static final long serialVersionUID = 1060707187295905344L;
 	private EntityMetaData entityMetaData;
-	private UnifiedMap<String, Object> values = UnifiedMap.newMap();//new CaseInsensitiveLinkedHashMap<Object>();
+	private Map<String, Object> values = UnifiedMap.newMap();
 	private String idAttributeName = null;
 
 	public DataEntity()
