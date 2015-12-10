@@ -37,10 +37,11 @@ fi
 output=$(sbatch $dependencies step0_0.sh)
 id=step0_0
 step0_0=${output##"Submitted batch job "} 
+echo "$id:$step0_0"
 echo "$id:$step0_0" >> submitted_jobIDs.txt
 fi
 
-chmod g+w submitted_jobIDs.txt
+
 
 #
 ##step0_1
@@ -60,10 +61,11 @@ fi
 output=$(sbatch $dependencies step0_1.sh)
 id=step0_1
 step0_1=${output##"Submitted batch job "} 
+echo "$id:$step0_1"
 echo "$id:$step0_1" >> submitted_jobIDs.txt
 fi
 
-chmod g+w submitted_jobIDs.txt
+
 
 #
 ##step1_0
@@ -87,10 +89,11 @@ fi
 output=$(sbatch $dependencies step1_0.sh)
 id=step1_0
 step1_0=${output##"Submitted batch job "} 
+echo "$id:$step1_0"
 echo "$id:$step1_0" >> submitted_jobIDs.txt
 fi
 
-chmod g+w submitted_jobIDs.txt
+
 
 #
 ##step1_1
@@ -114,10 +117,11 @@ fi
 output=$(sbatch $dependencies step1_1.sh)
 id=step1_1
 step1_1=${output##"Submitted batch job "} 
+echo "$id:$step1_1"
 echo "$id:$step1_1" >> submitted_jobIDs.txt
 fi
 
-chmod g+w submitted_jobIDs.txt
+
 
 #
 ##step2_0
@@ -145,10 +149,11 @@ fi
 output=$(sbatch $dependencies step2_0.sh)
 id=step2_0
 step2_0=${output##"Submitted batch job "} 
+echo "$id:$step2_0"
 echo "$id:$step2_0" >> submitted_jobIDs.txt
 fi
 
-chmod g+w submitted_jobIDs.txt
+
 
 #
 ##step3_0
@@ -172,9 +177,11 @@ fi
 output=$(sbatch $dependencies step3_0.sh)
 id=step3_0
 step3_0=${output##"Submitted batch job "} 
+echo "$id:$step3_0"
 echo "$id:$step3_0" >> submitted_jobIDs.txt
 fi
 
-chmod g+w submitted_jobIDs.txt
 
+
+chmod g+w submitted_jobIDs.txt
 touch molgenis.submit.finished
