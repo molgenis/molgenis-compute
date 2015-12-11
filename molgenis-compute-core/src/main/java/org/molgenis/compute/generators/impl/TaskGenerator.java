@@ -70,7 +70,7 @@ public class TaskGenerator
 			// Generate the scripts for each task in this step. 
 			// Add TaskInfo objects to the taskInfos list.
 			taskInfos.addAll(scriptGenerator.generateTaskScripts(generateTasks(step, localParameters, workflow,
-					context.getComputeProperties(), context.getMapUserEnvironment())));
+					context.getComputeProperties(), context.getMapUserEnvironment()), step));
 
 			// uncollapse
 			localParameters = TupleUtils.uncollapse(localParameters);

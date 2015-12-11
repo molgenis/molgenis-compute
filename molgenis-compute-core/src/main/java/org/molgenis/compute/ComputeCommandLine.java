@@ -305,23 +305,24 @@ public class ComputeCommandLine
 			context.createBatchAnalyser(computeProperties.batchVariable, computeProperties.batchSize);
 		}
 
-		LOG.info("### Starting script generation ###");
-
 		File outputDirectory = new File(computeProperties.runDir);
 		computeProperties.runDir = outputDirectory.getCanonicalPath();
 		outputDirectory.mkdirs();
 
 		// Parse workflow
+		LOG.info("Parsing workflow");
 		WorkflowImpl workflowImpl = new WorkflowCsvParserImpl().parse(computeProperties.workFlow, computeProperties);
 		context.setWorkflow(workflowImpl);
 
 		// Create environment.txt with user parameters that are used in at least one of the steps
+		LOG.info("Creating environment parameters");
 		HashMap<String, String> userEnvironment = new EnvironmentGenerator().generate(context,
 				computeProperties.runDir);
 		context.setMapUserEnvironment(userEnvironment);
 
 		// Create a ScriptGenerator object. This object creates the header, footer, and submit template on
 		// initialization. The object can then be used to create scripts for every generated task.
+		LOG.info("Generating header and footer templates");
 		ScriptGenerator scriptGenerator = new ScriptGenerator(computeProperties);
 
 		// Create a TaskGenerator object with the current context object
@@ -336,11 +337,14 @@ public class ComputeCommandLine
 		}
 
 		// Generate tasks, store task names and previous steps in a list of TaskInfo objects
+		LOG.info("Generating tasks");
 		List<TaskInfo> taskInfos = taskGenerator.generate();
 
 		// Generate submit script with the TaskInfo objects
+		LOG.info("Generating submit scripts");
 		scriptGenerator.generateSubmitScript(taskInfos);
-		LOG.info("All scripts have been generated.");
+		
+		LOG.info("All scripts have been generated");
 		LOG.info("You can find them in: " + outputDirectory);
 	}
 
