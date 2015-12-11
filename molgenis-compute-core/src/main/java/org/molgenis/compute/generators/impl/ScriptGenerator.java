@@ -45,7 +45,7 @@ public class ScriptGenerator
 	 * @param tasks
 	 * @throws IOException
 	 */
-	public List<TaskInfo> generateTaskScripts(Iterable<Task> tasks, Step step) throws IOException
+	public List<TaskInfo> generateTaskScripts(Iterable<Task> tasks, String stepName) throws IOException
 	{
 		List<TaskInfo> taskInfos = new ArrayList<TaskInfo>();
 		int counter = 0;
@@ -55,7 +55,7 @@ public class ScriptGenerator
 			taskInfos.add(new TaskInfo(task.getName(), task.getPreviousTasks()));
 			counter++;
 		}
-		LOG.info("Number of scripts generated for " + step.getName() + ": " + counter);
+		LOG.info("Number of scripts generated for " + stepName + ": " + counter);
 		return taskInfos;
 	}
 
