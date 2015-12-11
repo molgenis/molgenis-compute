@@ -72,7 +72,7 @@ public class ProtocolAnalyserImpl implements ProtocolAnalyser
 
 		if (warn)
 		{
-			LOG.warn("Variable [" + variable + "] in Protocol [" + protocol.getName() + "] perhaps is not getting mapped");
+			LOG.warn("Variable [" + variable + "] in Protocol [" + protocol.getName() + "] might not be getting mapped");
 		}
 	}
 }

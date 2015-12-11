@@ -67,10 +67,10 @@ public class TaskGenerator
 			// (ii) taskIndex = id
 			localParameters = addStepIds(localParameters, step);
 
-			// Generate the scripts for each task in this step. 
+			// Generate the scripts for each task in this step.
 			// Add TaskInfo objects to the taskInfos list.
 			taskInfos.addAll(scriptGenerator.generateTaskScripts(generateTasks(step, localParameters, workflow,
-					context.getComputeProperties(), context.getMapUserEnvironment())));
+					context.getComputeProperties(), context.getMapUserEnvironment()), step.getName()));
 
 			// uncollapse
 			localParameters = TupleUtils.uncollapse(localParameters);
@@ -535,8 +535,9 @@ public class TaskGenerator
 					{
 						// If parameter not set at runtime then ERROR
 						String line = "if [[ -z \"$" + parameterName + "\" ]]; then echo \"In step '" + step.getName()
-								+ "', parameter '" + parameterName + "' has no value! Please assign a value to parameter '" + parameterName
-								+ "'." + "\" >&2; exit 1; fi\n";
+								+ "', parameter '" + parameterName
+								+ "' has no value! Please assign a value to parameter '" + parameterName + "'."
+								+ "\" >&2; exit 1; fi\n";
 
 						// Else set parameters at right indexes.
 						// Explanation: if param file is collapsed in this
@@ -550,8 +551,8 @@ public class TaskGenerator
 							Object rowIndexObject = rowIndex.get(i);
 							String rowIndexString = rowIndexObject.toString();
 							line += "echo \"" + step.getName() + Parameters.STEP_PARAM_SEP_SCRIPT + parameterName + "["
-									+ rowIndexString + "]=\\\"${" + parameterName + "[" + i + "]}\\\"\" >> " + myEnvironmentFile
-									+ "\n";
+									+ rowIndexString + "]=\\\"${" + parameterName + "[" + i + "]}\\\"\" >> "
+									+ myEnvironmentFile + "\n";
 						}
 
 						script += line;

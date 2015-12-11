@@ -49,6 +49,8 @@ public class CsvParameterParserImpl implements CsvParameterParser
 	@Override
 	public Parameters parse(List<File> parameterFiles, ComputeProperties computeProperties) throws IOException
 	{
+		LOG.info("Parsing parameter files...");
+		
 		properties = computeProperties;
 		Parameters parameters = null;
 		Set<String> uniqueFiles = new LinkedHashSet<String>();
@@ -76,8 +78,11 @@ public class CsvParameterParserImpl implements CsvParameterParser
 		TupleUtils tupleUtils = new TupleUtils(stringStore);
 		tupleUtils.setRunID(runID);
 		if (parametersToOverwrite != null) tupleUtils.setParametersToOverwrite(parametersToOverwrite);
+		
+		LOG.info("Solving templated values in parameter files...");
 		tupleUtils.solve(parameters.getValues());
-
+		LOG.info("Solving complete");
+		
 		int count = 0;
 		List<DataEntity> userTargets = new ArrayList<DataEntity>();
 		ListIterator<DataEntity> iterator = parameters.getValues().listIterator();

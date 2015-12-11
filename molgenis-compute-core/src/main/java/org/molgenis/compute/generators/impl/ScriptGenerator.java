@@ -45,15 +45,17 @@ public class ScriptGenerator
 	 * @param tasks
 	 * @throws IOException
 	 */
-	public List<TaskInfo> generateTaskScripts(Iterable<Task> tasks) throws IOException
+	public List<TaskInfo> generateTaskScripts(Iterable<Task> tasks, String stepName) throws IOException
 	{
 		List<TaskInfo> taskInfos = new ArrayList<TaskInfo>();
+		int counter = 0;
 		for (Task task : tasks)
 		{
 			generateTaskScript(task);
 			taskInfos.add(new TaskInfo(task.getName(), task.getPreviousTasks()));
+			counter++;
 		}
-		
+		LOG.info("Number of scripts generated for " + stepName + ": " + counter);
 		return taskInfos;
 	}
 
@@ -78,8 +80,6 @@ public class ScriptGenerator
 
 			bufferedWriter.close();
 			fileWriter.close();
-
-			LOG.info("Generated " + taskOutputFile.getName());
 		}
 		catch (TemplateException e)
 		{
