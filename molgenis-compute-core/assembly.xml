@@ -53,6 +53,8 @@
                 <include>org.springframework:spring-core</include>
                 <include>org.springframework:spring-context</include>
                 <include>org.springframework:spring-beans</include>
+                <include>com.goldmansachs:gs-collections</include>
+                <include>com.goldmansachs:gs-collections-api</include>
 			</includes>
 		</dependencySet>
 	</dependencySets>
