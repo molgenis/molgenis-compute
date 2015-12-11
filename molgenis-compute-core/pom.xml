@@ -3,12 +3,12 @@
 	<modelVersion>4.0.0</modelVersion>
     <properties>
         <molgenis.version>1.2.0</molgenis.version>
-        <compute.version>15.12.2</compute.version>
+        <compute.version>15.12.3</compute.version>
     </properties>
 	<parent>
 		<groupId>org.molgenis</groupId>
 		<artifactId>molgenis-compute</artifactId>
-		<version>1.2.0-SNAPSHOT</version>
+		<version>1.3.0</version>
 	</parent>
 	<artifactId>molgenis-compute-core</artifactId>
 	<build>
