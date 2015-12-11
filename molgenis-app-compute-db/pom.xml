@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.molgenis</groupId>
         <artifactId>molgenis-compute</artifactId>
-        <version>1.2.0-SNAPSHOT</version>
+        <version>1.3.0</version>
     </parent>
     <artifactId>molgenis-app-compute-db</artifactId>
     <packaging>war</packaging>
@@ -110,7 +110,7 @@
         <dependency>
             <groupId>org.molgenis</groupId>
             <artifactId>molgenis-compute-core</artifactId>
-            <version>1.2.0-SNAPSHOT</version>
+            <version>1.3.0</version>
         </dependency>
         <dependency>
             <groupId>org.molgenis</groupId>
