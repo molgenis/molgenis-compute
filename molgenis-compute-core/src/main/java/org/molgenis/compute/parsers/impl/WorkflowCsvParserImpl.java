@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -118,7 +119,7 @@ public class WorkflowCsvParserImpl implements WorkflowCsvParser
 
 	private HashSet<String> parseParametersDependencies(String string) throws IOException
 	{
-		HashSet<String> dependencies = new HashSet<String>();
+		HashSet<String> dependencies = new LinkedHashSet<String>();
 		// split per ; and then key/value pairs are split by "="
 		resultParsing = new LinkedHashMap<String, String>();
 

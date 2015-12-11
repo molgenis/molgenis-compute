@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -19,8 +20,8 @@ import org.molgenis.compute.model.Output;
 import org.molgenis.compute.model.Parameters;
 import org.molgenis.compute.model.Step;
 import org.molgenis.compute.model.Task;
+import org.molgenis.compute.model.impl.DataEntity;
 import org.molgenis.compute.model.impl.WorkflowImpl;
-import org.molgenis.data.support.MapEntity;
 import org.molgenis.util.Pair;
 
 /**
@@ -36,7 +37,7 @@ public class EnvironmentGenerator
 
 	public static final String GLOBAL_PREFIX = "global_";
 
-	private HashMap<String, String> environment = new HashMap<String, String>();
+	private HashMap<String, String> environment = new LinkedHashMap<String, String>();
 	private List<Step> steps = null;
 	private WorkflowImpl workflowImpl = null;
 
@@ -90,16 +91,10 @@ public class EnvironmentGenerator
 		{
 			String userParameter = Parameters.USER_PREFIX + parameter;
 
-			for (MapEntity parameterValues : compute.getParameters().getValues())
+			for (DataEntity parameterValues : compute.getParameters().getValues())
 			{
-				// retrieve index and value for that index
-				Integer index = null;
-				String value = null;
-				for (String col : parameterValues.getAttributeNames())
-				{
-					if (col.equals(userParameter)) value = parameterValues.getString(col);
-					if (col.equals(Parameters.USER_PREFIX + Task.TASKID_COLUMN)) index = parameterValues.getInt(col);
-				}
+				String value = parameterValues.getString(userParameter);
+				Integer index = parameterValues.getInt(Parameters.USER_PREFIX + Task.TASKID_COLUMN);
 
 				if (value == null)
 				{
@@ -142,7 +137,7 @@ public class EnvironmentGenerator
 		return relatedSteps;
 	}
 
-	private boolean isFoundAsOutput(String parameter, MapEntity wt)
+	private boolean isFoundAsOutput(String parameter, DataEntity wt)
 	{
 		for (Step step : workflowImpl.getSteps())
 		{

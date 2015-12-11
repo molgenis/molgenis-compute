@@ -100,11 +100,6 @@ public class Protocol
 		return outputs;
 	}
 
-	public void setOutputs(Set<Output> outputs)
-	{
-		this.outputs = outputs;
-	}
-
 	public String getNodes()
 	{
 		return nodes;
