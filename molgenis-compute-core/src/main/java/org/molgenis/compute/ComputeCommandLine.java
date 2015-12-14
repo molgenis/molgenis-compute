@@ -3,7 +3,6 @@ package org.molgenis.compute;
 import static com.google.common.base.Strings.repeat;
 import static com.google.common.io.Resources.getResource;
 import static com.google.common.io.Resources.readLines;
-import static freemarker.log.Logger.selectLoggerLibrary;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -363,7 +362,7 @@ public class ComputeCommandLine
 			int size = 0;
 			for (Input input : protocol.getInputs())
 			{
-				if (input.getType().equalsIgnoreCase(Input.TYPE_LIST))
+				if (input.getType()==Input.Type.LIST)
 				{
 					size++;
 				}
@@ -371,7 +370,7 @@ public class ComputeCommandLine
 
 			if (size > 1) for (Input input : protocol.getInputs())
 			{
-				if (input.getType().equalsIgnoreCase(Input.TYPE_LIST) && !input.isCombinedListsNotation())
+				if (input.getType()==Input.Type.LIST && !input.isCombinedListsNotation())
 				{
 					input.setCombineLists(false);
 				}

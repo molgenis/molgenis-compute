@@ -137,7 +137,7 @@ public class TaskGenerator
 		for (Input input : step.getProtocol().getInputs())
 		{
 			// If the input type does not equal to a list
-			if (!Parameters.LIST_INPUT.equals(input.getType()))
+			if (!(input.getType() == Input.Type.LIST))
 			{
 				targets.add(input.getName());
 			}
@@ -278,7 +278,8 @@ public class TaskGenerator
 	private List<Task> generateTasks(Step step, List<DataEntity> localParameters, Workflow workflow,
 			ComputeProperties computeProperties, HashMap<String, String> environment) throws IOException
 	{
-		return Lists.transform(localParameters, target -> generateTask(step, workflow, computeProperties, environment, target));
+		return Lists.transform(localParameters,
+				target -> generateTask(step, workflow, computeProperties, environment, target));
 	}
 
 	private Task generateTask(Step step, Workflow workflow, ComputeProperties computeProperties,
@@ -340,8 +341,8 @@ public class TaskGenerator
 
 						// source its environment
 						parameterHeader.append(Parameters.SOURCE_COMMAND).append(" ")
-								.append(Parameters.ENVIRONMENT_DIR_VARIABLE).append(File.separator)
-								.append(prevJobName).append(Parameters.ENVIRONMENT_EXTENSION).append("\n");
+								.append(Parameters.ENVIRONMENT_DIR_VARIABLE).append(File.separator).append(prevJobName)
+								.append(Parameters.ENVIRONMENT_EXTENSION).append("\n");
 					}
 				}
 			}
@@ -358,7 +359,7 @@ public class TaskGenerator
 			{
 				// If input equals a list, is not a combined list, and the parameters consist of multiple parameter
 				// files
-				if (input.getType().equalsIgnoreCase(Parameters.LIST_INPUT) && !input.isCombineLists()
+				if (input.getType() == Input.Type.LIST && !input.isCombineLists()
 						&& context.getFoldParameters().isMultiParameterFiles())
 				{
 					// a new way of folding takes a list of parameters from initial parameter list, where values are
@@ -389,10 +390,8 @@ public class TaskGenerator
 									Parameters.STEP_PARAM_SEP_SCRIPT);
 							else value = EnvironmentGenerator.GLOBAL_PREFIX + value;
 
-							String type = input.getType();
-
 							String left = null;
-							if (type.equalsIgnoreCase(Input.TYPE_STRING))
+							if (input.getType() == Input.Type.STRING)
 							{
 								left = parameterName;
 								if (presentStrings.contains(left)) continue;
@@ -405,8 +404,7 @@ public class TaskGenerator
 							{
 								right = right.substring(EnvironmentGenerator.GLOBAL_PREFIX.length());
 								String realValue = environment.get(right);
-								parameterHeader.append(left).append("=").append("\"").append(realValue)
-										.append("\"\n");
+								parameterHeader.append(left).append("=").append("\"").append(realValue).append("\"\n");
 								filters.put(left, realValue);
 								map.put(left, realValue);
 							}
@@ -452,10 +450,9 @@ public class TaskGenerator
 									}
 								}
 
-								String type = input.getType();
 
 								String left = null;
-								if (type.equalsIgnoreCase(Input.TYPE_STRING))
+								if (input.getType() == Input.Type.STRING)
 								{
 									left = parameterName;
 									if (presentStrings.contains(left)) continue;
@@ -486,14 +483,12 @@ public class TaskGenerator
 
 			parameterHeader = foldIntoHeaderAndSetEnvironment(listInputsToFoldNew, filters, parameterHeader);
 
-			parameterHeader
-					.append("\n# Validate that each 'value' parameter has only identical values in its list\n")
+			parameterHeader.append("\n# Validate that each 'value' parameter has only identical values in its list\n")
 					.append("# We do that to protect you against parameter values that might not be correctly set at runtime.\n");
 
 			for (Input input : step.getProtocol().getInputs())
 			{
-				boolean isList = Parameters.LIST_INPUT.equals(input.getType());
-				if (!isList)
+				if (!(input.getType() == Input.Type.LIST))
 				{
 					String inputName = input.getName();
 
@@ -539,9 +534,8 @@ public class TaskGenerator
 				{
 					// If parameter not set at runtime then ERROR
 					String line = "if [[ -z \"$" + parameterName + "\" ]]; then echo \"In step '" + step.getName()
-							+ "', parameter '" + parameterName
-							+ "' has no value! Please assign a value to parameter '" + parameterName + "'."
-							+ "\" >&2; exit 1; fi\n";
+							+ "', parameter '" + parameterName + "' has no value! Please assign a value to parameter '"
+							+ parameterName + "'." + "\" >&2; exit 1; fi\n";
 
 					// Else set parameters at right indexes.
 					// Explanation: if param file is collapsed in this
@@ -631,7 +625,7 @@ public class TaskGenerator
 		for (Input input : protocol.getInputs())
 		{
 			if (input.isKnownRunTime()) continue;
-			if (input.getType().equalsIgnoreCase(Parameters.STRING))
+			if (input.getType() == Input.Type.STRING)
 			{
 				String name = input.getName();
 				String value = (String) target.get(name);
@@ -643,7 +637,7 @@ public class TaskGenerator
 				name = formFreemarker(name);
 				values.put(name, value);
 			}
-			else if (input.getType().equalsIgnoreCase(Parameters.LIST_INPUT))
+			else if (input.getType() == Input.Type.LIST)
 			{
 				String name = input.getName();
 
