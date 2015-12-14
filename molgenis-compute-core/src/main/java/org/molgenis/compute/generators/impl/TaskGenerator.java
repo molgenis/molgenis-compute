@@ -34,7 +34,7 @@ public class TaskGenerator
 	private static final Logger LOG = Logger.getLogger(TaskGenerator.class);
 
 	private Context context;
-	private List<DataEntity> globalParameters = new ArrayList<DataEntity>();	
+	private List<DataEntity> globalParameters = new ArrayList<DataEntity>();
 
 	private ScriptGenerator scriptGenerator;
 	private StringStore stringStore;
@@ -73,8 +73,7 @@ public class TaskGenerator
 
 			// Generate the scripts for each task in this step.
 			// Add TaskInfo objects to the taskInfos list.
-			taskInfos.addAll(scriptGenerator.generateTaskScripts(generateTasks(step, localParameters, workflow,
-					context.getComputeProperties(), context.getMapUserEnvironment()), step.getName()));
+			taskInfos.addAll(scriptGenerator.generateTaskScripts(generateTasks(step, localParameters), step.getName()));
 
 			// uncollapse
 			localParameters = TupleUtils.uncollapse(localParameters);
@@ -277,18 +276,18 @@ public class TaskGenerator
 		}
 	}
 
-	private List<Task> generateTasks(Step step, List<DataEntity> localParameters, Workflow workflow,
-			ComputeProperties computeProperties, Map<String, String> environment) throws IOException
+	private List<Task> generateTasks(Step step, List<DataEntity> localParameters) throws IOException
 	{
-		return Lists.transform(localParameters,
-				target -> generateTask(step, workflow, computeProperties, environment, target));
+		return Lists.transform(localParameters, target -> generateTask(step, target));
 	}
 
-	private Task generateTask(Step step, Workflow workflow, ComputeProperties computeProperties,
-			Map<String, String> environment, DataEntity dataEntity)
+	private Task generateTask(Step step, DataEntity dataEntity)
 	{
 		Task task = new Task(dataEntity.getString(Task.TASKID_COLUMN));
-		
+		Map<String, String> environment = context.getMapUserEnvironment();
+		ComputeProperties computeProperties = context.getComputeProperties();
+		Workflow workflow = context.getWorkflow();
+
 		try
 		{
 			Map<String, Object> dataEntityValues = dataEntity.getValueMap();
@@ -373,7 +372,7 @@ public class TaskGenerator
 				else
 				{
 					// Start folding
-					String parameterName = input.getName();
+					String localParameterName = input.getName();
 
 					List<String> rowIndex = dataEntity.getList(Parameters.ID_COLUMN);
 					for (int i = 0; i < rowIndex.size(); i++)
@@ -382,12 +381,13 @@ public class TaskGenerator
 						String rowIndexString = rowIndexObject.toString();
 
 						String value = null;
-						String parameterMapping = step.getParametersMapping().get(parameterName);
+						String parameterMapping = step.getParametersMapping().get(localParameterName);
 						if (parameterMapping != null)
 						{
 							// parameter is mapped locally
 							value = parameterMapping;
-
+							System.out.println(">>> VALUE: " + value);
+							System.out.println(">>> PARAMETER NAME: " + localParameterName);
 							if (input.isKnownRunTime()) value = value.replace(Parameters.STEP_PARAM_SEP_PROTOCOL,
 									Parameters.STEP_PARAM_SEP_SCRIPT);
 							else value = EnvironmentGenerator.GLOBAL_PREFIX + value;
@@ -395,13 +395,16 @@ public class TaskGenerator
 							String left = null;
 							if (input.getType() == Input.Type.STRING)
 							{
-								left = parameterName;
+								left = localParameterName;
 								if (presentStrings.contains(left)) continue;
 								else presentStrings.add(left);
 							}
-							else left = parameterName + "[" + i + "]";
+							else left = localParameterName + "[" + i + "]";
 
 							String right = value + "[" + rowIndexString + "]";
+							
+							System.out.println(">>> LEFT: " + left);
+							System.out.println(">>> RIGHT: " + right);
 							if (right.startsWith(EnvironmentGenerator.GLOBAL_PREFIX))
 							{
 								right = right.substring(EnvironmentGenerator.GLOBAL_PREFIX.length());
@@ -419,17 +422,17 @@ public class TaskGenerator
 						}
 						else
 						{
-							if (step.hasParameter(parameterName))
+							if (step.hasParameter(localParameterName))
 							{
-								value = parameterName;
+								value = localParameterName;
 
-								Object oValue = dataEntityValues.get(parameterName);
+								Object oValue = dataEntityValues.get(localParameterName);
 
 								if (oValue instanceof String)
 								{
 									if (input.isKnownRunTime())
 									{
-										value = parameterName;
+										value = localParameterName;
 										value = value.replaceFirst(Parameters.UNDERSCORE,
 												Parameters.STEP_PARAM_SEP_SCRIPT);
 									}
@@ -455,11 +458,11 @@ public class TaskGenerator
 								String left = null;
 								if (input.getType() == Input.Type.STRING)
 								{
-									left = parameterName;
+									left = localParameterName;
 									if (presentStrings.contains(left)) continue;
 									else presentStrings.add(left);
 								}
-								else left = parameterName + "[" + i + "]";
+								else left = localParameterName + "[" + i + "]";
 
 								String right = value + "[" + rowIndexString + "]";
 								if (right.startsWith(EnvironmentGenerator.GLOBAL_PREFIX))
@@ -482,7 +485,8 @@ public class TaskGenerator
 				}
 			}
 
-			Map<String, List<String>> collapsedEnvironment = foldIntoHeaderAndSetEnvironment(listInputsToFoldNew, filters, parameterHeader);
+			Map<String, List<String>> collapsedEnvironment = foldIntoHeaderAndSetEnvironment(listInputsToFoldNew,
+					filters, parameterHeader);
 
 			parameterHeader.append("\n# Validate that each 'value' parameter has only identical values in its list\n")
 					.append("# We do that to protect you against parameter values that might not be correctly set at runtime.\n");
@@ -507,7 +511,7 @@ public class TaskGenerator
 			// now we check if protocol is shell or freemarker template
 			if (step.getProtocol().getType().equalsIgnoreCase(Protocol.TYPE_FREEMARKER) || computeProperties.weave)
 			{
-				String weavedScript = weaveProtocol(step.getProtocol(), environment, dataEntity, collapsedEnvironment);
+				String weavedScript = weaveProtocol(step.getProtocol(), dataEntity, collapsedEnvironment);
 				script = parameterHeader.toString() + weavedScript;
 			}
 			else if (step.getProtocol().getType().equalsIgnoreCase(Protocol.TYPE_SHELL))
@@ -581,11 +585,11 @@ public class TaskGenerator
 		return task;
 	}
 
-	private HashMap<String, List<String>> foldIntoHeaderAndSetEnvironment(List<Input> inputs, Map<String, String> filters,
-			StringBuilder parameterHeader)
+	private HashMap<String, List<String>> foldIntoHeaderAndSetEnvironment(List<Input> inputs,
+			Map<String, String> filters, StringBuilder parameterHeader)
 	{
 		HashMap<String, List<String>> collapsedEnvironment = new LinkedHashMap<>();
-		
+
 		for (Input input : inputs)
 		{
 			FoldParameters foldParameters = context.getFoldParameters();
@@ -615,7 +619,8 @@ public class TaskGenerator
 		return collapsedEnvironment;
 	}
 
-	private String weaveProtocol(Protocol protocol, Map<String, String> environment, DataEntity target, Map<String, List<String>> collapsedEnvironment)
+	private String weaveProtocol(Protocol protocol, DataEntity target,
+			Map<String, List<String>> collapsedEnvironment)
 	{
 		String template = protocol.getTemplate();
 		Hashtable<String, String> values = new Hashtable<String, String>();
