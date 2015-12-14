@@ -5,7 +5,7 @@
 #SBATCH --partition=prod
 #SBATCH --time=00:30:00
 #SBATCH --cpus-per-task 4
-#SBATCH --mem-per-cpu 500
+#SBATCH --mem 500
 #SBATCH --nodes 1
 #SBATCH --open-mode=append
 

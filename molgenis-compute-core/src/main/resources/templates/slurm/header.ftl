@@ -5,7 +5,7 @@
 #SBATCH --partition=${queue}
 #SBATCH --time=${walltime}
 #SBATCH --cpus-per-task ${ppn}
-#SBATCH --mem-per-cpu ${mem}
+#SBATCH --mem ${mem}
 #SBATCH --nodes ${nodes}
 #SBATCH --open-mode=append
 
