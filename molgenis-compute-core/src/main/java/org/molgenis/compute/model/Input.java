@@ -9,12 +9,13 @@ public class Input
 {
 	public static final String TYPE_STRING = "string";
 	public static final String TYPE_LIST = "list";
-
+	public enum Type {STRING, LIST}
+	
 	// unique name within a protocol
 	private String name;
 	// description of this parameter
 	private String description;
-	private String type;
+	private Type type;
 
 	private boolean combineLists = true;
 	private boolean isKnownRunTime = false;
@@ -48,14 +49,14 @@ public class Input
 		this.description = description;
 	}
 
-	public String getType()
+	public Type getType()
 	{
 		return type;
 	}
 
 	public void setType(String type)
 	{
-		this.type = type;
+		this.type = Type.valueOf(type.toUpperCase());
 	}
 
 	public boolean isKnownRunTime()
