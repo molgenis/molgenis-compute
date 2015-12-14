@@ -33,8 +33,7 @@ public class TaskGenerator
 	private static final Logger LOG = Logger.getLogger(TaskGenerator.class);
 
 	private Context context;
-	private List<DataEntity> globalParameters = new ArrayList<DataEntity>();
-	private HashMap<String, List<String>> newEnvironment = new HashMap<String, List<String>>();
+	private List<DataEntity> globalParameters = new ArrayList<DataEntity>();	
 
 	private ScriptGenerator scriptGenerator;
 
@@ -61,7 +60,7 @@ public class TaskGenerator
 			// Collapse parameter values
 			localParameters = collapseOnTargets(step, localParameters);
 
-			// add the output templates/values + generate step ids
+			// add the output templates/values
 			localParameters = addResourceValues(step, localParameters);
 
 			// add step ids as
@@ -283,23 +282,23 @@ public class TaskGenerator
 	}
 
 	private Task generateTask(Step step, Workflow workflow, ComputeProperties computeProperties,
-			HashMap<String, String> environment, DataEntity target)
+			HashMap<String, String> environment, DataEntity dataEntity)
 	{
-		Task task = new Task(target.getString(Task.TASKID_COLUMN));
-
+		Task task = new Task(dataEntity.getString(Task.TASKID_COLUMN));
+		
 		try
 		{
-			Map<String, Object> map = target.getValueMap();
+			Map<String, Object> dataEntityValues = dataEntity.getValueMap();
 			String valueWORKDIR = globalParameters.get(0).getString("user_WORKDIR");
-			if (valueWORKDIR != null) map.put("WORKDIR", valueWORKDIR);
-			else map.put("WORKDIR", "UNDEFINED");
+			if (valueWORKDIR != null) dataEntityValues.put("WORKDIR", valueWORKDIR);
+			else dataEntityValues.put("WORKDIR", "UNDEFINED");
 			// remember parameter values
 
 			if (computeProperties.errorMailAddr != null)
-				map.put(Parameters.ERROR_MESSAGE_ADDR, computeProperties.errorMailAddr);
+				dataEntityValues.put(Parameters.ERROR_MESSAGE_ADDR, computeProperties.errorMailAddr);
 
 			// for this step: store which target-ids go into which job
-			for (Integer id : target.getIntList(Parameters.ID_COLUMN))
+			for (Integer id : dataEntity.getIntList(Parameters.ID_COLUMN))
 			{
 				step.setJobName(id, task.getName());
 			}
@@ -329,7 +328,7 @@ public class TaskGenerator
 			for (String previousStepName : step.getPreviousSteps())
 			{ // we have jobs on which we depend in this prev step
 				Step prevStep = workflow.getStep(previousStepName);
-				for (Integer id : target.getIntList(Parameters.ID_COLUMN))
+				for (Integer id : dataEntity.getIntList(Parameters.ID_COLUMN))
 				{
 					String prevJobName = prevStep.getJobName(id);
 
@@ -373,7 +372,7 @@ public class TaskGenerator
 					// Start folding
 					String parameterName = input.getName();
 
-					List<String> rowIndex = target.getList(Parameters.ID_COLUMN);
+					List<String> rowIndex = dataEntity.getList(Parameters.ID_COLUMN);
 					for (int i = 0; i < rowIndex.size(); i++)
 					{
 						Object rowIndexObject = rowIndex.get(i);
@@ -406,7 +405,7 @@ public class TaskGenerator
 								String realValue = environment.get(right);
 								parameterHeader.append(left).append("=").append("\"").append(realValue).append("\"\n");
 								filters.put(left, realValue);
-								map.put(left, realValue);
+								dataEntityValues.put(left, realValue);
 							}
 							else
 							{
@@ -421,7 +420,7 @@ public class TaskGenerator
 							{
 								value = parameterName;
 
-								Object oValue = map.get(parameterName);
+								Object oValue = dataEntityValues.get(parameterName);
 
 								if (oValue instanceof String)
 								{
@@ -449,7 +448,6 @@ public class TaskGenerator
 										value = EnvironmentGenerator.GLOBAL_PREFIX + value;
 									}
 								}
-
 
 								String left = null;
 								if (input.getType() == Input.Type.STRING)
@@ -481,7 +479,7 @@ public class TaskGenerator
 				}
 			}
 
-			parameterHeader = foldIntoHeaderAndSetEnvironment(listInputsToFoldNew, filters, parameterHeader);
+			HashMap<String, List<String>> collapsedEnvironment = foldIntoHeaderAndSetEnvironment(listInputsToFoldNew, filters, parameterHeader);
 
 			parameterHeader.append("\n# Validate that each 'value' parameter has only identical values in its list\n")
 					.append("# We do that to protect you against parameter values that might not be correctly set at runtime.\n");
@@ -506,7 +504,7 @@ public class TaskGenerator
 			// now we check if protocol is shell or freemarker template
 			if (step.getProtocol().getType().equalsIgnoreCase(Protocol.TYPE_FREEMARKER) || computeProperties.weave)
 			{
-				String weavedScript = weaveProtocol(step.getProtocol(), newEnvironment, environment, target);
+				String weavedScript = weaveProtocol(step.getProtocol(), environment, dataEntity, collapsedEnvironment);
 				script = parameterHeader.toString() + weavedScript;
 			}
 			else if (step.getProtocol().getType().equalsIgnoreCase(Protocol.TYPE_SHELL))
@@ -530,7 +528,7 @@ public class TaskGenerator
 			while (itOutput.hasNext())
 			{
 				String parameterName = itOutput.next().getName();
-				if (map.containsKey(parameterName))
+				if (dataEntityValues.containsKey(parameterName))
 				{
 					// If parameter not set at runtime then ERROR
 					String line = "if [[ -z \"$" + parameterName + "\" ]]; then echo \"In step '" + step.getName()
@@ -543,7 +541,7 @@ public class TaskGenerator
 					// value but a list of values because next step may
 					// be run in uncollapsed fashion
 
-					List<String> rowIndex = target.getList(Parameters.ID_COLUMN);
+					List<String> rowIndex = dataEntity.getList(Parameters.ID_COLUMN);
 					for (int i = 0; i < rowIndex.size(); i++)
 					{
 						Object rowIndexObject = rowIndex.get(i);
@@ -562,26 +560,29 @@ public class TaskGenerator
 
 			task.setScript(script);
 			task.setStepName(step.getName());
-			task.setParameters(map);
+			task.setParameters(dataEntityValues);
 
 			if (computeProperties.batchOption != null)
 			{
-				int batchNum = context.getBatchNumber(map);
+				int batchNum = context.getBatchNumber(dataEntityValues);
 				task.setBatchNumber(batchNum);
 			}
 
 		}
 		catch (Exception e)
 		{
+			e.printStackTrace();
 			throw new RuntimeException("Generation of protocol '" + step.getProtocol().getName() + "' failed: "
-					+ e.getMessage() + ".\nParameters used: " + target);
+					+ e.getMessage() + ".\nParameters used: " + dataEntity);
 		}
 		return task;
 	}
 
-	private StringBuilder foldIntoHeaderAndSetEnvironment(List<Input> inputs, Map<String, String> filters,
+	private HashMap<String, List<String>> foldIntoHeaderAndSetEnvironment(List<Input> inputs, Map<String, String> filters,
 			StringBuilder parameterHeader)
 	{
+		HashMap<String, List<String>> collapsedEnvironment = new LinkedHashMap<>();
+		
 		for (Input input : inputs)
 		{
 			FoldParameters foldParameters = context.getFoldParameters();
@@ -599,25 +600,19 @@ public class TaskGenerator
 					parameterHeader.append(String.format("%s[%d]=\"%s\"", inputName, i, parameterValue)).append('\n');
 					values.add(parameterValue);
 				}
-				newEnvironment.put(inputName, values);
-			}
-			else if (numberOfFilesContainingParameter > 1)
-			{
-				LOG.error("PARAMETER [" + input.getName() + "] comes is a list, which "
-						+ "requires simple way of folding, but comes from several parameter files");
+				collapsedEnvironment.put(inputName, values);
 			}
 			else if (numberOfFilesContainingParameter == 0)
 			{
-				LOG.warn("PARAMETER [" + input.getName() + "] does not found in design time files, "
+				LOG.warn("PARAMETER [" + input.getName() + "] is not found in design time files, "
 						+ "maybe it is the run time list parameter");
 			}
 		}
 
-		return parameterHeader;
+		return collapsedEnvironment;
 	}
 
-	private String weaveProtocol(Protocol protocol, HashMap<String, List<String>> newEnvironment,
-			HashMap<String, String> environment, DataEntity target)
+	private String weaveProtocol(Protocol protocol, HashMap<String, String> environment, DataEntity target, HashMap<String, List<String>> collapsedEnvironment)
 	{
 		String template = protocol.getTemplate();
 		Hashtable<String, String> values = new Hashtable<String, String>();
@@ -642,7 +637,7 @@ public class TaskGenerator
 				String name = input.getName();
 
 				List<String> arrayList = null;
-				if (newEnvironment.containsKey(name)) arrayList = newEnvironment.get(name);
+				if (collapsedEnvironment.containsKey(name)) arrayList = collapsedEnvironment.get(name);
 				else arrayList = (ArrayList<String>) target.get(name);
 
 				name += FreemarkerUtils.LIST_SIGN;
