@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.io.FileUtils;
@@ -316,7 +317,7 @@ public class ComputeCommandLine
 
 		// Create environment.txt with user parameters that are used in at least one of the steps
 		LOG.info("Creating environment parameters");
-		HashMap<String, String> userEnvironment = new EnvironmentGenerator().generate(context,
+		Map<String, String> userEnvironment = new EnvironmentGenerator(computeProperties.stringStore).generate(context,
 				computeProperties.runDir);
 		context.setMapUserEnvironment(userEnvironment);
 
@@ -326,7 +327,7 @@ public class ComputeCommandLine
 		ScriptGenerator scriptGenerator = new ScriptGenerator(computeProperties);
 
 		// Create a TaskGenerator object with the current context object
-		TaskGenerator taskGenerator = new TaskGenerator(context, scriptGenerator);
+		TaskGenerator taskGenerator = new TaskGenerator(context, scriptGenerator, computeProperties.stringStore);
 
 		// Analyze lists in workflow protocols.
 		// We need to know if list inputs are coming from the same or from a different parameter file to combine lists

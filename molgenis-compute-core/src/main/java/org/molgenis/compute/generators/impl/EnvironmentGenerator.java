@@ -20,10 +20,13 @@ import org.molgenis.compute.model.Input;
 import org.molgenis.compute.model.Output;
 import org.molgenis.compute.model.Parameters;
 import org.molgenis.compute.model.Step;
+import org.molgenis.compute.model.StringStore;
 import org.molgenis.compute.model.Task;
 import org.molgenis.compute.model.impl.DataEntity;
 import org.molgenis.compute.model.impl.WorkflowImpl;
 import org.molgenis.util.Pair;
+
+import com.gs.collections.impl.map.mutable.UnifiedMap;
 
 /**
  * Returns initial environment with all user params that are used somewhere in this workflow
@@ -39,12 +42,19 @@ public class EnvironmentGenerator
 	public static final String GLOBAL_PREFIX = "global_";
 
 	private BufferedWriter envWriter;
-	private HashMap<String, String> environment = new LinkedHashMap<String, String>();
+	private Map<String, String> environment = new UnifiedMap<String, String>();
 	private List<Step> steps = null;
 	private WorkflowImpl workflowImpl = null;
 
+	private StringStore stringStore;
+
 	// for error handling
 	private ArrayList<Pair<String, String>> arrayOfParameterSteps = new ArrayList<Pair<String, String>>();
+
+	public EnvironmentGenerator(StringStore stringStore)
+	{
+		this.stringStore = stringStore;
+	}
 
 	public void writeEnvironmentToFile(Context context) throws Exception
 	{
@@ -118,7 +128,7 @@ public class EnvironmentGenerator
 					StringBuilder assignment = new StringBuilder();
 					assignment.append(parameter).append("[").append(index).append("]=\"").append(value).append("\"");
 					writeLineToFile(assignment.toString());
-					environment.put(parameter + "[" + index + "]", value);
+					environment.put(stringStore.intern(parameter + "[" + index + "]"), stringStore.intern(value));
 				}
 			}
 		}
@@ -231,7 +241,7 @@ public class EnvironmentGenerator
 		return isRunTimeVariable;
 	}
 
-	public HashMap<String, String> generate(Context context, String workDir) throws Exception
+	public Map<String, String> generate(Context context, String workDir) throws Exception
 	{
 		Parameters.ENVIRONMENT_FULLPATH = workDir + File.separator + Parameters.ENVIRONMENT;
 

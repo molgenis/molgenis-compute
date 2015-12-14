@@ -1,7 +1,6 @@
 package org.molgenis.compute.model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -9,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.gson.Gson;
+import com.gs.collections.impl.map.mutable.UnifiedMap;
 
 /**
  * A step describes a node in a workflow. Given actual parameters, the TaskGenerator can generate Tasks from the Steps.
@@ -30,7 +30,7 @@ public class Step
 	private Set<String> previousSteps = new HashSet<String>();
 
 	// map taskId -> jobName
-	private Map<Integer, String> idJobMap = new HashMap<Integer, String>();
+	private Map<Integer, String> idJobMap = new UnifiedMap<Integer, String>();
 
 	public String getJobName(Integer id)
 	{

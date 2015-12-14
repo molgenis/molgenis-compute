@@ -21,6 +21,7 @@ import org.molgenis.compute.model.Output;
 import org.molgenis.compute.model.Parameters;
 import org.molgenis.compute.model.Protocol;
 import org.molgenis.compute.model.Step;
+import org.molgenis.compute.model.StringStore;
 import org.molgenis.compute.model.Task;
 import org.molgenis.compute.model.TaskInfo;
 import org.molgenis.compute.model.Workflow;
@@ -36,11 +37,13 @@ public class TaskGenerator
 	private List<DataEntity> globalParameters = new ArrayList<DataEntity>();	
 
 	private ScriptGenerator scriptGenerator;
+	private StringStore stringStore;
 
-	public TaskGenerator(Context context, ScriptGenerator scriptGenerator)
+	public TaskGenerator(Context context, ScriptGenerator scriptGenerator, StringStore stringStore)
 	{
 		this.context = context;
 		this.scriptGenerator = scriptGenerator;
+		this.stringStore = stringStore;
 
 		setGlobalParameters();
 	}
@@ -275,14 +278,14 @@ public class TaskGenerator
 	}
 
 	private List<Task> generateTasks(Step step, List<DataEntity> localParameters, Workflow workflow,
-			ComputeProperties computeProperties, HashMap<String, String> environment) throws IOException
+			ComputeProperties computeProperties, Map<String, String> environment) throws IOException
 	{
 		return Lists.transform(localParameters,
 				target -> generateTask(step, workflow, computeProperties, environment, target));
 	}
 
 	private Task generateTask(Step step, Workflow workflow, ComputeProperties computeProperties,
-			HashMap<String, String> environment, DataEntity dataEntity)
+			Map<String, String> environment, DataEntity dataEntity)
 	{
 		Task task = new Task(dataEntity.getString(Task.TASKID_COLUMN));
 		
@@ -290,7 +293,7 @@ public class TaskGenerator
 		{
 			Map<String, Object> dataEntityValues = dataEntity.getValueMap();
 			String valueWORKDIR = globalParameters.get(0).getString("user_WORKDIR");
-			if (valueWORKDIR != null) dataEntityValues.put("WORKDIR", valueWORKDIR);
+			if (valueWORKDIR != null) dataEntityValues.put("WORKDIR", stringStore.intern(valueWORKDIR));
 			else dataEntityValues.put("WORKDIR", "UNDEFINED");
 			// remember parameter values
 
@@ -300,7 +303,7 @@ public class TaskGenerator
 			// for this step: store which target-ids go into which job
 			for (Integer id : dataEntity.getIntList(Parameters.ID_COLUMN))
 			{
-				step.setJobName(id, task.getName());
+				step.setJobName(id, stringStore.intern(task.getName()));
 			}
 
 			StringBuilder parameterHeader = new StringBuilder();
@@ -405,7 +408,7 @@ public class TaskGenerator
 								String realValue = environment.get(right);
 								parameterHeader.append(left).append("=").append("\"").append(realValue).append("\"\n");
 								filters.put(left, realValue);
-								dataEntityValues.put(left, realValue);
+								dataEntityValues.put(stringStore.intern(left), stringStore.intern(realValue));
 							}
 							else
 							{
@@ -479,7 +482,7 @@ public class TaskGenerator
 				}
 			}
 
-			HashMap<String, List<String>> collapsedEnvironment = foldIntoHeaderAndSetEnvironment(listInputsToFoldNew, filters, parameterHeader);
+			Map<String, List<String>> collapsedEnvironment = foldIntoHeaderAndSetEnvironment(listInputsToFoldNew, filters, parameterHeader);
 
 			parameterHeader.append("\n# Validate that each 'value' parameter has only identical values in its list\n")
 					.append("# We do that to protect you against parameter values that might not be correctly set at runtime.\n");
@@ -612,7 +615,7 @@ public class TaskGenerator
 		return collapsedEnvironment;
 	}
 
-	private String weaveProtocol(Protocol protocol, HashMap<String, String> environment, DataEntity target, HashMap<String, List<String>> collapsedEnvironment)
+	private String weaveProtocol(Protocol protocol, Map<String, String> environment, DataEntity target, Map<String, List<String>> collapsedEnvironment)
 	{
 		String template = protocol.getTemplate();
 		Hashtable<String, String> values = new Hashtable<String, String>();
