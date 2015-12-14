@@ -3,7 +3,6 @@ package org.molgenis.compute.generators.impl;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
-import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.molgenis.compute.model.Context;
@@ -13,15 +12,9 @@ import org.molgenis.compute.model.Task;
 import org.molgenis.compute.model.Workflow;
 import org.molgenis.compute.model.impl.DataEntity;
 
-import com.gs.collections.impl.map.mutable.UnifiedMap;
-
 /**
- * Returns initial environment with all user params that are used somewhere in this workflow
- * 
- * @param compute
- * @return
+ * Writes the environment to file.
  */
-
 public class EnvironmentGenerator
 {
 	private static final Logger LOG = Logger.getLogger(EnvironmentGenerator.class);
@@ -29,7 +22,6 @@ public class EnvironmentGenerator
 	public static final String GLOBAL_PREFIX = "global_";
 
 	private BufferedWriter envWriter;
-	private Map<String, String> environment = new UnifiedMap<String, String>();
 	private Workflow workflow = null;
 
 	private StringStore stringStore;
@@ -65,14 +57,12 @@ public class EnvironmentGenerator
 					assignment.append(globalParameterName).append("[").append(index).append("]=\"").append(value)
 							.append("\"");
 					envWriter.write(GLOBAL_PREFIX + assignment.toString() + '\n');
-					environment.put(stringStore.intern(globalParameterName + "[" + index + "]"),
-							stringStore.intern(value));
 				}
 			}
 		}
 	}
 
-	public Map<String, String> generate(Context context, String workDir) throws Exception
+	public void generate(Context context, String workDir) throws Exception
 	{
 		Parameters.ENVIRONMENT_FULLPATH = workDir + File.separator + Parameters.ENVIRONMENT;
 
@@ -85,7 +75,5 @@ public class EnvironmentGenerator
 		envWriter = new BufferedWriter(new FileWriter(envFile, true));
 		writeEnvironmentToFile(context);
 		envWriter.close();
-
-		return environment;
 	}
 }

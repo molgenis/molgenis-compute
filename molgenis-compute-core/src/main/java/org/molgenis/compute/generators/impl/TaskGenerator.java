@@ -284,7 +284,6 @@ public class TaskGenerator
 	private Task generateTask(Step step, DataEntity dataEntity)
 	{
 		Task task = new Task(dataEntity.getString(Task.TASKID_COLUMN));
-		Map<String, String> environment = context.getMapUserEnvironment();
 		ComputeProperties computeProperties = context.getComputeProperties();
 		Workflow workflow = context.getWorkflow();
 
@@ -386,8 +385,6 @@ public class TaskGenerator
 						{
 							// parameter is mapped locally
 							value = parameterMapping;
-							System.out.println(">>> VALUE: " + value);
-							System.out.println(">>> PARAMETER NAME: " + localParameterName);
 							if (input.isKnownRunTime()) value = value.replace(Parameters.STEP_PARAM_SEP_PROTOCOL,
 									Parameters.STEP_PARAM_SEP_SCRIPT);
 							else value = EnvironmentGenerator.GLOBAL_PREFIX + value;
@@ -402,13 +399,13 @@ public class TaskGenerator
 							else left = localParameterName + "[" + i + "]";
 
 							String right = value + "[" + rowIndexString + "]";
-							
-							System.out.println(">>> LEFT: " + left);
-							System.out.println(">>> RIGHT: " + right);
+
 							if (right.startsWith(EnvironmentGenerator.GLOBAL_PREFIX))
 							{
 								right = right.substring(EnvironmentGenerator.GLOBAL_PREFIX.length());
-								String realValue = environment.get(right);
+								String realValue = context.getParameters().getValues()
+										.get(Integer.parseInt(rowIndexString))
+										.getString(value.replaceFirst("global_", "user_"));
 								parameterHeader.append(left).append("=").append("\"").append(realValue).append("\"\n");
 								filters.put(left, realValue);
 								dataEntityValues.put(stringStore.intern(left), stringStore.intern(realValue));
@@ -468,7 +465,8 @@ public class TaskGenerator
 								if (right.startsWith(EnvironmentGenerator.GLOBAL_PREFIX))
 								{
 									right = right.substring(EnvironmentGenerator.GLOBAL_PREFIX.length());
-									String realValue = environment.get(right);
+									String realValue = context.getParameters().getValues().get(Integer.parseInt(rowIndexString))
+											.getString(value.replaceFirst("global_", "user_"));
 									parameterHeader.append(left).append("=").append("\"").append(realValue)
 											.append("\"\n");
 									filters.put(left, realValue);
@@ -619,8 +617,7 @@ public class TaskGenerator
 		return collapsedEnvironment;
 	}
 
-	private String weaveProtocol(Protocol protocol, DataEntity target,
-			Map<String, List<String>> collapsedEnvironment)
+	private String weaveProtocol(Protocol protocol, DataEntity target, Map<String, List<String>> collapsedEnvironment)
 	{
 		String template = protocol.getTemplate();
 		Hashtable<String, String> values = new Hashtable<String, String>();
