@@ -3,7 +3,6 @@ package org.molgenis.compute.generators.impl;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -42,9 +41,7 @@ public class EnvironmentGenerator
 
 	public void writeEnvironmentToFile(Context context) throws Exception
 	{
-		writeLineToFile("#");
-		writeLineToFile("## User parameters");
-		writeLineToFile("#");
+		envWriter.write("#\n## User parameters\n#\n");
 		workflow = context.getWorkflow();
 
 		// get all parameters from parameters.csv
@@ -67,7 +64,7 @@ public class EnvironmentGenerator
 					StringBuilder assignment = new StringBuilder();
 					assignment.append(globalParameterName).append("[").append(index).append("]=\"").append(value)
 							.append("\"");
-					writeLineToFile(assignment.toString());
+					envWriter.write(GLOBAL_PREFIX + assignment.toString() + '\n');
 					environment.put(stringStore.intern(globalParameterName + "[" + index + "]"),
 							stringStore.intern(value));
 				}
@@ -90,21 +87,5 @@ public class EnvironmentGenerator
 		envWriter.close();
 
 		return environment;
-	}
-
-	private void writeLineToFile(String line) throws IOException
-	{
-		if (line.startsWith("#"))
-		{
-			envWriter.write(line);
-			envWriter.newLine();
-		}
-		else
-		{
-			// TODO Remove this global prefix
-			envWriter.write(GLOBAL_PREFIX);
-			envWriter.write(line);
-			envWriter.newLine();
-		}
 	}
 }
