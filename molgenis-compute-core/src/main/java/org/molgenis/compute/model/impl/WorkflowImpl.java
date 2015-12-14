@@ -144,7 +144,7 @@ public class WorkflowImpl implements Workflow
 
 		List<String> relatedSteps = findRelatedSteps(unknownGlobalParameterName);
 		throw new Exception("Parameter '" + unknownGlobalParameterName + "' used in steps " + relatedSteps.toString()
-				+ "does not have a value in any of the parameter files ");
+				+ " does not have a value in any of the parameter files ");
 	}
 	
 	
