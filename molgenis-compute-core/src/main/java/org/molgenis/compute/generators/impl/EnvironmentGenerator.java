@@ -3,6 +3,7 @@ package org.molgenis.compute.generators.impl;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,6 +38,7 @@ public class EnvironmentGenerator
 
 	public static final String GLOBAL_PREFIX = "global_";
 
+	private BufferedWriter envWriter;
 	private HashMap<String, String> environment = new LinkedHashMap<String, String>();
 	private List<Step> steps = null;
 	private WorkflowImpl workflowImpl = null;
@@ -44,18 +46,18 @@ public class EnvironmentGenerator
 	// for error handling
 	private ArrayList<Pair<String, String>> arrayOfParameterSteps = new ArrayList<Pair<String, String>>();
 
-	public String getEnvironmentAsString(Context compute) throws Exception
+	public void writeEnvironmentToFile(Context context) throws Exception
 	{
-		workflowImpl = compute.getWorkflow();
+		workflowImpl = context.getWorkflow();
 
-		// put header 'adding user params' in environment
-		StringBuilder output = new StringBuilder(1024);
-		output.append("#\n## User parameters\n#\n");
+		writeLineToFile("#");
+		writeLineToFile("## User parameters");
+		writeLineToFile("#");
 
 		// user parameters that we want to put in environment
 		HashSet<String> userInputParamSet = new LinkedHashSet<String>();
 
-		steps = compute.getWorkflow().getSteps();
+		steps = context.getWorkflow().getSteps();
 
 		// first collect all user parameters that are used in this workflow
 		for (Step step : steps)
@@ -91,7 +93,7 @@ public class EnvironmentGenerator
 		{
 			String userParameter = Parameters.USER_PREFIX + parameter;
 
-			for (DataEntity parameterValues : compute.getParameters().getValues())
+			for (DataEntity parameterValues : context.getParameters().getValues())
 			{
 				String value = parameterValues.getString(userParameter);
 				Integer index = parameterValues.getInt(Parameters.USER_PREFIX + Task.TASKID_COLUMN);
@@ -114,15 +116,12 @@ public class EnvironmentGenerator
 				else
 				{
 					StringBuilder assignment = new StringBuilder();
-					assignment.append(parameter).append("[").append(index).append("]=\"").append(value).append("\"\n");
-
+					assignment.append(parameter).append("[").append(index).append("]=\"").append(value).append("\"");
+					writeLineToFile(assignment.toString());
 					environment.put(parameter + "[" + index + "]", value);
-					output.append(assignment.toString());
 				}
 			}
 		}
-
-		return output.toString();
 	}
 
 	private List<String> findRelatedSteps(String parameter)
@@ -232,38 +231,36 @@ public class EnvironmentGenerator
 		return isRunTimeVariable;
 	}
 
-	public HashMap<String, String> generate(Context compute, String workDir) throws Exception
+	public HashMap<String, String> generate(Context context, String workDir) throws Exception
 	{
 		Parameters.ENVIRONMENT_FULLPATH = workDir + File.separator + Parameters.ENVIRONMENT;
 
-		File env = new File(Parameters.ENVIRONMENT_FULLPATH);
-		env.delete();
-
-		// give user environment to compute
-		String strUserEnvironment = getEnvironmentAsString(compute);
+		File envFile = new File(Parameters.ENVIRONMENT_FULLPATH);
+		envFile.delete();
 
 		// create new environment file
-		env.createNewFile();
+		envFile.createNewFile();
 
-		// start global prefix fix
-		StringBuilder prefixedEnvironment = new StringBuilder();
-		String[] lines = strUserEnvironment.split(System.getProperty("line.separator"));
-		for (int i = 0; i < lines.length; i++)
-		{
-			String line = lines[i];
-			if (line.startsWith("#")) prefixedEnvironment.append(line).append('\n');
-			else prefixedEnvironment.append(GLOBAL_PREFIX).append(line).append('\n');
-		}
-
-		String strPrefixed = prefixedEnvironment.toString();
-
-		compute.setUserEnvironment(strPrefixed);
-		// end fix
-
-		BufferedWriter output = new BufferedWriter(new FileWriter(env, true));
-		output.write(strPrefixed);
-		output.close();
+		envWriter = new BufferedWriter(new FileWriter(envFile, true));
+		writeEnvironmentToFile(context);
+		envWriter.close();
 
 		return environment;
+	}
+
+	private void writeLineToFile(String line) throws IOException
+	{
+		// start global prefix fix
+		if (line.startsWith("#"))
+		{
+			envWriter.write(line);
+			envWriter.newLine();
+		}
+		else
+		{
+			envWriter.write(GLOBAL_PREFIX);
+			envWriter.write(line);
+			envWriter.newLine();
+		}
 	}
 }

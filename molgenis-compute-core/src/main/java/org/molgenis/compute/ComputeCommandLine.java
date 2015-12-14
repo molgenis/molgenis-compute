@@ -190,12 +190,13 @@ public class ComputeCommandLine
 					submitScript = FileUtils.readFileToString(new File(computeProperties.runDir + "/submit.sh"));
 				}
 
-				String environment = context.getUserEnvironment();
-
-				CreateRunRequest createRunRequest = new CreateRunRequest(runName, backendUrl, pollInterval, tasks,
-						environment, userName, submitScript);
-
-				dbApiClient.createRun(createRunRequest);
+				//TODO The user env is now written to file
+//				String environment = context.getUserEnvironment();
+//
+//				CreateRunRequest createRunRequest = new CreateRunRequest(runName, backendUrl, pollInterval, tasks,
+//						environment, userName, submitScript);
+//
+//				dbApiClient.createRun(createRunRequest);
 
 				System.out.println("\n Run " + computeProperties.runId + " is inserted into database on "
 						+ computeProperties.database);
