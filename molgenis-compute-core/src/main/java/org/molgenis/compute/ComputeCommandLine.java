@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,7 +17,6 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.molgenis.compute.db.api.ComputeDbApiClient;
 import org.molgenis.compute.db.api.ComputeDbApiConnection;
-import org.molgenis.compute.db.api.CreateRunRequest;
 import org.molgenis.compute.db.api.HttpClientComputeDbApiConnection;
 import org.molgenis.compute.db.api.StartRunRequest;
 import org.molgenis.compute.generators.impl.EnvironmentGenerator;
@@ -319,6 +317,8 @@ public class ComputeCommandLine
 		LOG.info("Creating environment parameters");
 		Map<String, String> userEnvironment = new EnvironmentGenerator(computeProperties.stringStore).generate(context,
 				computeProperties.runDir);
+		
+		// TODO it should never be in here.
 		context.setMapUserEnvironment(userEnvironment);
 
 		// Create a ScriptGenerator object. This object creates the header, footer, and submit template on
