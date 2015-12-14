@@ -58,7 +58,7 @@ public class EnvironmentGenerator
 
 				if (value == null)
 				{
-					dataEntity.set(stringStore.intern("user_" + globalParameterName),
+					dataEntity.set(stringStore.intern(Parameters.USER_PREFIX + globalParameterName),
 							stringStore.intern(workflow.findMatchingOutput(globalParameterName, dataEntity)));
 					LOG.warn("Variable [" + index + "] has run time value");
 				}
