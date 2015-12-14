@@ -171,7 +171,7 @@ public class WorkflowImpl implements Workflow
 				{
 					// this step has input named parameterName
 					Set<String> previousSteps = step.getPreviousSteps();
-					if (previousSteps.contains(step.getName()))
+					if (previousSteps.contains(previousStep.getName()))
 					{
 						// this step has previous step with output parameterName, so it can be known at run time
 						input.setKnownRunTime(true);
