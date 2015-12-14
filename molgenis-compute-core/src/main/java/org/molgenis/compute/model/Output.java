@@ -22,4 +22,12 @@ public class Output extends Input
 	{
 		this.value = value;
 	}
+
+	@Override
+	public String toString()
+	{
+		return "Output [value=" + value + ", getName()=" + getName()
+				+ ", getDescription()=" + getDescription() + ", getType()=" + getType();
+	}
+
 }
