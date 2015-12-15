@@ -692,11 +692,6 @@ public class TaskGenerator
 		return true;
 	}
 
-	private String appendToEnv(String string, String thisFile)
-	{
-		return "\necho \"" + string + "\" >> " + thisFile + "\n" + "chmod 755 " + thisFile + "\n";
-	}
-
 	private List<DataEntity> addStepIds(List<DataEntity> localParameters, Step step)
 	{
 		int stepId = 0;
