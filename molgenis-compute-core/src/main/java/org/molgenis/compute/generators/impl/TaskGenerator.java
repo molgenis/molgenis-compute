@@ -504,30 +504,28 @@ public class TaskGenerator
 			}
 			parameterHeader.append("\n#\n## Start of your protocol template\n#\n\n");
 
-			String script = step.getProtocol().getTemplate();
 
 			// now we check if protocol is shell or freemarker template
 			if (step.getProtocol().getType().equalsIgnoreCase(Protocol.TYPE_FREEMARKER) || computeProperties.weave)
 			{
 				String weavedScript = weaveProtocol(step.getProtocol(), dataEntity, collapsedEnvironment);
-				script = parameterHeader.toString() + weavedScript;
+				parameterHeader.append(weavedScript);
 			}
-			else if (step.getProtocol().getType().equalsIgnoreCase(Protocol.TYPE_SHELL))
-				script = parameterHeader.toString() + script;
-			else
-			{
-				script = parameterHeader.toString() + script;
-				LOG.warn("STEP [" + step.getName() + "] has protocol [" + step.getProtocol().getName()
-						+ "]with unknown type");
+			else {
+				if (step.getProtocol().getType().equalsIgnoreCase(Protocol.TYPE_SHELL)){
+					LOG.warn("STEP [" + step.getName() + "] has protocol [" + step.getProtocol().getName()
+							+ "]with unknown type");
+				}
+				parameterHeader.append(step.getProtocol().getTemplate());
 			}
 
 			// append footer that appends the task's parameters to
 			// environment of this task
 			String myEnvironmentFile = Parameters.ENVIRONMENT_DIR_VARIABLE + File.separator + task.getName()
 					+ Parameters.ENVIRONMENT_EXTENSION;
-			script = script + "\n#\n## End of your protocol template\n#\n";
-			script = script + "\n# Save output in environment file: '" + myEnvironmentFile
-					+ "' with the output vars of this step\n";
+			parameterHeader.append("\n#\n## End of your protocol template\n#\n");
+			parameterHeader.append("\n# Save output in environment file: '" + myEnvironmentFile
+					+ "' with the output vars of this step\n");
 
 			Iterator<Output> itOutput = step.getProtocol().getOutputs().iterator();
 			while (itOutput.hasNext())
@@ -556,14 +554,14 @@ public class TaskGenerator
 								+ myEnvironmentFile + "\n";
 					}
 
-					script += line;
+					parameterHeader.append(line);
 				}
 
 			}
-			script = appendToEnv(script, "", myEnvironmentFile);
-			script += "\n";
+			parameterHeader.append("\necho \"\" >> " + myEnvironmentFile + "\nchmod 755 " + myEnvironmentFile + "\n");
+			parameterHeader.append("\n");
 
-			task.setScript(script);
+			task.setScript(parameterHeader.toString());
 			task.setStepName(step.getName());
 			task.setParameters(dataEntityValues);
 
@@ -694,11 +692,9 @@ public class TaskGenerator
 		return true;
 	}
 
-	private String appendToEnv(String script, String string, String thisFile)
+	private String appendToEnv(String string, String thisFile)
 	{
-		String appendString = "echo \"" + string + "\" >> " + thisFile + "\n" + "chmod 755 " + thisFile + "\n";
-
-		return script + "\n" + appendString;
+		return "\necho \"" + string + "\" >> " + thisFile + "\n" + "chmod 755 " + thisFile + "\n";
 	}
 
 	private List<DataEntity> addStepIds(List<DataEntity> localParameters, Step step)
