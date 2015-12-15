@@ -3,14 +3,13 @@ package org.molgenis.compute;
 import static com.google.common.base.Strings.repeat;
 import static com.google.common.io.Resources.getResource;
 import static com.google.common.io.Resources.readLines;
-import static freemarker.log.Logger.selectLoggerLibrary;
 
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.io.FileUtils;
@@ -18,7 +17,6 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.molgenis.compute.db.api.ComputeDbApiClient;
 import org.molgenis.compute.db.api.ComputeDbApiConnection;
-import org.molgenis.compute.db.api.CreateRunRequest;
 import org.molgenis.compute.db.api.HttpClientComputeDbApiConnection;
 import org.molgenis.compute.db.api.StartRunRequest;
 import org.molgenis.compute.generators.impl.EnvironmentGenerator;
@@ -191,12 +189,13 @@ public class ComputeCommandLine
 					submitScript = FileUtils.readFileToString(new File(computeProperties.runDir + "/submit.sh"));
 				}
 
-				String environment = context.getUserEnvironment();
-
-				CreateRunRequest createRunRequest = new CreateRunRequest(runName, backendUrl, pollInterval, tasks,
-						environment, userName, submitScript);
-
-				dbApiClient.createRun(createRunRequest);
+				//TODO The user env is now written to file
+//				String environment = context.getUserEnvironment();
+//
+//				CreateRunRequest createRunRequest = new CreateRunRequest(runName, backendUrl, pollInterval, tasks,
+//						environment, userName, submitScript);
+//
+//				dbApiClient.createRun(createRunRequest);
 
 				System.out.println("\n Run " + computeProperties.runId + " is inserted into database on "
 						+ computeProperties.database);
@@ -315,18 +314,16 @@ public class ComputeCommandLine
 		context.setWorkflow(workflowImpl);
 
 		// Create environment.txt with user parameters that are used in at least one of the steps
-		LOG.info("Creating environment parameters");
-		HashMap<String, String> userEnvironment = new EnvironmentGenerator().generate(context,
-				computeProperties.runDir);
-		context.setMapUserEnvironment(userEnvironment);
-
+		LOG.info("Creating user.env file");
+		new EnvironmentGenerator(computeProperties.stringStore).generate(context, computeProperties.runDir);
+		
 		// Create a ScriptGenerator object. This object creates the header, footer, and submit template on
 		// initialization. The object can then be used to create scripts for every generated task.
 		LOG.info("Generating header and footer templates");
 		ScriptGenerator scriptGenerator = new ScriptGenerator(computeProperties);
 
 		// Create a TaskGenerator object with the current context object
-		TaskGenerator taskGenerator = new TaskGenerator(context, scriptGenerator);
+		TaskGenerator taskGenerator = new TaskGenerator(context, scriptGenerator, computeProperties.stringStore);
 
 		// Analyze lists in workflow protocols.
 		// We need to know if list inputs are coming from the same or from a different parameter file to combine lists
@@ -363,7 +360,7 @@ public class ComputeCommandLine
 			int size = 0;
 			for (Input input : protocol.getInputs())
 			{
-				if (input.getType().equalsIgnoreCase(Input.TYPE_LIST))
+				if (input.getType()==Input.Type.LIST)
 				{
 					size++;
 				}
@@ -371,7 +368,7 @@ public class ComputeCommandLine
 
 			if (size > 1) for (Input input : protocol.getInputs())
 			{
-				if (input.getType().equalsIgnoreCase(Input.TYPE_LIST) && !input.isCombinedListsNotation())
+				if (input.getType()==Input.Type.LIST && !input.isCombinedListsNotation())
 				{
 					input.setCombineLists(false);
 				}

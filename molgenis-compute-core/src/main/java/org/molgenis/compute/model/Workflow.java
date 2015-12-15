@@ -3,6 +3,8 @@ package org.molgenis.compute.model;
 import java.util.List;
 import java.util.Set;
 
+import org.molgenis.compute.model.impl.DataEntity;
+
 /**
  * This class allows to get {@link Step}s, get user parameters, add {@link Step}s, retrieve a {@link Step} based on the
  * name of the previous {@link Step}, or to check if a {@link Parameters} has a {@link Step} prefix
@@ -46,5 +48,23 @@ public interface Workflow
 	 * @return A boolean that tells you if a parameter has a step prefix
 	 */
 	public boolean parameterHasStepPrefix(String parameter);
+
+	/**
+	 * 
+	 * Gets a list of inputs for all steps. Generates an array of parameter steps for debugging?? TODO
+	 * arrayOfParameterSteps???
+	 *
+	 * @return A set of input parameters
+	 */
+	public Set<String> getUserInputParams();
+
+	/**
+	 * ???
+	 * @param unknownGlobalParameterName
+	 * @param dataEntity
+	 * @return
+	 * @throws Exception
+	 */
+	public String findMatchingOutput(String unknownGlobalParameterName, DataEntity dataEntity) throws Exception;
 
 }

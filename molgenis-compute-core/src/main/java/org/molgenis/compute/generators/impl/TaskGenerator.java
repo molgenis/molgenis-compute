@@ -21,10 +21,13 @@ import org.molgenis.compute.model.Output;
 import org.molgenis.compute.model.Parameters;
 import org.molgenis.compute.model.Protocol;
 import org.molgenis.compute.model.Step;
+import org.molgenis.compute.model.StringStore;
 import org.molgenis.compute.model.Task;
 import org.molgenis.compute.model.TaskInfo;
 import org.molgenis.compute.model.Workflow;
 import org.molgenis.compute.model.impl.DataEntity;
+
+import com.google.common.collect.Lists;
 
 public class TaskGenerator
 {
@@ -32,14 +35,15 @@ public class TaskGenerator
 
 	private Context context;
 	private List<DataEntity> globalParameters = new ArrayList<DataEntity>();
-	private HashMap<String, List<String>> newEnvironment = new HashMap<String, List<String>>();
 
 	private ScriptGenerator scriptGenerator;
+	private StringStore stringStore;
 
-	public TaskGenerator(Context context, ScriptGenerator scriptGenerator)
+	public TaskGenerator(Context context, ScriptGenerator scriptGenerator, StringStore stringStore)
 	{
 		this.context = context;
 		this.scriptGenerator = scriptGenerator;
+		this.stringStore = stringStore;
 
 		setGlobalParameters();
 	}
@@ -59,7 +63,7 @@ public class TaskGenerator
 			// Collapse parameter values
 			localParameters = collapseOnTargets(step, localParameters);
 
-			// add the output templates/values + generate step ids
+			// add the output templates/values
 			localParameters = addResourceValues(step, localParameters);
 
 			// add step ids as
@@ -69,8 +73,7 @@ public class TaskGenerator
 
 			// Generate the scripts for each task in this step.
 			// Add TaskInfo objects to the taskInfos list.
-			taskInfos.addAll(scriptGenerator.generateTaskScripts(generateTasks(step, localParameters, workflow,
-					context.getComputeProperties(), context.getMapUserEnvironment()), step.getName()));
+			taskInfos.addAll(scriptGenerator.generateTaskScripts(generateTasks(step, localParameters), step.getName()));
 
 			// uncollapse
 			localParameters = TupleUtils.uncollapse(localParameters);
@@ -135,7 +138,7 @@ public class TaskGenerator
 		for (Input input : step.getProtocol().getInputs())
 		{
 			// If the input type does not equal to a list
-			if (!Parameters.LIST_INPUT.equals(input.getType()))
+			if (!(input.getType() == Input.Type.LIST))
 			{
 				targets.add(input.getName());
 			}
@@ -273,138 +276,200 @@ public class TaskGenerator
 		}
 	}
 
-	private List<Task> generateTasks(Step step, List<DataEntity> localParameters, Workflow workflow,
-			ComputeProperties computeProperties, HashMap<String, String> environment) throws IOException
+	private List<Task> generateTasks(Step step, List<DataEntity> localParameters) throws IOException
 	{
-		List<Task> tasks = new ArrayList<Task>();
-		StringBuilder parameterHeader = null;
-		for (DataEntity target : localParameters)
+		return Lists.transform(localParameters, target -> generateTask(step, target));
+	}
+
+	private Task generateTask(Step step, DataEntity dataEntity)
+	{
+		Task task = new Task(dataEntity.getString(Task.TASKID_COLUMN));
+		ComputeProperties computeProperties = context.getComputeProperties();
+		Workflow workflow = context.getWorkflow();
+
+		try
 		{
-			Task task = new Task(target.getString(Task.TASKID_COLUMN));
+			Map<String, Object> dataEntityValues = dataEntity.getValueMap();
+			String valueWORKDIR = globalParameters.get(0).getString("user_WORKDIR");
+			if (valueWORKDIR != null) dataEntityValues.put("WORKDIR", stringStore.intern(valueWORKDIR));
+			else dataEntityValues.put("WORKDIR", "UNDEFINED");
+			// remember parameter values
 
-			try
+			if (computeProperties.errorMailAddr != null)
+				dataEntityValues.put(Parameters.ERROR_MESSAGE_ADDR, computeProperties.errorMailAddr);
+
+			// for this step: store which target-ids go into which job
+			for (Integer id : dataEntity.getIntList(Parameters.ID_COLUMN))
 			{
-				Map<String, Object> map = target.getValueMap();
-				String valueWORKDIR = globalParameters.get(0).getString("user_WORKDIR");
-				if (valueWORKDIR != null) map.put("WORKDIR", valueWORKDIR);
-				else map.put("WORKDIR", "UNDEFINED");
-				// remember parameter values
+				step.setJobName(id, stringStore.intern(task.getName()));
+			}
 
-				if (computeProperties.errorMailAddr != null)
-					map.put(Parameters.ERROR_MESSAGE_ADDR, computeProperties.errorMailAddr);
+			StringBuilder parameterHeader = new StringBuilder();
+			parameterHeader.append("\n#\n## Generated header\n#\n");
 
-				// for this step: store which target-ids go into which job
-				for (Integer id : target.getIntList(Parameters.ID_COLUMN))
+			// now source the task's parameters from each prevStep.env on
+			// which this task depends
+
+			parameterHeader.append("\n# Assign values to the parameters in this script\n");
+			parameterHeader.append("\n# Set taskId, which is the job name of this task");
+			parameterHeader.append("\ntaskId=\"").append(task.getName()).append("\"\n");
+
+			parameterHeader.append("\n# Make compute.properties available");
+			parameterHeader.append("\nrundir=\"").append(computeProperties.runDir).append("\"");
+			parameterHeader.append("\nrunid=\"").append(computeProperties.runId).append("\"");
+			parameterHeader.append("\nworkflow=\"").append(computeProperties.workFlow).append("\"");
+			parameterHeader.append("\nparameters=\"").append(computeProperties.parametersString()).append("\"");
+			parameterHeader.append("\nuser=\"").append(computeProperties.molgenisuser).append("\"");
+			parameterHeader.append("\ndatabase=\"").append(computeProperties.database).append("\"");
+			parameterHeader.append("\nbackend=\"").append(computeProperties.backend).append("\"");
+			parameterHeader.append("\nport=\"").append(computeProperties.port).append("\"");
+			parameterHeader.append("\ninterval=\"").append(computeProperties.interval).append("\"");
+			parameterHeader.append("\npath=\"").append(computeProperties.path).append("\"\n");
+
+			for (String previousStepName : step.getPreviousSteps())
+			{ // we have jobs on which we depend in this prev step
+				Step prevStep = workflow.getStep(previousStepName);
+				for (Integer id : dataEntity.getIntList(Parameters.ID_COLUMN))
 				{
-					step.setJobName(id, task.getName());
-				}
+					String prevJobName = prevStep.getJobName(id);
 
-				parameterHeader = new StringBuilder();
-				parameterHeader.append("\n#\n## Generated header\n#\n");
-
-				// now source the task's parameters from each prevStep.env on
-				// which this task depends
-
-				parameterHeader.append("\n# Assign values to the parameters in this script\n");
-				parameterHeader.append("\n# Set taskId, which is the job name of this task");
-				parameterHeader.append("\ntaskId=\"").append(task.getName()).append("\"\n");
-
-				parameterHeader.append("\n# Make compute.properties available");
-				parameterHeader.append("\nrundir=\"").append(computeProperties.runDir).append("\"");
-				parameterHeader.append("\nrunid=\"").append(computeProperties.runId).append("\"");
-				parameterHeader.append("\nworkflow=\"").append(computeProperties.workFlow).append("\"");
-				parameterHeader.append("\nparameters=\"").append(computeProperties.parametersString()).append("\"");
-				parameterHeader.append("\nuser=\"").append(computeProperties.molgenisuser).append("\"");
-				parameterHeader.append("\ndatabase=\"").append(computeProperties.database).append("\"");
-				parameterHeader.append("\nbackend=\"").append(computeProperties.backend).append("\"");
-				parameterHeader.append("\nport=\"").append(computeProperties.port).append("\"");
-				parameterHeader.append("\ninterval=\"").append(computeProperties.interval).append("\"");
-				parameterHeader.append("\npath=\"").append(computeProperties.path).append("\"\n");
-
-				for (String previousStepName : step.getPreviousSteps())
-				{ // we have jobs on which we depend in this prev step
-					Step prevStep = workflow.getStep(previousStepName);
-					for (Integer id : target.getIntList(Parameters.ID_COLUMN))
+					// prevent duplicate work
+					if (!task.getPreviousTasks().contains(prevJobName))
 					{
-						String prevJobName = prevStep.getJobName(id);
+						// for this task: add task dependencies
+						task.getPreviousTasks().add(prevJobName);
 
-						// prevent duplicate work
-						if (!task.getPreviousTasks().contains(prevJobName))
-						{
-							// for this task: add task dependencies
-							task.getPreviousTasks().add(prevJobName);
-
-							// source its environment
-							parameterHeader.append(Parameters.SOURCE_COMMAND).append(" ")
-									.append(Parameters.ENVIRONMENT_DIR_VARIABLE).append(File.separator)
-									.append(prevJobName).append(Parameters.ENVIRONMENT_EXTENSION).append("\n");
-						}
+						// source its environment
+						parameterHeader.append(Parameters.SOURCE_COMMAND).append(" ")
+								.append(Parameters.ENVIRONMENT_DIR_VARIABLE).append(File.separator).append(prevJobName)
+								.append(Parameters.ENVIRONMENT_EXTENSION).append("\n");
 					}
 				}
+			}
 
-				parameterHeader.append("\n\n# Connect parameters to environment\n");
+			parameterHeader.append("\n\n# Connect parameters to environment\n");
 
-				// now couple input parameters to parameters in sourced environment
-				List<String> presentStrings = new ArrayList<String>();
-				List<Input> listInputsToFoldNew = new ArrayList<Input>();
-				Map<String, String> filters = new LinkedHashMap<String, String>();
+			// now couple input parameters to parameters in sourced environment
+			List<String> presentStrings = new ArrayList<String>();
+			List<Input> listInputsToFoldNew = new ArrayList<Input>();
+			Map<String, String> filters = new LinkedHashMap<String, String>();
 
-				// Loops through all the inputs,
-				for (Input input : step.getProtocol().getInputs())
+			// Loops through all the inputs,
+			for (Input input : step.getProtocol().getInputs())
+			{
+				// If input equals a list, is not a combined list, and the parameters consist of multiple parameter
+				// files
+				if (input.getType() == Input.Type.LIST && !input.isCombineLists()
+						&& context.getFoldParameters().isMultiParameterFiles())
 				{
-					// If input equals a list, is not a combined list, and the parameters consist of multiple parameter
-					// files
-					if (input.getType().equalsIgnoreCase(Parameters.LIST_INPUT) && !input.isCombineLists()
-							&& context.getFoldParameters().isMultiParameterFiles())
-					{
-						// a new way of folding takes a list of parameters from initial parameter list, where values are
-						// the same as for eachOne
-						listInputsToFoldNew.add(input);
-						continue;
-					}
+					// a new way of folding takes a list of parameters from initial parameter list, where values are
+					// the same as for eachOne
+					listInputsToFoldNew.add(input);
+					continue;
+				}
 
-					else
-					{
-						// Start folding
-						String parameterName = input.getName();
+				else
+				{
+					// Start folding
+					String localParameterName = input.getName();
 
-						List<String> rowIndex = target.getList(Parameters.ID_COLUMN);
-						for (int i = 0; i < rowIndex.size(); i++)
+					List<String> rowIndex = dataEntity.getList(Parameters.ID_COLUMN);
+					for (int i = 0; i < rowIndex.size(); i++)
+					{
+						Object rowIndexObject = rowIndex.get(i);
+						String rowIndexString = rowIndexObject.toString();
+
+						String value = null;
+						String parameterMapping = step.getParametersMapping().get(localParameterName);
+						if (parameterMapping != null)
 						{
-							Object rowIndexObject = rowIndex.get(i);
-							String rowIndexString = rowIndexObject.toString();
+							// parameter is mapped locally
+							value = parameterMapping;
+							if (input.isKnownRunTime()) value = value.replace(Parameters.STEP_PARAM_SEP_PROTOCOL,
+									Parameters.STEP_PARAM_SEP_SCRIPT);
+							else value = EnvironmentGenerator.GLOBAL_PREFIX + value;
 
-							String value = null;
-							String parameterMapping = step.getParametersMapping().get(parameterName);
-							if (parameterMapping != null)
+							String left = null;
+							if (input.getType() == Input.Type.STRING)
 							{
-								// parameter is mapped locally
-								value = parameterMapping;
+								left = localParameterName;
+								if (presentStrings.contains(left)) continue;
+								else presentStrings.add(left);
+							}
+							else left = localParameterName + "[" + i + "]";
 
-								if (input.isKnownRunTime()) value = value.replace(Parameters.STEP_PARAM_SEP_PROTOCOL,
-										Parameters.STEP_PARAM_SEP_SCRIPT);
-								else value = EnvironmentGenerator.GLOBAL_PREFIX + value;
+							String right = value + "[" + rowIndexString + "]";
 
-								String type = input.getType();
+							if (right.startsWith(EnvironmentGenerator.GLOBAL_PREFIX))
+							{
+								right = right.substring(EnvironmentGenerator.GLOBAL_PREFIX.length());
+								String realValue = context.getParameters().getValues()
+										.get(Integer.parseInt(rowIndexString))
+										.getString(value.replaceFirst("global_", "user_"));
+								parameterHeader.append(left).append("=").append("\"").append(realValue).append("\"\n");
+								filters.put(left, realValue);
+								dataEntityValues.put(stringStore.intern(left), stringStore.intern(realValue));
+							}
+							else
+							{
+								// leave old style (runtime parameter)
+								parameterHeader.append(left).append("=${").append(value).append("[")
+										.append(rowIndexString).append("]}\n");
+							}
+						}
+						else
+						{
+							if (step.hasParameter(localParameterName))
+							{
+								value = localParameterName;
+
+								Object oValue = dataEntityValues.get(localParameterName);
+
+								if (oValue instanceof String)
+								{
+									if (input.isKnownRunTime())
+									{
+										value = localParameterName;
+										value = value.replaceFirst(Parameters.UNDERSCORE,
+												Parameters.STEP_PARAM_SEP_SCRIPT);
+									}
+									else
+									{
+										value = EnvironmentGenerator.GLOBAL_PREFIX + value;
+									}
+								}
+								else if (oValue instanceof ArrayList)
+								{
+									if (input.isKnownRunTime())
+									{
+										value = ((ArrayList<String>) oValue).get(i).toString();
+										value = value.replaceFirst(Parameters.UNDERSCORE,
+												Parameters.STEP_PARAM_SEP_SCRIPT);
+									}
+									else
+									{
+										value = EnvironmentGenerator.GLOBAL_PREFIX + value;
+									}
+								}
 
 								String left = null;
-								if (type.equalsIgnoreCase(Input.TYPE_STRING))
+								if (input.getType() == Input.Type.STRING)
 								{
-									left = parameterName;
+									left = localParameterName;
 									if (presentStrings.contains(left)) continue;
 									else presentStrings.add(left);
 								}
-								else left = parameterName + "[" + i + "]";
+								else left = localParameterName + "[" + i + "]";
 
 								String right = value + "[" + rowIndexString + "]";
 								if (right.startsWith(EnvironmentGenerator.GLOBAL_PREFIX))
 								{
 									right = right.substring(EnvironmentGenerator.GLOBAL_PREFIX.length());
-									String realValue = environment.get(right);
+									String realValue = context.getParameters().getValues().get(Integer.parseInt(rowIndexString))
+											.getString(value.replaceFirst("global_", "user_"));
 									parameterHeader.append(left).append("=").append("\"").append(realValue)
 											.append("\"\n");
 									filters.put(left, realValue);
-									map.put(left, realValue);
 								}
 								else
 								{
@@ -413,182 +478,116 @@ public class TaskGenerator
 											.append(rowIndexString).append("]}\n");
 								}
 							}
-							else
-							{
-								if (step.hasParameter(parameterName))
-								{
-									value = parameterName;
-
-									Object oValue = map.get(parameterName);
-
-									if (oValue instanceof String)
-									{
-										if (input.isKnownRunTime())
-										{
-											value = parameterName;
-											value = value.replaceFirst(Parameters.UNDERSCORE,
-													Parameters.STEP_PARAM_SEP_SCRIPT);
-										}
-										else
-										{
-											value = EnvironmentGenerator.GLOBAL_PREFIX + value;
-										}
-									}
-									else if (oValue instanceof ArrayList)
-									{
-										if (input.isKnownRunTime())
-										{
-											value = ((ArrayList<String>) oValue).get(i).toString();
-											value = value.replaceFirst(Parameters.UNDERSCORE,
-													Parameters.STEP_PARAM_SEP_SCRIPT);
-										}
-										else
-										{
-											value = EnvironmentGenerator.GLOBAL_PREFIX + value;
-										}
-									}
-
-									String type = input.getType();
-
-									String left = null;
-									if (type.equalsIgnoreCase(Input.TYPE_STRING))
-									{
-										left = parameterName;
-										if (presentStrings.contains(left)) continue;
-										else presentStrings.add(left);
-									}
-									else left = parameterName + "[" + i + "]";
-
-									String right = value + "[" + rowIndexString + "]";
-									if (right.startsWith(EnvironmentGenerator.GLOBAL_PREFIX))
-									{
-										right = right.substring(EnvironmentGenerator.GLOBAL_PREFIX.length());
-										String realValue = environment.get(right);
-										parameterHeader.append(left).append("=").append("\"").append(realValue)
-												.append("\"\n");
-										filters.put(left, realValue);
-									}
-									else
-									{
-										// leave old style (runtime parameter)
-										parameterHeader.append(left).append("=${").append(value).append("[")
-												.append(rowIndexString).append("]}\n");
-									}
-								}
-							}
 						}
 					}
 				}
-
-				parameterHeader = foldIntoHeaderAndSetEnvironment(listInputsToFoldNew, filters, parameterHeader);
-
-				parameterHeader
-						.append("\n# Validate that each 'value' parameter has only identical values in its list\n")
-						.append("# We do that to protect you against parameter values that might not be correctly set at runtime.\n");
-
-				for (Input input : step.getProtocol().getInputs())
-				{
-					boolean isList = Parameters.LIST_INPUT.equals(input.getType());
-					if (!isList)
-					{
-						String inputName = input.getName();
-
-						parameterHeader.append("if [[ ! $(IFS=$'\\n' sort -u <<< \"${").append(inputName)
-								.append("[*]}\" | wc -l | sed -e 's/^[[:space:]]*//') = 1 ]]; then echo \"Error in Step '")
-								.append(step.getName()).append("': input parameter '").append(inputName)
-								.append("' is an array with different values. Maybe '").append(inputName)
-								.append("' is a runtime parameter with 'more variable' values than what was folded on generation-time?\" >&2; exit 1; fi\n");
-					}
-				}
-				parameterHeader.append("\n#\n## Start of your protocol template\n#\n\n");
-
-				String script = step.getProtocol().getTemplate();
-
-				// now we check if protocol is shell or freemarker template
-				if (step.getProtocol().getType().equalsIgnoreCase(Protocol.TYPE_FREEMARKER) || computeProperties.weave)
-				{
-					String weavedScript = weaveProtocol(step.getProtocol(), newEnvironment, environment, target);
-					script = parameterHeader.toString() + weavedScript;
-				}
-				else if (step.getProtocol().getType().equalsIgnoreCase(Protocol.TYPE_SHELL))
-					script = parameterHeader.toString() + script;
-				else
-				{
-					script = parameterHeader.toString() + script;
-					LOG.warn("STEP [" + step.getName() + "] has protocol [" + step.getProtocol().getName()
-							+ "]with unknown type");
-				}
-
-				// append footer that appends the task's parameters to
-				// environment of this task
-				String myEnvironmentFile = Parameters.ENVIRONMENT_DIR_VARIABLE + File.separator + task.getName()
-						+ Parameters.ENVIRONMENT_EXTENSION;
-				script = script + "\n#\n## End of your protocol template\n#\n";
-				script = script + "\n# Save output in environment file: '" + myEnvironmentFile
-						+ "' with the output vars of this step\n";
-
-				Iterator<Output> itOutput = step.getProtocol().getOutputs().iterator();
-				while (itOutput.hasNext())
-				{
-					String parameterName = itOutput.next().getName();
-					if (map.containsKey(parameterName))
-					{
-						// If parameter not set at runtime then ERROR
-						String line = "if [[ -z \"$" + parameterName + "\" ]]; then echo \"In step '" + step.getName()
-								+ "', parameter '" + parameterName
-								+ "' has no value! Please assign a value to parameter '" + parameterName + "'."
-								+ "\" >&2; exit 1; fi\n";
-
-						// Else set parameters at right indexes.
-						// Explanation: if param file is collapsed in this
-						// template, then we should not output a single
-						// value but a list of values because next step may
-						// be run in uncollapsed fashion
-
-						List<String> rowIndex = target.getList(Parameters.ID_COLUMN);
-						for (int i = 0; i < rowIndex.size(); i++)
-						{
-							Object rowIndexObject = rowIndex.get(i);
-							String rowIndexString = rowIndexObject.toString();
-							line += "echo \"" + step.getName() + Parameters.STEP_PARAM_SEP_SCRIPT + parameterName + "["
-									+ rowIndexString + "]=\\\"${" + parameterName + "[" + i + "]}\\\"\" >> "
-									+ myEnvironmentFile + "\n";
-						}
-
-						script += line;
-					}
-
-				}
-				script = appendToEnv(script, "", myEnvironmentFile);
-				script += "\n";
-
-				task.setScript(script);
-				task.setStepName(step.getName());
-				task.setParameters(map);
-
-				if (computeProperties.batchOption != null)
-				{
-					int batchNum = context.getBatchNumber(map);
-					task.setBatchNumber(batchNum);
-				}
-
 			}
-			catch (Exception e)
+
+			Map<String, List<String>> collapsedEnvironment = foldIntoHeaderAndSetEnvironment(listInputsToFoldNew,
+					filters, parameterHeader);
+
+			parameterHeader.append("\n# Validate that each 'value' parameter has only identical values in its list\n")
+					.append("# We do that to protect you against parameter values that might not be correctly set at runtime.\n");
+
+			for (Input input : step.getProtocol().getInputs())
 			{
-				throw new IOException("Generation of protocol '" + step.getProtocol().getName() + "' failed: "
-						+ e.getMessage() + ".\nParameters used: " + target);
+				if (!(input.getType() == Input.Type.LIST))
+				{
+					String inputName = input.getName();
+
+					parameterHeader.append("if [[ ! $(IFS=$'\\n' sort -u <<< \"${").append(inputName)
+							.append("[*]}\" | wc -l | sed -e 's/^[[:space:]]*//') = 1 ]]; then echo \"Error in Step '")
+							.append(step.getName()).append("': input parameter '").append(inputName)
+							.append("' is an array with different values. Maybe '").append(inputName)
+							.append("' is a runtime parameter with 'more variable' values than what was folded on generation-time?\" >&2; exit 1; fi\n");
+				}
+			}
+			parameterHeader.append("\n#\n## Start of your protocol template\n#\n\n");
+
+			String script = step.getProtocol().getTemplate();
+
+			// now we check if protocol is shell or freemarker template
+			if (step.getProtocol().getType().equalsIgnoreCase(Protocol.TYPE_FREEMARKER) || computeProperties.weave)
+			{
+				String weavedScript = weaveProtocol(step.getProtocol(), dataEntity, collapsedEnvironment);
+				script = parameterHeader.toString() + weavedScript;
+			}
+			else if (step.getProtocol().getType().equalsIgnoreCase(Protocol.TYPE_SHELL))
+				script = parameterHeader.toString() + script;
+			else
+			{
+				script = parameterHeader.toString() + script;
+				LOG.warn("STEP [" + step.getName() + "] has protocol [" + step.getProtocol().getName()
+						+ "]with unknown type");
 			}
 
-			tasks.add(task);
+			// append footer that appends the task's parameters to
+			// environment of this task
+			String myEnvironmentFile = Parameters.ENVIRONMENT_DIR_VARIABLE + File.separator + task.getName()
+					+ Parameters.ENVIRONMENT_EXTENSION;
+			script = script + "\n#\n## End of your protocol template\n#\n";
+			script = script + "\n# Save output in environment file: '" + myEnvironmentFile
+					+ "' with the output vars of this step\n";
+
+			Iterator<Output> itOutput = step.getProtocol().getOutputs().iterator();
+			while (itOutput.hasNext())
+			{
+				String parameterName = itOutput.next().getName();
+				if (dataEntityValues.containsKey(parameterName))
+				{
+					// If parameter not set at runtime then ERROR
+					String line = "if [[ -z \"$" + parameterName + "\" ]]; then echo \"In step '" + step.getName()
+							+ "', parameter '" + parameterName + "' has no value! Please assign a value to parameter '"
+							+ parameterName + "'." + "\" >&2; exit 1; fi\n";
+
+					// Else set parameters at right indexes.
+					// Explanation: if param file is collapsed in this
+					// template, then we should not output a single
+					// value but a list of values because next step may
+					// be run in uncollapsed fashion
+
+					List<String> rowIndex = dataEntity.getList(Parameters.ID_COLUMN);
+					for (int i = 0; i < rowIndex.size(); i++)
+					{
+						Object rowIndexObject = rowIndex.get(i);
+						String rowIndexString = rowIndexObject.toString();
+						line += "echo \"" + step.getName() + Parameters.STEP_PARAM_SEP_SCRIPT + parameterName + "["
+								+ rowIndexString + "]=\\\"${" + parameterName + "[" + i + "]}\\\"\" >> "
+								+ myEnvironmentFile + "\n";
+					}
+
+					script += line;
+				}
+
+			}
+			script = appendToEnv(script, "", myEnvironmentFile);
+			script += "\n";
+
+			task.setScript(script);
+			task.setStepName(step.getName());
+			task.setParameters(dataEntityValues);
+
+			if (computeProperties.batchOption != null)
+			{
+				int batchNum = context.getBatchNumber(dataEntityValues);
+				task.setBatchNumber(batchNum);
+			}
+
 		}
-
-		return tasks;
-
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			throw new RuntimeException("Generation of protocol '" + step.getProtocol().getName() + "' failed: "
+					+ e.getMessage() + ".\nParameters used: " + dataEntity);
+		}
+		return task;
 	}
 
-	private StringBuilder foldIntoHeaderAndSetEnvironment(List<Input> inputs, Map<String, String> filters,
-			StringBuilder parameterHeader)
+	private HashMap<String, List<String>> foldIntoHeaderAndSetEnvironment(List<Input> inputs,
+			Map<String, String> filters, StringBuilder parameterHeader)
 	{
+		HashMap<String, List<String>> collapsedEnvironment = new LinkedHashMap<>();
+
 		for (Input input : inputs)
 		{
 			FoldParameters foldParameters = context.getFoldParameters();
@@ -606,25 +605,19 @@ public class TaskGenerator
 					parameterHeader.append(String.format("%s[%d]=\"%s\"", inputName, i, parameterValue)).append('\n');
 					values.add(parameterValue);
 				}
-				newEnvironment.put(inputName, values);
-			}
-			else if (numberOfFilesContainingParameter > 1)
-			{
-				LOG.error("PARAMETER [" + input.getName() + "] comes is a list, which "
-						+ "requires simple way of folding, but comes from several parameter files");
+				collapsedEnvironment.put(inputName, values);
 			}
 			else if (numberOfFilesContainingParameter == 0)
 			{
-				LOG.warn("PARAMETER [" + input.getName() + "] does not found in design time files, "
+				LOG.warn("PARAMETER [" + input.getName() + "] is not found in design time files, "
 						+ "maybe it is the run time list parameter");
 			}
 		}
 
-		return parameterHeader;
+		return collapsedEnvironment;
 	}
 
-	private String weaveProtocol(Protocol protocol, HashMap<String, List<String>> newEnvironment,
-			HashMap<String, String> environment, DataEntity target)
+	private String weaveProtocol(Protocol protocol, DataEntity target, Map<String, List<String>> collapsedEnvironment)
 	{
 		String template = protocol.getTemplate();
 		Hashtable<String, String> values = new Hashtable<String, String>();
@@ -632,7 +625,7 @@ public class TaskGenerator
 		for (Input input : protocol.getInputs())
 		{
 			if (input.isKnownRunTime()) continue;
-			if (input.getType().equalsIgnoreCase(Parameters.STRING))
+			if (input.getType() == Input.Type.STRING)
 			{
 				String name = input.getName();
 				String value = (String) target.get(name);
@@ -644,12 +637,12 @@ public class TaskGenerator
 				name = formFreemarker(name);
 				values.put(name, value);
 			}
-			else if (input.getType().equalsIgnoreCase(Parameters.LIST_INPUT))
+			else if (input.getType() == Input.Type.LIST)
 			{
 				String name = input.getName();
 
 				List<String> arrayList = null;
-				if (newEnvironment.containsKey(name)) arrayList = newEnvironment.get(name);
+				if (collapsedEnvironment.containsKey(name)) arrayList = collapsedEnvironment.get(name);
 				else arrayList = (ArrayList<String>) target.get(name);
 
 				name += FreemarkerUtils.LIST_SIGN;

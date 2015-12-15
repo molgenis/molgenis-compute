@@ -1,6 +1,8 @@
 package org.molgenis.compute.model;
 
-import java.util.HashMap;
+import java.util.Map;
+
+import com.gs.collections.impl.map.mutable.UnifiedMap;
 
 /**
  * Stores the String instances. The parameter combinations repeat the same string keys and values over and over again.
@@ -13,7 +15,7 @@ import java.util.HashMap;
  */
 public class StringStore
 {
-	private HashMap<String, String> strings = new HashMap<>();
+	private Map<String, String> strings = new UnifiedMap<String, String>();
 
 	public String intern(String s)
 	{

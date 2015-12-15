@@ -14,9 +14,6 @@ public class Context
 	private Parameters parameters;
 	private Iterable<Task> tasks;
 	private ComputeProperties computeProperties;
-	private String userEnvironment;
-
-	HashMap<String, String> mapUserEnvironment = null;
 	private FoldParametersImpl foldParameters;
 
 	private BatchAnalyser batchAnalyser = null;
@@ -64,26 +61,6 @@ public class Context
 	public void setComputeProperties(ComputeProperties computeProperties)
 	{
 		this.computeProperties = computeProperties;
-	}
-
-	public void setUserEnvironment(String environment)
-	{
-		this.userEnvironment = environment;
-	}
-
-	public String getUserEnvironment()
-	{
-		return this.userEnvironment;
-	}
-
-	public HashMap<String, String> getMapUserEnvironment()
-	{
-		return mapUserEnvironment;
-	}
-
-	public void setMapUserEnvironment(HashMap<String, String> mapUserEnvironment)
-	{
-		this.mapUserEnvironment = mapUserEnvironment;
 	}
 
 	public void setFoldParameters(FoldParametersImpl foldParameters)
