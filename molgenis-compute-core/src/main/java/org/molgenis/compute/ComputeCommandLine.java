@@ -314,13 +314,9 @@ public class ComputeCommandLine
 		context.setWorkflow(workflowImpl);
 
 		// Create environment.txt with user parameters that are used in at least one of the steps
-		LOG.info("Creating environment parameters");
-		Map<String, String> userEnvironment = new EnvironmentGenerator(computeProperties.stringStore).generate(context,
-				computeProperties.runDir);
+		LOG.info("Creating user.env file");
+		new EnvironmentGenerator(computeProperties.stringStore).generate(context, computeProperties.runDir);
 		
-		// TODO it should never be in here.
-		context.setMapUserEnvironment(userEnvironment);
-
 		// Create a ScriptGenerator object. This object creates the header, footer, and submit template on
 		// initialization. The object can then be used to create scripts for every generated task.
 		LOG.info("Generating header and footer templates");
