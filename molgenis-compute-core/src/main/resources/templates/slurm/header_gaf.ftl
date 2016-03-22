@@ -14,18 +14,12 @@ set -e
 set -u
 #-%j
 
-errorExit()
+function errorExitandCleanUp()
 {
-    if [ "${errorAddr}" = "none" ]; then
-        echo "mail is not specified"
-        exit 1
-    fi
-
-    if [ ! -f errorMessageSent.flag ]; then
-        echo "script $0 from directory $(pwd) reports failure" | mail -s "ERROR OCCURS" ${errorAddr}
-        touch errorMessageSent.flag
-    fi
-    exit 1
+        echo "TRAPPED"
+	printf "${taskId}\n" > /groups/umcg-gaf/tmp05/logs/${project}.failed
+	tail -50 ${taskId}.err >> /groups/umcg-gaf/tmp05/logs/${project}.failed
+	rm /groups/umcg-gaf/tmp05/tmp/${project}/*/tmp_${taskId}*
 }
 
 declare MC_tmpFolder="tmpFolder"
@@ -52,8 +46,7 @@ function makeTmpDir {
         fi
 }
 
-
-trap "errorExit" ERR
+trap "errorExitandCleanUp" ERR
 
 # For bookkeeping how long your task takes
 MOLGENIS_START=$(date +%s)
