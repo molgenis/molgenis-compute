@@ -17,9 +17,12 @@ set -u
 function errorExitandCleanUp()
 {
         echo "TRAPPED"
-	printf "${taskId}\n" > /groups/umcg-gaf/tmp05/logs/${project}.failed
-	tail -50 ${taskId}.err >> /groups/umcg-gaf/tmp05/logs/${project}.failed
-	rm /groups/umcg-gaf/tmp05/tmp/${project}/*/tmp_${taskId}*
+	printf "${taskId}\n" > /groups/umcg-gaf/${tmpName}/logs/${project}.failed
+	if [ -f ${taskId}.err ]
+	then
+		tail -50 ${taskId}.err >> /groups/umcg-gaf/${tmpName}/logs/${project}.failed
+	fi
+	rm -rf /groups/umcg-gaf/${tmpName}/tmp/${project}/*/tmp_${taskId}*
 }
 
 declare MC_tmpFolder="tmpFolder"
