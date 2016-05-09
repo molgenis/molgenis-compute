@@ -8,6 +8,8 @@
 #SBATCH --mem ${mem}
 #SBATCH --nodes ${nodes}
 #SBATCH --open-mode=append
+#SBATCH --export=NONE
+#SBATCH --get-user-env=L
 
 ENVIRONMENT_DIR="."
 set -e
