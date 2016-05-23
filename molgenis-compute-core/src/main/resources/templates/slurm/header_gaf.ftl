@@ -19,12 +19,37 @@ set -u
 function errorExitandCleanUp()
 {
         echo "TRAPPED"
-	printf "${taskId}\n" > /groups/umcg-gaf/${tmpName}/logs/${project}.failed
+	printf "${taskId}\n" > /groups/${groupname}/${tmpName}/logs/${project}.failed
 	if [ -f ${taskId}.err ]
 	then
-		tail -50 ${taskId}.err >> /groups/umcg-gaf/${tmpName}/logs/${project}.failed
+		printf "Last 50 lines of ${taskId}.err :\n" /groups/${groupname}/${tmpName}/logs/${project}.failed
+		tail -50 ${taskId}.err >> /groups/${groupname}/${tmpName}/logs/${project}.failed
+		printf "\nLast 50 lines of ${taskId}.out: \n"
+		tail -50 ${taskId}.out >> /groups/${groupname}/${tmpName}/logs/${project}.failed
+		
+		if [ ! -f /groups/${groupname}/${tmpName}/logs/${project}.failed.mailed ] 
+		then
+			mailTo="helpdesk.gcc.groningen@gmail.com"
+			if [ $groupname == "umcg-gaf" ]
+			then
+				echo "mailTo umcg-gaf"
+				mailTo="helpdesk.gcc.groningen@gmail.com"
+			elif [ "${groupname}" == "umcg-gd" ]
+			then
+				echo "mailTo is umcg-gd"
+				if [ -f /groups/umcg-gd/${tmpName}/logs/mailinglistDiagnostiek.txt ]
+				then
+					mailTo=$(cat /groups/umcg-gd/${tmpName}/logs/mailinglistDiagnostiek.txt)
+				else
+					echo "mailingListDiagnostiek.txt bestaat niet!!"
+					exit 0
+				fi
+			fi	
+			cat /groups/${groupname}/${tmpName}/logs/${project}.failed | mail -s "The NGS_DNA pipeline has crashed for project ${project} on step ${taskId}" <#noparse>${mailTo}</#noparse>
+			touch /groups/${groupname}/${tmpName}/logs/${project}.failed.mailed
+		fi
 	fi
-	rm -rf /groups/umcg-gaf/${tmpName}/tmp/${project}/*/tmp_${taskId}*
+	rm -rf /groups/${groupname}/${tmpName}/tmp/${project}/*/tmp_${taskId}*
 }
 
 declare MC_tmpFolder="tmpFolder"
@@ -51,7 +76,7 @@ function makeTmpDir {
         fi
 }
 
-trap "errorExitandCleanUp" ERR
+trap "errorExitandCleanUp" HUP INT QUIT TERM EXIT ERR
 
 # For bookkeeping how long your task takes
 MOLGENIS_START=$(date +%s)

@@ -7,3 +7,6 @@ if [ -d <#noparse>${MC_tmpFolder:-}</#noparse> ];
 	echo "removed tmpFolder $MC_tmpFolder"
         rm -r $MC_tmpFolder
 fi
+
+trap - EXIT
+exit 0
