@@ -12,10 +12,35 @@ cd ..
 project=`pwd`
 projectName=$(basename $project)
 cd $MOLGENIS_scriptsDir
-if [ -f /groups/umcg-gaf/tmp05/logs/${projectName}.failed ]
+HOST=$(hostname)
+myTmp=""
+myGroup=""
+if [ "${HOST}" == "zinc-finger.gcc.rug.nl" ]
 then
-	rm /groups/umcg-gaf/tmp05/logs/${projectName}.failed
-	rm /groups/umcg-gaf/tmp05/logs/${projectName}.mailed.failed
+	myTmp="tmp05"
+	myGroup="umcg-gd"
+elif [ "${HOST}" == "leucine-zipper.gcc.rug.nl" ]
+then
+	myTmp="tmp06"
+	myGroup="umcg-gd"
+elif [ "${HOST}" == "calculon" ]
+then
+	myTmp="tmp04"
+        myGroup="umcg-gaf"
+else
+	echo "unknown server, please contact helpdesk.gcc.groningen@gmail.com"
+	exit 0
+fi
+
+failedFile="/groups/${myGroup}/${myTmp}/logs/${projectName}.failed"
+
+if [ -f ${failedFile} ]
+then	
+	rm ${failedFile}
+	if [ -f ${failedFile}.mailed ]
+	then
+		rm ${failedFile}.mailed
+	fi
 fi
 
 </#noparse>
