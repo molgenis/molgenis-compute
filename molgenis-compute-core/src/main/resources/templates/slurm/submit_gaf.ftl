@@ -32,7 +32,7 @@ else
 	exit 0
 fi
 
-failedFile="/groups/${myGroup}/${myTmp}/logs/${projectName}.failed"
+failedFile="/groups/${myGroup}/${myTmp}/logs/${projectName}.pipeline.failed"
 
 if [ -f ${failedFile} ]
 then	
