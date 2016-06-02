@@ -20,13 +20,13 @@ function errorExitandCleanUp()
 {
         echo "TRAPPED"
 	failedFile="/groups/${groupname}/${tmpName}/logs/${project}.pipeline.failed"
-	printf "${taskId}\n" > ${failedFile}
+	printf "${taskId}\n" > <#noparse>${failedFile}</#noparse>
 	if [ -f ${taskId}.err ]
 	then
-		printf "Last 50 lines of ${taskId}.err :\n" >> ${failedFile}
-		tail -50 ${taskId}.err >> ${failedFile}
-		printf "\nLast 50 lines of ${taskId}.out: \n" >> ${failedFile}
-		tail -50 ${taskId}.out >> ${failedFile}
+		printf "Last 50 lines of ${taskId}.err :\n" >> <#noparse>${failedFile}</#noparse>
+		tail -50 ${taskId}.err >> <#noparse>${failedFile}</#noparse>
+		printf "\nLast 50 lines of ${taskId}.out: \n" >> <#noparse>${failedFile}</#noparse>
+		tail -50 ${taskId}.out >> <#noparse>${failedFile}</#noparse>
 	fi
 	rm -rf /groups/${groupname}/${tmpName}/tmp/${project}/*/tmp_${taskId}*
 }
