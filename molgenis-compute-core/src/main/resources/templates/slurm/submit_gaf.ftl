@@ -27,6 +27,10 @@ elif [ "${HOST}" == "calculon" ]
 then
 	myTmp="tmp04"
         myGroup="umcg-gaf"
+elif [[ "${HOST}" == *"molgenis"* ]]
+then
+	myTmp="tmpTest01"
+        myGroup="umcg-testgroup"
 else
 	echo "unknown server, please contact helpdesk.gcc.groningen@gmail.com"
 	exit 0
