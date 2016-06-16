@@ -12,21 +12,6 @@ set -e
 set -u
 #-%j
 
-function errorExitandCleanUp()
-{
-        echo "TRAPPED"
-        failedFile="/groups/${groupname}/${tmpName}/logs/${project}.pipeline.failed"
-        printf "${taskId}\n" > <#noparse>${failedFile}</#noparse>
-        if [ -f ${taskId}.err ]
-        then
-            	printf "Last 50 lines of ${taskId}.err :\n" >> <#noparse>${failedFile}</#noparse>
-                tail -50 ${taskId}.err >> <#noparse>${failedFile}</#noparse>
-                printf "\nLast 50 lines of ${taskId}.out: \n" >> <#noparse>${failedFile}</#noparse>
-                tail -50 ${taskId}.out >> <#noparse>${failedFile}</#noparse>
-        fi
-	rm -rf /groups/${groupname}/${tmpName}/tmp/${project}/*/tmp_${taskId}*
-}
-
 declare MC_tmpFolder="tmpFolder"
 declare MC_tmpFile="tmpFile"
 
@@ -50,8 +35,6 @@ function makeTmpDir {
             	MC_tmpFile="$MC_tmpFolder/$base"
         fi
 }
-
-trap "errorExitandCleanUp" HUP INT QUIT TERM EXIT ERR
 
 # For bookkeeping how long your task takes
 MOLGENIS_START=$(date +%s)
