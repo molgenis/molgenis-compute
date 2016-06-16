@@ -8,35 +8,94 @@
 
 # Set location of *.env and *.log files
 ENVIRONMENT_DIR="."
-set -e
-set -u
-#-%j
 
-declare MC_tmpFolder="tmpFolder"
-declare MC_tmpFile="tmpFile"
-
-function makeTmpDir {
-        base=$(basename $1)
-        dir=$(dirname $1)
-        echo "dir $dir"
-        echo "base $base"
-        if [[ -d $1 ]]
-        then
-            	dir=$dir/$base
-        fi
-	myMD5=$(md5sum $0)
-        IFS=' ' read -a myMD5array <<< "$myMD5"
-        MC_tmpFolder=$dir/tmp_${taskId}_$myMD5array/
-        mkdir -p $MC_tmpFolder
-        if [[ -d $1 ]]
-        then
-            	MC_tmpFile="$MC_tmpFolder"
-        else
-            	MC_tmpFile="$MC_tmpFolder/$base"
-        fi
+# If you detect an error, then exit your script by calling this function
+exitWithError(){
+	errorCode=$1
+	errorMessage=$2
+	echo "$errorCode: $errorMessage --- TASK '${taskId}.sh' --- ON $(date +"%Y-%m-%d %T"), AFTER RUNNING $(( ($(date +%s) - $MOLGENIS_START) / 60 )) MINUTES" >> $ENVIRONMENT_DIR/molgenis.error.log
+	exit $errorCode
 }
 
 # For bookkeeping how long your task takes
 MOLGENIS_START=$(date +%s)
 
-touch ${taskId}.sh.started
+# Show that the task has started
+touch $ENVIRONMENT_DIR/${taskId}.sh.started
+
+<#noparse>
+getFile()
+{
+        ARGS=($@)
+        NUMBER="${#ARGS[@]}";
+        if [ "$NUMBER" -eq "1" ]
+        then
+                myFile=${ARGS[0]}
+
+                if test ! -e $myFile;
+                then
+                                echo "WARNING in getFile/putFile: $myFile is missing" 1>&2
+                fi
+
+        else
+                echo "Example usage: getData \"\$TMPDIR/datadir/myfile.txt\""
+        fi
+}
+
+putFile()
+{
+        `getFile $@`
+}
+
+inputs()
+{
+  for name in $@
+  do
+    if test ! -e $name;
+    then
+      echo "$name is missing" 1>&2
+      exit 1;
+    fi
+  done
+}
+
+outputs()
+{
+  for name in $@
+  do
+    if test -e $name;
+    then
+      echo "skipped"
+      echo "skipped" 1>&2
+      exit 0;
+    else
+      return;
+    fi
+  done
+}
+
+alloutputsexist()
+{
+  all_exist=true
+  for name in $@
+  do
+    if test ! -e $name;
+    then
+        all_exist=false
+    fi
+  done
+  if $all_exist;
+  then
+      echo "skipped"
+      echo "skipped" 1>&2
+      sleep 30
+      exit 0;
+  else
+      return 0;
+  fi
+}
+</#noparse>
+
+#
+## End of header for 'local' backend
+#
