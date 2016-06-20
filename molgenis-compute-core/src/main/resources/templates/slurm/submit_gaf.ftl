@@ -36,6 +36,17 @@ else
 	exit 0
 fi
 
+
+stop () {
+
+while IFS=':' read -r col1 col2
+do
+    scancel -Q $col2 
+
+done <$1
+
+}
+
 failedFile="/groups/${myGroup}/${myTmp}/logs/${projectName}.pipeline.failed"
 
 if [ -f ${failedFile} ]
@@ -45,6 +56,11 @@ then
 	then
 		rm ${failedFile}.mailed
 	fi
+fi
+
+if [ -f submitted_jobIDs.txt ]
+then
+	stop submitted_jobIDs.txt
 fi
 
 </#noparse>
