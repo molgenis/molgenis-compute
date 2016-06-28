@@ -8,6 +8,10 @@ if [ -d ${MC_tmpFolder:-} ];
         rm -r $MC_tmpFolder
 fi
 
+tS=$SECONDS
+tM=$((SECONDS / 60 ))
+tH=$((SECONDS / 3600))
+printf "</#noparse>${taskId}<#noparse>:\t${tS} seconds\t${tM} minutes\t${tH} hours \n" >> Timesheet.txt
 trap - EXIT
 exit 0
 </#noparse>
