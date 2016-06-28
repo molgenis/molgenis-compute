@@ -64,6 +64,6 @@ touch ${taskId}.sh.started
 if [ -f Timesheet.txt ]
 then
 DATE=`date +%Y-%m-%d`
-	printf "\n\n${DATE}"
+	printf "\n\n${DATE}" >> Timesheet.txt
 fi
 SECONDS=0
