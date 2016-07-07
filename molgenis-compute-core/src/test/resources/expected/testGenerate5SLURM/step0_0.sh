@@ -36,7 +36,7 @@ function makeTmpDir {
         # This can run on a interactive terminal with which
 	myMD5=$(md5sum $0 2>/dev/null || md5sum $(which $0))
 	myMD5=$(echo $myMD5| cut -d' ' -f1,1)
-	MC_tmpSubFolder="tmp_${taskId}_$myMD5"
+	MC_tmpSubFolder="tmp_step0_0_$myMD5"
         if [[ -d $1 ]]
         then
             	dir="$1"
