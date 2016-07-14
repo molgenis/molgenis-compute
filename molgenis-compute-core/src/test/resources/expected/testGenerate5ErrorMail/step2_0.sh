@@ -32,26 +32,26 @@ declare MC_tmpFolder="tmpFolder"
 declare MC_tmpFile="tmpFile"
 
 function makeTmpDir {
-        base=$(basename $1)
-        dir=$(dirname $1)
-        echo "dir $dir"
-        echo "base $base"
+	# call with file/dirname and use the declared/new MC_tmpFile as a temporarly dir/file
+        # This can run on a interactive terminal with which
+	myMD5=$(md5sum $0 2>/dev/null || md5sum $(which $0))
+	myMD5=$(echo $myMD5| cut -d' ' -f1,1)
+	MC_tmpSubFolder="tmp_step2_0_$myMD5"
         if [[ -d $1 ]]
         then
-            	dir=$dir/$base
-        fi
-	myMD5=$(md5sum $0)
-        IFS=' ' read -a myMD5array <<< "$myMD5"
-        MC_tmpFolder=$dir/tmp_step2_0_$myMD5array/
-        mkdir -p $MC_tmpFolder
-        if [[ -d $1 ]]
-        then
-            	MC_tmpFile="$MC_tmpFolder"
+            	dir="$1"
+            	base=""
         else
-            	MC_tmpFile="$MC_tmpFolder/$base"
+        	base=$(basename $1)
+        	dir=$(dirname $1)
         fi
-}
+       	MC_tmpFolder="$dir/$MC_tmpSubFolder/"
+       	MC_tmpFile="$MC_tmpFolder/$base"
 
+        echo "[INFO $0::makeTmpDir] dir='$dir';base='$base';MC_tmpFile='$MC_tmpFile'"
+
+        mkdir -p $MC_tmpFolder
+}
 
 trap "errorExit" ERR
 
