@@ -416,29 +416,30 @@ public class ComputeCommandLineTest extends ScriptComparator
 		System.out.println("--- Start testGenerate5SLURM ---");
 
 		ComputeCommandLine.main(new String[]
-		{ "--generate", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.csv", "--defaults",
-				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv", "--parameters",
-				"src/main/resources/workflows/benchmark.5.1/parameters.csv", "--parameters",
-				"src/main/resources/workflows/benchmark.5.1/sysparameters.csv", "--rundir", "target/test/benchmark/run",
+		{ "--generate", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.csv", 
+				"--defaults", "src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv", 
+				"--parameters", "src/main/resources/workflows/benchmark.5.1/parameters.csv", 
+				"--parameters", "src/main/resources/workflows/benchmark.5.1/sysparameters.csv", 
+				"--rundir", "target/test/benchmark/run/",
 				"--backend", "slurm", "--runid", "testGenerate5SLURM" });
 
 		testOutputDirectoryFiles("testGenerate5SLURM");
 	}
 
-	@Test
-	public void testGenerate5ErrorMail() throws Exception
-	{
-		System.out.println("--- Start testGenerate5ErrorMail ---");
-
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.csv", "--defaults",
-				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv", "--parameters",
-				"src/main/resources/workflows/benchmark.5.1/parameters.csv", "--parameters",
-				"src/main/resources/workflows/benchmark.5.1/sysparameters.csv", "--rundir", "target/test/benchmark/run",
-				"--backend", "slurm", "--errorAddr", "testMail@testServer", "--runid", "testGenerate5ErrorMail"});
-
-		testOutputDirectoryFiles("testGenerate5ErrorMail");
-	}
+	//@Test
+	//public void testGenerate5ErrorMail() throws Exception
+	//{
+	//	System.out.println("--- Start testGenerate5ErrorMail ---");
+	//
+	//	ComputeCommandLine.main(new String[]
+	//	{ "--generate", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.csv", "--defaults",
+	//			"src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv", "--parameters",
+	//			"src/main/resources/workflows/benchmark.5.1/parameters.csv", "--parameters",
+	//			"src/main/resources/workflows/benchmark.5.1/sysparameters.csv", "--rundir", "target/test/benchmark/run",
+	//			"--backend", "slurm", "--errorAddr", "testMail@testServer", "--runid", "testGenerate5ErrorMail"});
+	//
+	//	testOutputDirectoryFiles("testGenerate5ErrorMail");
+	//}
 
 	@Test(expectedExceptions = Exception.class)
 	public void testGenerateUnknownBackend() throws Exception

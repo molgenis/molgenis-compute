@@ -21,15 +21,15 @@
 	</files>
 	<fileSets>
 		<fileSet>
-            <directory>src/main/resources/workflows</directory>
-            <outputDirectory>workflows</outputDirectory>
+		<directory>src/main/resources/workflows</directory>
+			<outputDirectory>workflows</outputDirectory>
 		</fileSet>
-        <fileSet>
-            <directory>src/main/resources/templates</directory>
-            <outputDirectory>templates</outputDirectory>
-        </fileSet>
-    </fileSets>
-    <dependencySets>
+		<fileSet>
+			<directory>src/main/resources/templates</directory>
+			<outputDirectory>templates</outputDirectory>
+		</fileSet>
+	</fileSets>
+	<dependencySets>
 		<dependencySet>
 			<outputDirectory>/lib</outputDirectory>
 			<unpack>false</unpack>
@@ -45,16 +45,16 @@
 				<include>net.sf.opencsv:opencsv</include>
 				<include>commons-io:commons-io</include>
 				<include>org.apache.httpcomponents:httpclient</include>
-                <include>org.apache.httpcomponents:httpcore</include>
-                <include>com.google.guava:guava</include>
+				<include>org.apache.httpcomponents:httpcore</include>
+				<include>com.google.guava:guava</include>
 				<include>org.apache.commons:commons-lang3</include>
-                <include>commons-logging:commons-logging</include>
-                <include>com.google.code.gson:gson</include>
-                <include>org.springframework:spring-core</include>
-                <include>org.springframework:spring-context</include>
-                <include>org.springframework:spring-beans</include>
-                <include>com.goldmansachs:gs-collections</include>
-                <include>com.goldmansachs:gs-collections-api</include>
+				<include>commons-logging:commons-logging</include>
+				<include>com.google.code.gson:gson</include>
+				<include>org.springframework:spring-core</include>
+				<include>org.springframework:spring-context</include>
+				<include>org.springframework:spring-beans</include>
+				<include>com.goldmansachs:gs-collections</include>
+				<include>com.goldmansachs:gs-collections-api</include>
 			</includes>
 		</dependencySet>
 	</dependencySets>
