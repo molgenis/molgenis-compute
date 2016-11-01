@@ -20,6 +20,7 @@ ENVIRONMENT_DIR='.'
 declare MC_jobScript="${taskId}.sh"
 declare MC_jobScriptSTDERR="${taskId}.err"
 declare MC_jobScriptSTDOUT="${taskId}.out"
+declare MC_failedFile="molgenis.pipeline.failed"
 
 <#noparse>
 
