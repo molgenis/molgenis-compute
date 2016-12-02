@@ -20,7 +20,7 @@ ENVIRONMENT_DIR='.'
 declare MC_jobScript="step1_0.sh"
 declare MC_jobScriptSTDERR="step1_0.err"
 declare MC_jobScriptSTDOUT="step1_0.out"
-
+declare MC_failedFile="molgenis.pipeline.failed"
 
 declare MC_singleSeperatorLine=$(head -c 120 /dev/zero | tr '\0' '-')
 declare MC_doubleSeperatorLine=$(head -c 120 /dev/zero | tr '\0' '=')
