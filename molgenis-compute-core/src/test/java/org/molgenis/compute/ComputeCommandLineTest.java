@@ -1,12 +1,12 @@
 package org.molgenis.compute;
 
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-
-import org.testng.Assert;
-import org.testng.annotations.Test;
 
 public class ComputeCommandLineTest extends ScriptComparator
 {
@@ -15,8 +15,7 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		try
 		{
-			ComputeCommandLine.main(new String[]
-			{ "-h" });
+			ComputeCommandLine.main(new String[] { "-h" });
 		}
 		catch (Exception e)
 		{
@@ -30,8 +29,7 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		try
 		{
-			ComputeCommandLine.main(new String[]
-			{ "--create", OUTPUT_DIRECTORY });
+			ComputeCommandLine.main(new String[] { "--create", OUTPUT_DIRECTORY });
 		}
 		catch (Exception e)
 		{
@@ -52,9 +50,9 @@ public class ComputeCommandLineTest extends ScriptComparator
 		// shows new folding
 		System.out.println("--- Start Test Folding ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/doubleparameter/workflow.csv",
-				"--parameters", "src/main/resources/workflows/doubleparameter/parameters.csv", "--parameters",
+		ComputeCommandLine.main(new String[] { "--generate", "--run", "--workflow",
+				"src/main/resources/workflows/doubleparameter/workflow.csv", "--parameters",
+				"src/main/resources/workflows/doubleparameter/parameters.csv", "--parameters",
 				"src/main/resources/workflows/doubleparameter/parameters1.csv", "--rundir", OUTPUT_DIRECTORY });
 	}
 
@@ -64,9 +62,9 @@ public class ComputeCommandLineTest extends ScriptComparator
 		// shows new folding
 		System.out.println("--- Start Test Folding ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/doubleparameter/workflow.csv",
-				"--parameters", "src/main/resources/workflows/doubleparameter/parameters.csv", "--parameters",
+		ComputeCommandLine.main(new String[] { "--generate", "--run", "--workflow",
+				"src/main/resources/workflows/doubleparameter/workflow.csv", "--parameters",
+				"src/main/resources/workflows/doubleparameter/parameters.csv", "--parameters",
 				"src/main/resources/workflows/doubleparameter/parameters_properties.csv", "--rundir",
 				OUTPUT_DIRECTORY });
 	}
@@ -77,9 +75,9 @@ public class ComputeCommandLineTest extends ScriptComparator
 		// shows new folding
 		System.out.println("--- Start Test Folding ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/doubleparameter/workflow.csv",
-				"--parameters", "src/main/resources/workflows/doubleparameter/parameters.csv", "--parameters",
+		ComputeCommandLine.main(new String[] { "--generate", "--run", "--workflow",
+				"src/main/resources/workflows/doubleparameter/workflow.csv", "--parameters",
+				"src/main/resources/workflows/doubleparameter/parameters.csv", "--parameters",
 				"src/main/resources/workflows/doubleparameter/parameters_properties_list.csv", "--rundir",
 				OUTPUT_DIRECTORY });
 	}
@@ -89,8 +87,7 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		try
 		{
-			ComputeCommandLine.main(new String[]
-			{ "--clear" });
+			ComputeCommandLine.main(new String[] { "--clear" });
 
 			File f = new File(".compute.properties");
 
@@ -111,8 +108,8 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start TestCommandLineParametersComputePropertiesFilesCreated ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark/workflow.csv", "--defaults",
+		ComputeCommandLine.main(new String[] { "--generate", "--run", "--workflow",
+				"src/main/resources/workflows/benchmark/workflow.csv", "--defaults",
 				"src/main/resources/workflows/benchmark/workflow.defaults.csv", "--parameters",
 				"src/main/resources/workflows/benchmark/parameters.withrunid.csv", "--rundir", OUTPUT_DIRECTORY,
 				"--database", "none", "--runid", "test3"
@@ -127,8 +124,8 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start TestCommandLineParametersComputePropertiesFilesCreated ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.csv", "--defaults",
+		ComputeCommandLine.main(new String[] { "--generate", "--run", "--workflow",
+				"src/main/resources/workflows/benchmark.5.1/workflow.csv", "--defaults",
 				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv", "--parameters",
 				"src/main/resources/workflows/benchmark.5.1/parameters.runid.csv", "--rundir", OUTPUT_DIRECTORY,
 				"--database", "none", "--runid", "test1" });
@@ -141,8 +138,8 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start TestCommandLineParametersComputePropertiesFilesCreated ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--workflow", "src/main/resources/workflows/batchesWorkflow/workflow.csv", "--parameters",
+		ComputeCommandLine.main(new String[] { "--generate", "--workflow",
+				"src/main/resources/workflows/batchesWorkflow/workflow.csv", "--parameters",
 				"src/main/resources/workflows/batchesWorkflow/parameters.csv", "--rundir", OUTPUT_DIRECTORY, "--runid",
 				"test1", "-weave", "-b", "pbs", "-batch", "chr=2"
 
@@ -156,12 +153,12 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start TestCommandLineParametersComputePropertiesFilesCreated ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--workflow", "src/main/resources/workflows/twoQueues/workflow.csv", "--parameters",
-				"src/main/resources/workflows/twoQueues/parameters.csv", "--rundir", OUTPUT_DIRECTORY, "--runid",
-				"test1", "-weave", "-b", "pbs"
+		ComputeCommandLine
+				.main(new String[] { "--generate", "--workflow", "src/main/resources/workflows/twoQueues/workflow.csv",
+						"--parameters", "src/main/resources/workflows/twoQueues/parameters.csv", "--rundir",
+						OUTPUT_DIRECTORY, "--runid", "test1", "-weave", "-b", "pbs"
 
-		});
+				});
 
 		testOutputDirectoryFiles("testTwoQueues");
 	}
@@ -171,8 +168,8 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start TestCommandLineParametersComputePropertiesFilesCreated ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark/workflow.csv", "--defaults",
+		ComputeCommandLine.main(new String[] { "--generate", "--run", "--workflow",
+				"src/main/resources/workflows/benchmark/workflow.csv", "--defaults",
 				"src/main/resources/workflows/benchmark/workflow.defaults.csv", "--parameters",
 				"src/main/resources/workflows/benchmark/parameters.3levels.properties", "--rundir", OUTPUT_DIRECTORY,
 				"--run", "--database", "none", "--runid", "test1" });
@@ -185,8 +182,8 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start TestCommandLineParametersComputePropertiesFilesCreated ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark/workflow.csv", "--defaults",
+		ComputeCommandLine.main(new String[] { "--generate", "--run", "--workflow",
+				"src/main/resources/workflows/benchmark/workflow.csv", "--defaults",
 				"src/main/resources/workflows/benchmark/workflow.defaults.csv", "--parameters",
 				"src/main/resources/workflows/benchmark/parameters.3levels1.properties", "--rundir", OUTPUT_DIRECTORY,
 				"--run", "--database", "none", "--runid", "test1" });
@@ -199,8 +196,8 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start TestRunLocally ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark/workflow.csv", "--defaults",
+		ComputeCommandLine.main(new String[] { "--generate", "--run", "--workflow",
+				"src/main/resources/workflows/benchmark/workflow.csv", "--defaults",
 				"src/main/resources/workflows/benchmark/workflow.defaults.csv", "--parameters",
 				"src/main/resources/workflows/benchmark/parameters.csv", "--rundir", "target/test/benchmark/run",
 				"--database", "none", "-header", "src/main/resources/workflows/benchmark/header.ftl", "-footer",
@@ -214,8 +211,8 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start testRunLocally5 ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.csv", "--defaults",
+		ComputeCommandLine.main(new String[] { "--generate", "--run", "--workflow",
+				"src/main/resources/workflows/benchmark.5.1/workflow.csv", "--defaults",
 				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv", "--parameters",
 				"src/main/resources/workflows/benchmark.5.1/parameters.csv", "--rundir", "target/test/benchmark/run",
 				"--database", "none", "-header", "src/main/resources/workflows/benchmark.5.1/header.ftl", "-footer",
@@ -230,9 +227,9 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start TestExtraVariable ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.extra.variable.csv",
-				"--defaults", "src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv", "--parameters",
+		ComputeCommandLine.main(new String[] { "--generate", "--workflow",
+				"src/main/resources/workflows/benchmark.5.1/workflow.extra.variable.csv", "--defaults",
+				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv", "--parameters",
 				"src/main/resources/workflows/benchmark.5.1/parameters.csv", "--rundir", "target/test/benchmark/run",
 				"--database", "none", "--runid", "fvnC" });
 
@@ -244,8 +241,8 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start testReadSpecificHeadersFooters ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.csv", "--defaults",
+		ComputeCommandLine.main(new String[] { "--generate", "--workflow",
+				"src/main/resources/workflows/benchmark.5.1/workflow.csv", "--defaults",
 				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv", "--parameters",
 				"src/main/resources/workflows/benchmark.5.1/parameters.csv", "--rundir", "target/test/benchmark/run",
 				"--database", "none", "-header", "src/main/resources/workflows/benchmark.5.1/header.ftl", "-footer",
@@ -260,8 +257,8 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start testRunLocally5TemplatesOut ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.csv", "--defaults",
+		ComputeCommandLine.main(new String[] { "--generate", "--run", "--workflow",
+				"src/main/resources/workflows/benchmark.5.1/workflow.csv", "--defaults",
 				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv", "--parameters",
 				"src/main/resources/workflows/benchmark.5.1/parameters.csv", "--rundir", "target/test/benchmark/run",
 				"--database", "none", "--runid", "llYW" });
@@ -274,10 +271,10 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start testRunLocally5_1_a ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark.5.1.a/workflow.csv",
-				"--parameters", "src/main/resources/workflows/benchmark.5.1.a/parameters.csv", "--rundir",
-				"target/test/benchmark/run", "--runid", "test5_1_a" });
+		ComputeCommandLine.main(new String[] { "--generate", "--run", "--workflow",
+				"src/main/resources/workflows/benchmark.5.1.a/workflow.csv", "--parameters",
+				"src/main/resources/workflows/benchmark.5.1.a/parameters.csv", "--rundir", "target/test/benchmark/run",
+				"--runid", "test5_1_a" });
 
 		testOutputDirectoryFiles("testRunLocally5_1_a");
 	}
@@ -287,10 +284,10 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start testRunLocally5_2parametersFiles ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.csv",
-				"--parameters", "src/main/resources/workflows/benchmark.5.1/parameters.csv", "--rundir",
-				"target/test/benchmark/run", "--runid", "test5_2parametersFiles"
+		ComputeCommandLine.main(new String[] { "--generate", "--run", "--workflow",
+				"src/main/resources/workflows/benchmark.5.1/workflow.csv", "--parameters",
+				"src/main/resources/workflows/benchmark.5.1/parameters.csv", "--rundir", "target/test/benchmark/run",
+				"--runid", "test5_2parametersFiles"
 
 		});
 
@@ -302,9 +299,9 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start testRunLocally5a ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.a.csv",
-				"--defaults", "src/main/resources/workflows/benchmark.5.1/workflow.defaults.a.csv", "--parameters",
+		ComputeCommandLine.main(new String[] { "--generate", "--run", "--workflow",
+				"src/main/resources/workflows/benchmark.5.1/workflow.a.csv", "--defaults",
+				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.a.csv", "--parameters",
 				"src/main/resources/workflows/benchmark.5.1/parameters.csv", "--rundir", "target/test/benchmark/run",
 				"--runid", "testRunLocally5a" });
 
@@ -316,9 +313,9 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start testRunLocally5b_1 ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.b.csv",
-				"--defaults", "src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv", "--parameters",
+		ComputeCommandLine.main(new String[] { "--generate", "--run", "--workflow",
+				"src/main/resources/workflows/benchmark.5.1/workflow.b.csv", "--defaults",
+				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv", "--parameters",
 				"src/main/resources/workflows/benchmark.5.1/parameters.csv", "--rundir", "target/test/benchmark/run",
 				"--runid", "testLocally5b_1" });
 
@@ -330,8 +327,7 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start testRunLocally5b_runtime_automapping ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--run", "--workflow",
+		ComputeCommandLine.main(new String[] { "--generate", "--run", "--workflow",
 				"src/main/resources/workflows/benchmark.5.1/workflow.runtime.automapping.csv", "--defaults",
 				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv", "--parameters",
 				"src/main/resources/workflows/benchmark.5.1/parameters.csv", "--rundir", "target/test/benchmark/run",
@@ -345,9 +341,9 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start testRunLocally5_underscore ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow._.csv",
-				"--defaults", "src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv", "--parameters",
+		ComputeCommandLine.main(new String[] { "--generate", "--run", "--workflow",
+				"src/main/resources/workflows/benchmark.5.1/workflow._.csv", "--defaults",
+				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv", "--parameters",
 				"src/main/resources/workflows/benchmark.5.1/parameters_.csv", "--rundir", "target/test/benchmark/run",
 				"--runid", "testRunLocally5_underscore" });
 
@@ -359,9 +355,9 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start testRunLocally5b_2 ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.b.csv",
-				"--defaults", "src/main/resources/workflows/benchmark.5.1/workflow.defaults.b.csv", "--parameters",
+		ComputeCommandLine.main(new String[] { "--generate", "--run", "--workflow",
+				"src/main/resources/workflows/benchmark.5.1/workflow.b.csv", "--defaults",
+				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.b.csv", "--parameters",
 				"src/main/resources/workflows/benchmark.5.1/parameters.csv", "--rundir", "target/test/benchmark/run",
 				"--runid", "testRunLocally5b_2" });
 
@@ -373,9 +369,9 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start testRunLocally5c ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.c.csv",
-				"--defaults", "src/main/resources/workflows/benchmark.5.1/workflow.defaults.b.csv", "--parameters",
+		ComputeCommandLine.main(new String[] { "--generate", "--run", "--workflow",
+				"src/main/resources/workflows/benchmark.5.1/workflow.c.csv", "--defaults",
+				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.b.csv", "--parameters",
 				"src/main/resources/workflows/benchmark.5.1/parameters.c.csv", "--rundir", "target/test/benchmark/run",
 				"--runid", "testRunLocally5c" });
 
@@ -387,8 +383,8 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start testRunLocallyA ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/benchmark/workflow.3.csv", "--defaults",
+		ComputeCommandLine.main(new String[] { "--generate", "--run", "--workflow",
+				"src/main/resources/workflows/benchmark/workflow.3.csv", "--defaults",
 				"src/main/resources/workflows/benchmark/workflow.defaults.3.csv", "--parameters",
 				"src/main/resources/workflows/benchmark/parameters.csv", "--rundir", "target/test/benchmark/run",
 				"--runid", "testRunLocallyA" });
@@ -401,8 +397,8 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start testGenerate5PBS ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.csv", "--defaults",
+		ComputeCommandLine.main(new String[] { "--generate", "--workflow",
+				"src/main/resources/workflows/benchmark.5.1/workflow.csv", "--defaults",
 				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv", "--parameters",
 				"src/main/resources/workflows/benchmark.5.1/parameters.csv", "--rundir", "target/test/benchmark/run",
 				"--backend", "pbs", "--runid", "testGenerate5PBS" });
@@ -415,13 +411,12 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start testGenerate5SLURM ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.csv", 
-				"--defaults", "src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv", 
-				"--parameters", "src/main/resources/workflows/benchmark.5.1/parameters.csv", 
-				"--parameters", "src/main/resources/workflows/benchmark.5.1/sysparameters.csv", 
-				"--rundir", "target/test/benchmark/run/",
-				"--backend", "slurm", "--runid", "testGenerate5SLURM" });
+		ComputeCommandLine.main(new String[] { "--generate", "--workflow",
+				"src/main/resources/workflows/benchmark.5.1/workflow.csv", "--defaults",
+				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv", "--parameters",
+				"src/main/resources/workflows/benchmark.5.1/parameters.csv", "--parameters",
+				"src/main/resources/workflows/benchmark.5.1/sysparameters.csv", "--rundir",
+				"target/test/benchmark/run/", "--backend", "slurm", "--runid", "testGenerate5SLURM" });
 
 		testOutputDirectoryFiles("testGenerate5SLURM");
 	}
@@ -446,8 +441,8 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start TestRunLocally ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--workflow", "src/main/resources/workflows/benchmark.5.1/workflow.csv", "--defaults",
+		ComputeCommandLine.main(new String[] { "--generate", "--workflow",
+				"src/main/resources/workflows/benchmark.5.1/workflow.csv", "--defaults",
 				"src/main/resources/workflows/benchmark.5.1/workflow.defaults.csv", "--parameters",
 				"src/main/resources/workflows/benchmark.5.1/parameters.csv", "--rundir", "target/test/benchmark/run",
 				"--backend", "pbs2" });
@@ -458,13 +453,13 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start TestCommandLineParametersComputePropertiesFilesCreated ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--workflow", "src/main/resources/workflows/benchmark/workflow.csv", "--defaults",
-				"src/main/resources/workflows/benchmark/workflow.defaults1.csv", "--parameters",
-				"src/main/resources/workflows/benchmark/wrong_parameters1.csv", "--rundir", OUTPUT_DIRECTORY,
-				"--backend", "pbs", "--database", "none", "-header",
-				"src/main/resources/workflows/benchmark/header.ftl", "-footer",
-				"src/main/resources/workflows/benchmark/footer.ftl" });
+		ComputeCommandLine
+				.main(new String[] { "--generate", "--workflow", "src/main/resources/workflows/benchmark/workflow.csv",
+						"--defaults", "src/main/resources/workflows/benchmark/workflow.defaults1.csv", "--parameters",
+						"src/main/resources/workflows/benchmark/wrong_parameters1.csv", "--rundir", OUTPUT_DIRECTORY,
+						"--backend", "pbs", "--database", "none", "-header",
+						"src/main/resources/workflows/benchmark/header.ftl", "-footer",
+						"src/main/resources/workflows/benchmark/footer.ftl" });
 	}
 
 	@Test
@@ -472,11 +467,11 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start testHeaderPBS ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--workflow", "src/main/resources/workflows/benchmark/workflowa.csv", "--defaults",
-				"src/main/resources/workflows/benchmark/workflow.defaults.pbs.csv", "--parameters",
-				"src/main/resources/workflows/benchmark/parameters.csv", "--rundir", OUTPUT_DIRECTORY, "--backend",
-				"pbs", "--runid", "testHeaderPBS"});
+		ComputeCommandLine
+				.main(new String[] { "--generate", "--workflow", "src/main/resources/workflows/benchmark/workflowa.csv",
+						"--defaults", "src/main/resources/workflows/benchmark/workflow.defaults.pbs.csv",
+						"--parameters", "src/main/resources/workflows/benchmark/parameters.csv", "--rundir",
+						OUTPUT_DIRECTORY, "--backend", "pbs", "--runid", "testHeaderPBS" });
 
 		testOutputDirectoryFiles("testHeaderPBS");
 	}
@@ -486,11 +481,11 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start TestCommandLineParametersMissingParameter ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--workflow", "src/main/resources/workflows/benchmark/workflow.csv", "--defaults",
-				"src/main/resources/workflows/benchmark/workflow.defaults.missingparameter.csv", "--parameters",
-				"src/main/resources/workflows/benchmark/parameters.csv", "--rundir", OUTPUT_DIRECTORY, "--backend",
-				"pbs", "--database", "none" });
+		ComputeCommandLine
+				.main(new String[] { "--generate", "--workflow", "src/main/resources/workflows/benchmark/workflow.csv",
+						"--defaults", "src/main/resources/workflows/benchmark/workflow.defaults.missingparameter.csv",
+						"--parameters", "src/main/resources/workflows/benchmark/parameters.csv", "--rundir",
+						OUTPUT_DIRECTORY, "--backend", "pbs", "--database", "none" });
 	}
 
 	@Test(expectedExceptions = Exception.class)
@@ -498,11 +493,24 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start TestCommandLineParametersMissingValue ---");
 
-		ComputeCommandLine.main(new String[]
-		{ "--generate", "--workflow", "src/main/resources/workflows/benchmark/workflow.csv", "--defaults",
-				"src/main/resources/workflows/benchmark/workflow.defaults.missingvalue.csv", "--parameters",
-				"src/main/resources/workflows/benchmark/parameters.csv", "--rundir", OUTPUT_DIRECTORY, "--backend",
-				"pbs", "--database", "none" });
+		ComputeCommandLine
+				.main(new String[] { "--generate", "--workflow", "src/main/resources/workflows/benchmark/workflow.csv",
+						"--defaults", "src/main/resources/workflows/benchmark/workflow.defaults.missingvalue.csv",
+						"--parameters", "src/main/resources/workflows/benchmark/parameters.csv", "--rundir",
+						OUTPUT_DIRECTORY, "--backend", "pbs", "--database", "none" });
+	}
+
+	@Test
+	public void testGenerateSlurmJobs() throws Exception
+	{
+		System.out.println("--- Start testGenerateSlurmJobs ---");
+
+		ComputeCommandLine.main(new String[] { "--generate", "--backend", "slurm", "-p",
+				"src/main/resources/workflows/testGenerateSlurmJobs/samplesheetPhasing_test.csv", "-w",
+				"src/main/resources/workflows/testGenerateSlurmJobs/workflow.csv", "-p",
+				"src/main/resources/workflows/testGenerateSlurmJobs/parametersPhasing_test.converted.csv", "-p",
+				"src/main/resources/workflows/testGenerateSlurmJobs/chromosome_chunks.csv", "--rundir",
+				OUTPUT_DIRECTORY, "--weave", "--database", "none" });
 	}
 
 	public static String getFileAsString(String filename) throws IOException
