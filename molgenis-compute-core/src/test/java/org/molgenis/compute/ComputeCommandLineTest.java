@@ -505,12 +505,12 @@ public class ComputeCommandLineTest extends ScriptComparator
 	{
 		System.out.println("--- Start testGenerateSlurmJobs ---");
 
-		ComputeCommandLine.main(new String[] { "--generate", "--backend", "slurm", "-p",
-				"src/main/resources/workflows/testGenerateSlurmJobs/samplesheetPhasing_test.csv", "-w",
+		ComputeCommandLine.main(new String[] { "--generate", "--backend", "localhost", "-p",
+				"src/main/resources/workflows/testGenerateSlurmJobs/samples.csv", "-w",
 				"src/main/resources/workflows/testGenerateSlurmJobs/workflow.csv", "-p",
-				"src/main/resources/workflows/testGenerateSlurmJobs/parametersPhasing_test.converted.csv", "-p",
-				"src/main/resources/workflows/testGenerateSlurmJobs/chromosome_chunks.csv", "--rundir",
-				OUTPUT_DIRECTORY, "--weave", "--database", "none" });
+				"src/main/resources/workflows/testGenerateSlurmJobs/params.csv", "-p",
+				"src/main/resources/workflows/testGenerateSlurmJobs/chunks.csv", "--rundir", OUTPUT_DIRECTORY,
+				"--weave", "--database", "none" });
 	}
 
 	public static String getFileAsString(String filename) throws IOException
