@@ -501,16 +501,18 @@ public class ComputeCommandLineTest extends ScriptComparator
 	}
 
 	@Test
-	public void testGenerateSlurmJobs() throws Exception
+	public void testParameterLists() throws Exception
 	{
-		System.out.println("--- Start testGenerateSlurmJobs ---");
+		System.out.println("--- Start testParameterLists ---");
 
 		ComputeCommandLine.main(new String[] { "--generate", "--backend", "localhost", "-p",
-				"src/main/resources/workflows/testGenerateSlurmJobs/samples.csv", "-w",
-				"src/main/resources/workflows/testGenerateSlurmJobs/workflow.csv", "-p",
-				"src/main/resources/workflows/testGenerateSlurmJobs/params.csv", "-p",
-				"src/main/resources/workflows/testGenerateSlurmJobs/chunks.csv", "--rundir", OUTPUT_DIRECTORY,
-				"--weave", "--database", "none" });
+				"src/main/resources/workflows/parameterLists/samples.csv", "-w",
+				"src/main/resources/workflows/parameterLists/workflow.csv", "-p",
+				"src/main/resources/workflows/parameterLists/params.csv", "-p",
+				"src/main/resources/workflows/parameterLists/chunks.csv", "--rundir", OUTPUT_DIRECTORY, "--database",
+				"none", "--runid", "testParameterLists" });
+
+		testOutputDirectoryFiles("testParameterLists");
 	}
 
 	public static String getFileAsString(String filename) throws IOException
