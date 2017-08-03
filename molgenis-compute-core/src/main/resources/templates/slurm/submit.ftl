@@ -31,44 +31,45 @@ MC_submitOptions="${@}"
 #
 
 function cancelJobs () {
-	local jobList=${1}
-	local jobName
-	local jobID
+	local _jobList=${1}
+	local _jobName
+	local _jobID
 	echo 'INFO: Found list of previously submitted jobs in:'
-	echo "          ${jobList}"
+	echo "          ${_jobList}"
 	echo '      Will try to cancel those jobs before re-submitting new ones...'
-	while IFS=':' read -r jobName jobID; do
-		echo -n "INFO: Cancelling job ${jobName} (${jobID})... "
+	while IFS=':' read -r _jobName _jobID; do
+		echo -n "INFO: Cancelling job ${_jobName} (${_jobID})... "
 		set +e
-		scancel -Q "${jobID}"
-		local status=${?}
+		scancel -Q "${_jobID}"
+		local _status=${?}
 		set -e
-		if [ ${status} = 0 ]; then
+		if [ ${_status} = 0 ]; then
 			echo 'done'
 		else
 			echo 'FAILED'
 			exit 1
 		fi
-	done < "${jobList}"
-	rm "${jobList}"
+	done < "${_jobList}"
+	rm "${_jobList}"
 }
 
 function processJob () {
-	local jobName="${1}"
-	local jobScript="${jobName}.sh"
-	local submitOptions="${2:-}" # Optional.
-	local dependencies="${3:-}"  # Optional.
-	local n=1
-	local max=5
-	local delay=15
-	local output=''
+	local _jobName="${1}"
+	local _jobScript="${jobName}.sh"
+	local _submitOptions="${2:-}" # Optional.
+	local _dependencies="${3:-}"  # Optional.
+	local _n=1
+	local _max=5
+	local _delay=15
+	local _submitCommand
+	local _output
 	
 	#
 	# Skip this job if it already finished successfully.
 	#
-	if [ -f ${jobName}.sh.finished ]; then
-		echo "INFO: Skipped ${jobScript}"
-		echo "0: Skipped --- TASK ${jobScript} --- ON $(date +"%Y-%m-%d %T")" >> molgenis.skipped.log
+	if [ -f ${_jobName}.sh.finished ]; then
+		echo "INFO: Skipped ${_jobScript}"
+		echo "0: Skipped --- TASK ${_jobScript} --- ON $(date +"%Y-%m-%d %T")" >> molgenis.skipped.log
 		MC_jobID=''
 		return
 	fi
@@ -76,29 +77,30 @@ function processJob () {
 	#
 	# Submit job to batch scheduler.
 	#
-	set +e
 	while (true); do
-		local submitCommand="sbatch ${submitOptions} ${dependencies} ${jobScript}"
+		_submitCommand="sbatch ${_submitOptions} ${_dependencies} ${_jobScript}"
 		echo "INFO: Trying to submit batch job:"
-		echo "          ${submitCommand}"
-		output=$(${submitCommand} 2>&1)
+		echo "          ${_submitCommand}"
+		set +e
+		_output=$(${_submitCommand} 2>&1)
 		if [[ ${?} -eq 0 ]]; then
-			echo "      ${output}"
-			MC_jobID=${output##"Submitted batch job "}
-			echo "${jobName}:${MC_jobID}" >> ${MC_submittedJobIDs}
+			set -e
+			echo "      ${_output}"
+			MC_jobID=${_output##"Submitted batch job "}
+			echo "${_jobName}:${MC_jobID}" >> ${MC_submittedJobIDs}
 			break
 		else
-			if [[ $n -lt ${max} ]]; then
-				echo "ERROR: Attempt ${n}/${max} failed for command:"
-				echo "           ${submitCommand}"
-				echo "      ${output}"
-				echo "WARN: Sleeping for ${delay} seconds before trying again."
-				sleep "${delay}"
-				n=$((n+1))
-				delay=$((${delay} * ${n}))
+			set -e
+			if [[ ${_n} -lt ${_max} ]]; then
+				echo "ERROR: Attempt ${_n}/${_max} failed for command:"
+				echo "           ${_submitCommand}"
+				echo "      ${_output:-}"
+				echo "WARN: Sleeping for ${_delay} seconds before trying again."
+				sleep "${_delay}"
+				_n=$((_n+1))
+				_delay=$((${_delay} * ${_n}))
 			else
-				set -e
-				echo "FATAL: Job submission failed reproducibly and I'm giving up after ${n} attempts!"
+				echo "FATAL: Job submission failed reproducibly and I'm giving up after ${_n} attempts!"
 				exit 1
 			fi
 		fi

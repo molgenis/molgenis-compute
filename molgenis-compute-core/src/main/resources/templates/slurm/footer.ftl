@@ -1,9 +1,13 @@
 
 <#noparse>
 
-if [ -d ${MC_tmpFolder:-} ]; then
+#
+## Start of footer.
+#
+
+if [ -d "${MC_tmpFolder:-}" ]; then
 	echo -n "INFO: Removing MC_tmpFolder ${MC_tmpFolder} ..."
-	rm -rf ${MC_tmpFolder}
+	rm -rf "${MC_tmpFolder}"
 	echo 'done.'
 fi
 
