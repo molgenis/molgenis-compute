@@ -15,7 +15,7 @@ set -u
 ENVIRONMENT_DIR='.'
 
 #
-# Variables declared in MOLGENIS Compute headers/footers always start with a MC_ prefix.
+# Variables declared in MOLGENIS Compute headers/footers always start with an MC_ prefix.
 #
 declare MC_jobScript="step1_0.sh"
 declare MC_jobScriptSTDERR="step1_0.err"
@@ -36,32 +36,32 @@ declare MC_tmpFolderCreated=0
 #
 
 function errorExitAndCleanUp() {
-	local signal=${1}
-	local problematicLine=${2}
-	local exitStatus=${3:-$?}
-	local executionHost=${SLURMD_NODENAME:-$(hostname)}
-	local errorMessage="FATAL: Trapped ${signal} signal in ${MC_jobScript} running on ${executionHost}. Exit status code was ${exitStatus}."
-	if [ $signal == 'ERR' ]; then
-		local errorMessage="FATAL: Trapped ${signal} signal on line ${problematicLine} in ${MC_jobScript} running on ${executionHost}. Exit status code was ${exitStatus}."
+	local _signal="${1}"
+	local _problematicLine="${2}"
+	local _exitStatus="${3:-$?}"
+	local _executionHost="${SLURMD_NODENAME:-$(hostname)}"
+	local _format='INFO: Last 50 lines or less of %s:\n'
+	local _errorMessage="FATAL: Trapped ${_signal} signal in ${MC_jobScript} running on ${_executionHost}. Exit status code was ${_exitStatus}."
+	if [ "${_signal}" == 'ERR' ]; then
+		_errorMessage="FATAL: Trapped ${_signal} signal on line ${_problematicLine} in ${MC_jobScript} running on ${_executionHost}. Exit status code was ${_exitStatus}."
 	fi
-	local errorMessage=${4:-"${errorMessage}"} # Optionally use custom error message as third argument.
-	local format='INFO: Last 50 lines or less of %s:\n'
-	echo "${errorMessage}"
-	echo "${MC_doubleSeperatorLine}"                > ${MC_failedFile}
-	echo "${errorMessage}"                         >> ${MC_failedFile}
+	_errorMessage=${4:-"${_errorMessage}"} # Optionally use custom error message as 4th argument.
+	echo "${_errorMessage}"
+	echo "${MC_doubleSeperatorLine}"                 > "${MC_failedFile}"
+	echo "${_errorMessage}"                         >> "${MC_failedFile}"
 	if [ -f "${MC_jobScriptSTDERR}" ]; then
-		echo "${MC_singleSeperatorLine}"           >> ${MC_failedFile}
-		printf "${format}" "${MC_jobScriptSTDERR}" >> ${MC_failedFile}
-		echo "${MC_singleSeperatorLine}"           >> ${MC_failedFile}
-		tail -50 "${MC_jobScriptSTDERR}"           >> ${MC_failedFile}
+		echo "${MC_singleSeperatorLine}"            >> "${MC_failedFile}"
+		printf "${_format}" "${MC_jobScriptSTDERR}" >> "${MC_failedFile}"
+		echo "${MC_singleSeperatorLine}"            >> "${MC_failedFile}"
+		tail -50 "${MC_jobScriptSTDERR}"            >> "${MC_failedFile}"
 	fi
 	if [ -f "${MC_jobScriptSTDOUT}" ]; then
-		echo "${MC_singleSeperatorLine}"           >> ${MC_failedFile}
-		printf "${format}" "${MC_jobScriptSTDOUT}" >> ${MC_failedFile}
-		echo "${MC_singleSeperatorLine}"           >> ${MC_failedFile}
-		tail -50 "${MC_jobScriptSTDOUT}"           >> ${MC_failedFile}
+		echo "${MC_singleSeperatorLine}"            >> "${MC_failedFile}"
+		printf "${_format}" "${MC_jobScriptSTDOUT}" >> "${MC_failedFile}"
+		echo "${MC_singleSeperatorLine}"            >> "${MC_failedFile}"
+		tail -50 "${MC_jobScriptSTDOUT}"            >> "${MC_failedFile}"
 	fi
-	echo "${MC_doubleSeperatorLine}"               >> ${MC_failedFile}
+	echo "${MC_doubleSeperatorLine}"                >> "${MC_failedFile}"
 }
 
 #
@@ -76,32 +76,31 @@ function makeTmpDir {
 	#
 	# Compile paths.
 	#
-	local originalPath=$1
-	local myMD5=$(md5sum ${MC_jobScript})
-	myMD5=${myMD5%% *} # remove everything after the first space character to keep only the MD5 checksum itself.
-	local tmpSubFolder="tmp_${MC_jobScript}_${myMD5}"
-	local dir
-	local base
-	if [[ -d "${originalPath}" ]]; then
-		dir="${originalPath}"
-		base=''
+	local _originalPath="${1}"
+	local _myMD5="$(md5sum ${MC_jobScript} | cut -d ' ' -f 1)"
+	local _tmpSubFolder="tmp_${MC_jobScript}_${_myMD5}"
+	local _dir
+	local _base
+	if [[ -d "${_originalPath}" ]]; then
+		_dir="${_originalPath}"
+		_base=''
 	else
-		base=$(basename "${originalPath}")
-		dir=$(dirname "${originalPath}")
+		_base=$(basename "${_originalPath}")
+		_dir=$(dirname "${_originalPath}")
 	fi
-	MC_tmpFolder="${dir}/${tmpSubFolder}/"
-	MC_tmpFile="$MC_tmpFolder/${base}"
-	echo "DEBUG ${MC_jobScript}::makeTmpDir: dir='${dir}';base='${base}';MC_tmpFile='${MC_tmpFile}'"
+	MC_tmpFolder="${_dir}/${_tmpSubFolder}/"
+	MC_tmpFile="${MC_tmpFolder}/${_base}"
+	echo "DEBUG ${MC_jobScript}::makeTmpDir: dir='${_dir}';base='${_base}';MC_tmpFile='${MC_tmpFile}'"
 	#
 	# Cleanup the previously created tmpFolder first if this script was resubmitted.
 	#
-	if [[ ${MC_tmpFolderCreated} -eq 0 && -d ${MC_tmpFolder} ]]; then
-		rm -rf ${MC_tmpFolder}
+	if [[ ${MC_tmpFolderCreated} -eq 0 && -d "${MC_tmpFolder}" ]]; then
+		rm -rf "${MC_tmpFolder}"
 	fi
 	#
 	# (Re-)create tmpFolder.
 	#
-	mkdir -p ${MC_tmpFolder}
+	mkdir -p "${MC_tmpFolder}"
 	MC_tmpFolderCreated=1
 }
 
@@ -112,7 +111,11 @@ trap 'errorExitAndCleanUp TERM NA $?' TERM
 trap 'errorExitAndCleanUp EXIT NA $?' EXIT
 trap 'errorExitAndCleanUp ERR  $LINENO $?' ERR
 
-touch ${MC_jobScript}.started
+touch "${MC_jobScript}.started"
+
+#
+## End of header for backend 'slurm'
+#
 
 
 
@@ -126,7 +129,7 @@ touch ${MC_jobScript}.started
 taskId="step1_0"
 
 # Make compute.properties available
-rundir="TEST_PROPERTY(project.basedir)/target/test/benchmark/run"
+rundir="TEST_PROPERTY(project.basedir)/target/test/benchmark/run/testGenerate5SLURM"
 runid="testGenerate5SLURM"
 workflow="src/main/resources/workflows/benchmark.5.1/workflow.csv"
 parameters="src/main/resources/workflows/benchmark.5.1/parameters.csv,src/main/resources/workflows/benchmark.5.1/sysparameters.csv"
@@ -169,11 +172,13 @@ echo "" >> $ENVIRONMENT_DIR/step1_0.env
 chmod 755 $ENVIRONMENT_DIR/step1_0.env
 
 
+#
+## Start of footer for backend 'slurm'.
+#
 
-
-if [ -d ${MC_tmpFolder:-} ]; then
+if [ -d "${MC_tmpFolder:-}" ]; then
 	echo -n "INFO: Removing MC_tmpFolder ${MC_tmpFolder} ..."
-	rm -rf ${MC_tmpFolder}
+	rm -rf "${MC_tmpFolder}"
 	echo 'done.'
 fi
 

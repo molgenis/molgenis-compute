@@ -22,7 +22,7 @@ declare MC_jobDependencies=''
 #     bash submit.sh --qos=SomeLevel
 # if you don't want to use the default QoS.
 #
-MC_submitOptions="${@}"
+MC_submitOptions="${@:-}"
 
 #
 ##
@@ -31,7 +31,7 @@ MC_submitOptions="${@}"
 #
 
 function cancelJobs () {
-	local _jobList=${1}
+	local _jobList="${1}"
 	local _jobName
 	local _jobID
 	echo 'INFO: Found list of previously submitted jobs in:'
@@ -67,7 +67,7 @@ function processJob () {
 	#
 	# Skip this job if it already finished successfully.
 	#
-	if [ -f ${_jobName}.sh.finished ]; then
+	if [ -e "${_jobName}.sh.finished" ]; then
 		echo "INFO: Skipped ${_jobScript}"
 		echo "0: Skipped --- TASK ${_jobScript} --- ON $(date +"%Y-%m-%d %T")" >> molgenis.skipped.log
 		MC_jobID=''

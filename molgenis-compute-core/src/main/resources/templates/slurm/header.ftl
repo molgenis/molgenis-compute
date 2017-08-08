@@ -77,7 +77,7 @@ function makeTmpDir {
 	#
 	# Compile paths.
 	#
-	local _originalPath="$1"
+	local _originalPath="${1}"
 	local _myMD5="$(md5sum ${MC_jobScript} | cut -d ' ' -f 1)"
 	local _tmpSubFolder="tmp_${MC_jobScript}_${_myMD5}"
 	local _dir

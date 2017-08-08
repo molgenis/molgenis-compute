@@ -1,8 +1,5 @@
-
-<#noparse>
-
-#
-## Start of footer.
+<#noparse>#
+## Start of footer for backend 'slurm'.
 #
 
 if [ -d "${MC_tmpFolder:-}" ]; then

@@ -1,218 +1,94 @@
-# First cd to the directory with the *.sh and *.finished scripts
-MOLGENIS_scriptsDir=$( cd -P "$( dirname "$0" )" && pwd )
-echo "cd $MOLGENIS_scriptsDir"
-cd $MOLGENIS_scriptsDir
+#!/bin/bash
 
-# Use this to indicate that we skip a step
-skip(){
-	echo "0: Skipped --- TASK '$1' --- ON $(date +"%Y-%m-%d %T")" >> molgenis.skipped.log
+#
+# Bash sanity.
+#
+set -e
+set -u
+
+#
+# Get commandline arguments.
+# Any arguments specified are passed on to bash unparsed "as is"...
+#
+MC_submitOptions="${@:-}"
+
+#
+##
+### Functions.
+##
+#
+
+function processJob () {
+	local _jobName="${1}"
+	local _jobScript="${_jobName}.sh"
+	local _submitOptions="${2:-}" # Optional.
+	local _submitCommand
+	
+	#
+	# Skip this job if it already finished successfully.
+	#
+	if [ -e "${_jobName}.sh.finished" ]; then
+		echo "INFO: Skipped ${_jobScript}"
+		echo "0: Skipped --- TASK ${_jobScript} --- ON $(date +"%Y-%m-%d %T")" >> molgenis.skipped.log
+		return
+	fi
+	
+	#
+	# Submit to 'local' backend; a.k.a. execute job script.
+	#
+	_submitCommand="bash ${_submitOptions} ${_jobScript}"
+	echo "INFO: Trying to execute job:"
+	echo "          ${_submitCommand}"
+	set +e
+	$(${_submitCommand} 1>${_jobName}.out 2>${_jobName}.err)
+	if [[ ${?} -eq 0 ]]; then
+		set -e
+		echo "      Ok. See ${_jobName}.out for details."
+	else
+		set -e
+		echo "      Ooops. See ${_jobName}.err for details."
+		echo "FATAL: Failed to execute job ${_jobScript}"
+		exit 1
+	fi
 }
 
-# Skip this step if step finished already successfully
-if [ -f test1_0.sh.finished ]; then
-	skip test1_0.sh
-	echo "Skipped test1_0.sh"
-else
-	echo "--- begin step: test1_0 ---"
-	echo " "
-	bash test1_0.sh
-	echo " "
-	echo "--- end step: test1_0 ---"
-	echo " "
-	echo " "
-fi
-# Skip this step if step finished already successfully
-if [ -f test1_1.sh.finished ]; then
-	skip test1_1.sh
-	echo "Skipped test1_1.sh"
-else
-	echo "--- begin step: test1_1 ---"
-	echo " "
-	bash test1_1.sh
-	echo " "
-	echo "--- end step: test1_1 ---"
-	echo " "
-	echo " "
-fi
-# Skip this step if step finished already successfully
-if [ -f test1_2.sh.finished ]; then
-	skip test1_2.sh
-	echo "Skipped test1_2.sh"
-else
-	echo "--- begin step: test1_2 ---"
-	echo " "
-	bash test1_2.sh
-	echo " "
-	echo "--- end step: test1_2 ---"
-	echo " "
-	echo " "
-fi
-# Skip this step if step finished already successfully
-if [ -f test1_3.sh.finished ]; then
-	skip test1_3.sh
-	echo "Skipped test1_3.sh"
-else
-	echo "--- begin step: test1_3 ---"
-	echo " "
-	bash test1_3.sh
-	echo " "
-	echo "--- end step: test1_3 ---"
-	echo " "
-	echo " "
-fi
-# Skip this step if step finished already successfully
-if [ -f test1_4.sh.finished ]; then
-	skip test1_4.sh
-	echo "Skipped test1_4.sh"
-else
-	echo "--- begin step: test1_4 ---"
-	echo " "
-	bash test1_4.sh
-	echo " "
-	echo "--- end step: test1_4 ---"
-	echo " "
-	echo " "
-fi
-# Skip this step if step finished already successfully
-if [ -f test2_0.sh.finished ]; then
-	skip test2_0.sh
-	echo "Skipped test2_0.sh"
-else
-	echo "--- begin step: test2_0 ---"
-	echo " "
-	bash test2_0.sh
-	echo " "
-	echo "--- end step: test2_0 ---"
-	echo " "
-	echo " "
-fi
-# Skip this step if step finished already successfully
-if [ -f test2_1.sh.finished ]; then
-	skip test2_1.sh
-	echo "Skipped test2_1.sh"
-else
-	echo "--- begin step: test2_1 ---"
-	echo " "
-	bash test2_1.sh
-	echo " "
-	echo "--- end step: test2_1 ---"
-	echo " "
-	echo " "
-fi
-# Skip this step if step finished already successfully
-if [ -f test3_0.sh.finished ]; then
-	skip test3_0.sh
-	echo "Skipped test3_0.sh"
-else
-	echo "--- begin step: test3_0 ---"
-	echo " "
-	bash test3_0.sh
-	echo " "
-	echo "--- end step: test3_0 ---"
-	echo " "
-	echo " "
-fi
-# Skip this step if step finished already successfully
-if [ -f test3_1.sh.finished ]; then
-	skip test3_1.sh
-	echo "Skipped test3_1.sh"
-else
-	echo "--- begin step: test3_1 ---"
-	echo " "
-	bash test3_1.sh
-	echo " "
-	echo "--- end step: test3_1 ---"
-	echo " "
-	echo " "
-fi
-# Skip this step if step finished already successfully
-if [ -f test3_2.sh.finished ]; then
-	skip test3_2.sh
-	echo "Skipped test3_2.sh"
-else
-	echo "--- begin step: test3_2 ---"
-	echo " "
-	bash test3_2.sh
-	echo " "
-	echo "--- end step: test3_2 ---"
-	echo " "
-	echo " "
-fi
-# Skip this step if step finished already successfully
-if [ -f test4_0.sh.finished ]; then
-	skip test4_0.sh
-	echo "Skipped test4_0.sh"
-else
-	echo "--- begin step: test4_0 ---"
-	echo " "
-	bash test4_0.sh
-	echo " "
-	echo "--- end step: test4_0 ---"
-	echo " "
-	echo " "
-fi
-# Skip this step if step finished already successfully
-if [ -f test4_1.sh.finished ]; then
-	skip test4_1.sh
-	echo "Skipped test4_1.sh"
-else
-	echo "--- begin step: test4_1 ---"
-	echo " "
-	bash test4_1.sh
-	echo " "
-	echo "--- end step: test4_1 ---"
-	echo " "
-	echo " "
-fi
-# Skip this step if step finished already successfully
-if [ -f test5_0.sh.finished ]; then
-	skip test5_0.sh
-	echo "Skipped test5_0.sh"
-else
-	echo "--- begin step: test5_0 ---"
-	echo " "
-	bash test5_0.sh
-	echo " "
-	echo "--- end step: test5_0 ---"
-	echo " "
-	echo " "
-fi
-# Skip this step if step finished already successfully
-if [ -f test5_1.sh.finished ]; then
-	skip test5_1.sh
-	echo "Skipped test5_1.sh"
-else
-	echo "--- begin step: test5_1 ---"
-	echo " "
-	bash test5_1.sh
-	echo " "
-	echo "--- end step: test5_1 ---"
-	echo " "
-	echo " "
-fi
-# Skip this step if step finished already successfully
-if [ -f test6_0.sh.finished ]; then
-	skip test6_0.sh
-	echo "Skipped test6_0.sh"
-else
-	echo "--- begin step: test6_0 ---"
-	echo " "
-	bash test6_0.sh
-	echo " "
-	echo "--- end step: test6_0 ---"
-	echo " "
-	echo " "
-fi
-# Skip this step if step finished already successfully
-if [ -f test6_1.sh.finished ]; then
-	skip test6_1.sh
-	echo "Skipped test6_1.sh"
-else
-	echo "--- begin step: test6_1 ---"
-	echo " "
-	bash test6_1.sh
-	echo " "
-	echo "--- end step: test6_1 ---"
-	echo " "
-	echo " "
-fi
+#
+##
+### Main.
+##
+#
+
+#
+# First find our where this submit.sh script and the job *.sh scripts were created
+# Then change to that directory to make sure relative paths 
+# further down in this script can be resolved correctly.
+#
+MC_scriptsDir=$( cd -P "$( dirname "$0" )" && pwd )
+echo -n "INFO: Changing working directory to ${MC_scriptsDir}... "
+cd "${MC_scriptsDir}"
+echo 'done.'
+
+touch molgenis.submit.started
+
+
+#
+# Process jobs: either skip if job previously finished successfully or excute job script on localhost.
+#
+processJob "test1_0" "${MC_submitOptions}"
+processJob "test1_1" "${MC_submitOptions}"
+processJob "test1_2" "${MC_submitOptions}"
+processJob "test1_3" "${MC_submitOptions}"
+processJob "test1_4" "${MC_submitOptions}"
+processJob "test2_0" "${MC_submitOptions}"
+processJob "test2_1" "${MC_submitOptions}"
+processJob "test3_0" "${MC_submitOptions}"
+processJob "test3_1" "${MC_submitOptions}"
+processJob "test3_2" "${MC_submitOptions}"
+processJob "test4_0" "${MC_submitOptions}"
+processJob "test4_1" "${MC_submitOptions}"
+processJob "test5_0" "${MC_submitOptions}"
+processJob "test5_1" "${MC_submitOptions}"
+processJob "test6_0" "${MC_submitOptions}"
+processJob "test6_1" "${MC_submitOptions}"
+
+mv molgenis.submit.{started,finished}

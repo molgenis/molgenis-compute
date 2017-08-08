@@ -10,7 +10,7 @@ set -u
 # Get commandline arguments.
 # Any arguments specified are passed on to bash unparsed "as is"...
 #
-MC_submitOptions="${@}"
+MC_submitOptions="${@:-}"
 
 #
 ##
@@ -27,7 +27,7 @@ function processJob () {
 	#
 	# Skip this job if it already finished successfully.
 	#
-	if [ -f ${_jobName}.sh.finished ]; then
+	if [ -e "${_jobName}.sh.finished" ]; then
 		echo "INFO: Skipped ${_jobScript}"
 		echo "0: Skipped --- TASK ${_jobScript} --- ON $(date +"%Y-%m-%d %T")" >> molgenis.skipped.log
 		return
@@ -72,16 +72,10 @@ touch molgenis.submit.started
 
 </#noparse>
 
-<#foreach t in tasks>
 #
-##${t.name}
+# Process jobs: either skip if job previously finished successfully or excute job script on localhost.
 #
-
-#
-# Process job: either skip if job previously finished successfully or excute job script on localhost.
-#
-processJob "${t.name}" <#noparse>"${MC_submitOptions}"</#noparse>
-
+<#foreach t in tasks>processJob "${t.name}" <#noparse>"${MC_submitOptions}"</#noparse>
 </#foreach>
 
 mv molgenis.submit.{started,finished}

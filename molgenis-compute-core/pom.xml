@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<properties>
 		<molgenis.version>1.2.0</molgenis.version>
-		<compute.version>16.11.1</compute.version>
+		<compute.version>17.08.1</compute.version>
 	</properties>
 	<parent>
 		<groupId>org.molgenis</groupId>

@@ -1,8 +1,5 @@
-
-<#noparse>
-
-#
-## Start of footer.
+<#noparse>#
+## Start of footer for backend 'local'.
 #
 
 if [ -d "${MC_tmpFolder:-}" ]; then
