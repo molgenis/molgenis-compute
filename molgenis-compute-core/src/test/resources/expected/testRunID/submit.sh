@@ -59,7 +59,7 @@ function processJob () {
 #
 
 #
-# First find our where this submit.sh script and the job *.sh scripts were created
+# First find location where this submit.sh script and the job *.sh scripts were created.
 # Then change to that directory to make sure relative paths 
 # further down in this script can be resolved correctly.
 #
