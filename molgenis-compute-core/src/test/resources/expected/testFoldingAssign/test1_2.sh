@@ -187,7 +187,7 @@ tH=$((SECONDS / 3600))
 echo "On $(date +"%Y-%m-%d %T") ${MC_jobScript} finished successfully after ${tM} minutes." >> molgenis.bookkeeping.log
 printf '%s:\t%d seconds\t%d minutes\t%d hours\n' "${MC_jobScript}" "${tS}" "${tM}" "${tH}" >> molgenis.bookkeeping.walltime
 
-mv "${MC_jobScript}.started" "${MC_jobScript}.finished"
+mv "${MC_jobScript}".{started,finished}
 
 trap - EXIT
 exit 0
