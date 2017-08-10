@@ -1,6 +1,6 @@
 # molgenis-compute
 
-[![Build Status](http://www.molgenis.org/jenkins/buildStatus/icon?job=molgenis-compute)]
+[Build Status](http://www.molgenis.org/jenkins/buildStatus/icon?job=molgenis-compute)
 ================
 
 A workflow management framework for generating/submitting/monitoring Bash scripts on compute clusters managed by schedulers like
