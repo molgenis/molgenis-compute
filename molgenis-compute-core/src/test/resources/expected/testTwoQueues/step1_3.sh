@@ -161,8 +161,8 @@ alloutputsexist()
 taskId="step1_3"
 
 # Make compute.properties available
-rundir="TEST_PROPERTY(project.basedir)/target/test/benchmark/run"
-runid="test1"
+rundir="TEST_PROPERTY(project.basedir)/target/test/benchmark/run/testTwoQueues"
+runid="testTwoQueues"
 workflow="src/main/resources/workflows/twoQueues/workflow.csv"
 parameters="src/main/resources/workflows/twoQueues/parameters.csv"
 user="TEST_PROPERTY(user.name)"

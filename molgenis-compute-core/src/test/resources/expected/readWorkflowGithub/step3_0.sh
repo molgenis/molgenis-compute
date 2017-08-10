@@ -15,7 +15,7 @@ fi
 taskId="step3_0"
 
 # Make compute.properties available
-rundir="TEST_PROPERTY(project.basedir)/target/test/benchmark/run"
+rundir="TEST_PROPERTY(project.basedir)/target/test/benchmark/run/readWorkflowGithub"
 runid="readWorkflowGithub"
 workflow="workflow.csv"
 parameters="parameters.csv"

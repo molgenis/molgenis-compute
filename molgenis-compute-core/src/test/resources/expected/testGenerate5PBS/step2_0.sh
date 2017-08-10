@@ -161,7 +161,7 @@ alloutputsexist()
 taskId="step2_0"
 
 # Make compute.properties available
-rundir="TEST_PROPERTY(project.basedir)/target/test/benchmark/run"
+rundir="TEST_PROPERTY(project.basedir)/target/test/benchmark/run/testGenerate5PBS"
 runid="testGenerate5PBS"
 workflow="src/main/resources/workflows/benchmark.5.1/workflow.csv"
 parameters="src/main/resources/workflows/benchmark.5.1/parameters.csv"

@@ -4,31 +4,42 @@ import org.testng.annotations.Test;
 
 public class SeparatedListFoldingTest extends ScriptComparator
 {
+	private String runID;
+	
 	@Test
-	public void testFoldOnTwoString() throws Exception
+	public void testFoldOnTwoStrings() throws Exception
 	{
-		System.out.println("--- Start Test Folding on two strings ---");
+		String runID="testFoldOnTwoStrings";
+		System.out.println("--- Started test " + runID + " ---");
 
 		ComputeCommandLine.main(new String[]
-		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/foreachtest/workflow.csv", "--parameters",
-				"src/main/resources/workflows/foreachtest/parameters.csv", "--parameters",
-				"src/main/resources/workflows/foreachtest/parameters1.csv", "--rundir", OUTPUT_DIRECTORY, "--runid",
-				"testFoldOnTwoString" });
+		{ "--generate", "--run",
+				"--workflow",   "src/main/resources/workflows/foreachtest/workflow.csv",
+				"--parameters", "src/main/resources/workflows/foreachtest/parameters.csv",
+				"--parameters", "src/main/resources/workflows/foreachtest/parameters1.csv",
+				"--rundir", OUTPUT_DIRECTORY + runID,
+				"--runid", runID });
 
-		testOutputDirectoryFiles("testFoldOnTwoString");
+		testOutputDirectoryFiles(runID);
 	}
 
+	/**
+	 * Test shows how to fold all parameters.
+	 */ 
 	@Test
 	public void testParametersAll() throws Exception
 	{
-		System.out.println("--- Start Test folding all parameters ---");
+		String runID="testParametersAll";
+		System.out.println("--- Started test " + runID + " ---");
 
 		ComputeCommandLine.main(new String[]
-		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/listOutOfTwo/workflow.csv", "--parameters",
-				"src/main/resources/workflows/listOutOfTwo/parametersall.csv", "--rundir", OUTPUT_DIRECTORY, "--runid",
-				"testParametersAll" });
+		{ "--generate", "--run",
+				"--workflow",   "src/main/resources/workflows/listOutOfTwo/workflow.csv",
+				"--parameters", "src/main/resources/workflows/listOutOfTwo/parametersall.csv",
+				"--rundir", OUTPUT_DIRECTORY + runID,
+				"--runid", runID });
 
-		testOutputDirectoryFiles("testParametersAll");
+		testOutputDirectoryFiles(runID);
 	}
 
 	/**
@@ -39,26 +50,36 @@ public class SeparatedListFoldingTest extends ScriptComparator
 	@Test
 	public void testParameters2() throws Exception
 	{
-		System.out.println("--- Start Test Folding without all possible parameter combinations ---");
+		String runID="testParameters2";
+		System.out.println("--- Started test " + runID + " ---");
 
 		ComputeCommandLine.main(new String[]
-		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/listOutOfTwo/workflow2.csv",
-				"--parameters", "src/main/resources/workflows/listOutOfTwo/parameters.csv", "--weave", "--rundir",
-				OUTPUT_DIRECTORY, "--runid", "testParameters2" });
+		{ "--generate", "--run", "--weave",
+				"--workflow", "src/main/resources/workflows/listOutOfTwo/workflow2.csv",
+				"--parameters", "src/main/resources/workflows/listOutOfTwo/parameters.csv",
+				"--rundir", OUTPUT_DIRECTORY + runID,
+				"--runid", runID });
 
-		testOutputDirectoryFiles("testParameters2");
+		testOutputDirectoryFiles(runID);
 	}
 
+	/**
+	 * Test shows how to fold all parameters from two parameter files.
+	 */ 
 	@Test
 	public void testParametersAllInTwoFiles() throws Exception
 	{
-		System.out.println("--- Start Test Folding all parameters from two files ---");
+		String runID="testParametersAllInTwoFiles";
+		System.out.println("--- Started test " + runID + " ---");
 
 		ComputeCommandLine.main(new String[]
-		{ "--generate", "--run", "--workflow", "src/main/resources/workflows/listOutOfTwo/workflow.csv", "--parameters",
-				"src/main/resources/workflows/listOutOfTwo/parameters.csv", "--parameters",
-				"src/main/resources/workflows/listOutOfTwo/parameters1.csv", "--rundir", OUTPUT_DIRECTORY, "--runid", "testParametersAllInTwoFiles"});
+		{ "--generate", "--run",
+				"--workflow",   "src/main/resources/workflows/listOutOfTwo/workflow.csv",
+				"--parameters", "src/main/resources/workflows/listOutOfTwo/parameters.csv",
+				"--parameters", "src/main/resources/workflows/listOutOfTwo/parameters1.csv",
+				"--rundir", OUTPUT_DIRECTORY + runID,
+				"--runid", runID });
 
-		testOutputDirectoryFiles("testParametersAllInTwoFiles");
+		testOutputDirectoryFiles(runID);
 	}
 }

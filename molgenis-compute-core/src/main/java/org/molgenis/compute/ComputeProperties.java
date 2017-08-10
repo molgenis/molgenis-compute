@@ -136,11 +136,9 @@ public class ComputeProperties
 		else
 		{
 			File workflowFile = new File(this.workFlow);
-			String workflowFilePath = workflowFile.getParent(); // get workflow
-																// path
+			String workflowFilePath = workflowFile.getParent(); // get workflow path
 			String workflowName = workflowFile.getName(); // strip workflow name
-			workflowName = workflowName.substring(0, workflowName.indexOf('.')); // strip
-																					// extension
+			workflowName = workflowName.substring(0, workflowName.indexOf('.')); // strip extension
 
 			File defaultsFileTest = new File(
 					workflowFilePath + File.separator + workflowName + "." + Parameters.DEFAULTS_DEFAULT);
@@ -226,6 +224,9 @@ public class ComputeProperties
 
 			if (batchOption != null)
 			{
+				LOG.error("Batching is currently disabled pending re-implementation of this feature.");
+				System.exit(1);
+				
 				String nameValue[] = batchOption.split("=");
 				if (nameValue.length != 2) LOG.warn("BATCH specification is wrong; usage example sample=2");
 				else

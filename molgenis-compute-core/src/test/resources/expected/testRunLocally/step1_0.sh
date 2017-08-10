@@ -16,8 +16,8 @@ fi
 taskId="step1_0"
 
 # Make compute.properties available
-rundir="TEST_PROPERTY(project.basedir)/target/test/benchmark/run"
-runid="HVNk"
+rundir="TEST_PROPERTY(project.basedir)/target/test/benchmark/run/testRunLocally"
+runid="testRunLocally"
 workflow="src/main/resources/workflows/benchmark/workflow.csv"
 parameters="src/main/resources/workflows/benchmark/parameters.csv"
 user="TEST_PROPERTY(user.name)"
