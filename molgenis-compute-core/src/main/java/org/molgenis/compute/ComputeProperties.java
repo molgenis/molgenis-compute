@@ -224,7 +224,7 @@ public class ComputeProperties
 
 			if (batchOption != null)
 			{
-				LOG.error("Batching is currently disabled pending re-implementation of this feature.")
+				LOG.error("Batching is currently disabled pending re-implementation of this feature.");
 				System.exit(1);
 				
 				String nameValue[] = batchOption.split("=");
