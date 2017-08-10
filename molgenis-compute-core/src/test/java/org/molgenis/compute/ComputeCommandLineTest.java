@@ -156,12 +156,9 @@ public class ComputeCommandLineTest extends ScriptComparator
 	}
 
 	/*
-	 * Disable batch test until batching is reimplemented.
-	 *
-	 * Note: only need to comment the @Test tag to disable the test; 
-	 *       there is no need to also comment the code.
+	 * Temporarily disable batch test until batching is reimplemented.
 	 */
-	// @Test
+	@Test(enabled = false)
 	public void testBatch() throws Exception
 	{
 		String runID="testBatch";
@@ -510,12 +507,9 @@ public class ComputeCommandLineTest extends ScriptComparator
 	 * Disabled test for script generating scripts that send email when somthing goes wrong: 
 	 * although most scheduler implementations do support emailing when a job enters a
 	 * specified state, this may easily result in a spam flood, when a silly bug causes 
-	 * thousends of generated scripts to fail in a split second: not something we want to support.
-	 *
-	 * Note: only need to comment the @Test tag to disable the test; 
-	 *       there is no need to also comment the code.
+	 * thousands of generated scripts to fail in a split second: not something we want to support.
 	 */
-	// @Test
+	@Test(enabled = false)
 	public void testGenerate5ErrorMail() throws Exception
 	{
 		String runID="testGenerate5ErrorMail";

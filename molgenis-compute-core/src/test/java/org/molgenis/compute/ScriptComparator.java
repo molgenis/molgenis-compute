@@ -44,7 +44,9 @@ public class ScriptComparator
 	@BeforeSuite
 	public void beforeSuite() throws IOException
 	{
-		// Make sure we start with a clean folder for the generated results of the tests
+		/*
+		 * Make sure we start with a clean folder for the generated results of all tests.
+		 */
 		File outdir = new File(OUTPUT_DIRECTORY);
 		FileUtils.deleteDirectory(outdir);
 		Assert.assertFalse(outdir.exists());
@@ -53,11 +55,12 @@ public class ScriptComparator
 	@BeforeMethod
 	public void beforeMethod() throws IOException
 	{
-		// Don't delete the generated results; leave them on disk for inspection when a test fails!
-		//File f = new File(OUTPUT_DIRECTORY);
-		//FileUtils.deleteDirectory(f);
-		//Assert.assertFalse(f.exists());
-
+		/*
+		 *  Don't delete the complete OUTPUT_DIRECTORY with generated results here!
+		 *  Leave them on disk for inspection when a test fails instead.
+		 *  Do remove the COMPUTE_PROPERTIES_FILE each time a test is performed though
+		 *  to prevent a previous invocation of molgenis-compute affecting the test.
+		 */
 		File f = new File(COMPUTE_PROPERTIES_FILE);
 		FileUtils.deleteQuietly(f);
 		Assert.assertFalse(f.exists());
@@ -95,14 +98,4 @@ public class ScriptComparator
 			Assertions.assertThat(actualFile).hasSameContentAs(expectedFile);
 		}
 	}
-//	private void compareOutputDirectoryToExpectedDirectory(String expectedDirectory, String subDirectory)
-//	{
-//		File expectedFilesDirectory = new File(expectedDirectory);
-//		for (File expectedFile : expectedFilesDirectory.listFiles(EXTENSION_FILTER))
-//		{
-//			File actualFile = new File(new File(OUTPUT_DIRECTORY + subDirectory), expectedFile.getName());
-//			Assertions.assertThat(actualFile).hasSameContentAs(expectedFile);
-//		}
-//	}
-
 }
