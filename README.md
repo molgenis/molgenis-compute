@@ -7,4 +7,4 @@ A workflow management framework for generating/submitting/monitoring Bash script
  - [PBS](http://www.adaptivecomputing.com/products/open-source/torque/) (deprecated)
  - [SGE/OGS](http://gridscheduler.sourceforge.net/) (deprecated)
 
-See http://www.molgenis.org/wiki/ComputeStart for documentation.
+See http://wiki.gcc.rug.nl/wiki/ComputeStart for documentation.
