@@ -186,8 +186,8 @@ public class TaskGenerator {
 
     String walltime = protocol.getWalltime();
     if (walltime == null) {
-      String param =
-          USER_PARAM_PREFIX + '_' + Parameters.WALLTIME + '_' + getProtocolParam(protocol);
+
+      String param = USER_PARAM_PREFIX + '_' + Parameters.WALLTIME + '_' + getProtocolParam(protocol);
       walltime = defaultResourcesMap.getString(param);
     }
     if (walltime == null) {
@@ -263,7 +263,15 @@ public class TaskGenerator {
 
   /** package-private for testability. */
   String getProtocolParam(Protocol protocol) {
-    return protocol.getName().replace('.', '_').replace('/', '_');
+    String param;
+    String name = protocol.getName();
+    String type = protocol.getType();
+    if (name.endsWith(type)) {
+      param = name.substring(0, name.lastIndexOf(type));
+    } else {
+      param = name;
+    }
+    return param.replaceAll("\\.", "").replace('/', '_');
   }
 
   private List<Task> generateTasks(Step step, List<DataEntity> localParameters) throws IOException {

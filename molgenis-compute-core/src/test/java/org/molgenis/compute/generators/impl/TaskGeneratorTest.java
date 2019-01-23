@@ -33,7 +33,8 @@ public class TaskGeneratorTest {
   public void testGetProtocolParam() {
     Protocol protocol =
         when(mock(Protocol.class).getName()).thenReturn("protocols/protocol.sh").getMock();
-    assertEquals(taskGenerator.getProtocolParam(protocol), "protocols_protocol_sh");
+    when(protocol.getType()).thenReturn("sh");
+    assertEquals(taskGenerator.getProtocolParam(protocol), "protocols_protocol");
   }
 
   @Test
@@ -52,6 +53,7 @@ public class TaskGeneratorTest {
     String walltime = "01:23:45";
     Protocol protocol = mock(Protocol.class);
     when(protocol.getName()).thenReturn("MyProtocol");
+    when(protocol.getType()).thenReturn("sh");
     Step step = when(mock(Step.class).getProtocol()).thenReturn(protocol).getMock();
     DataEntity localParamater = mock(DataEntity.class);
     DataEntity defaultResourcesMap = mock(DataEntity.class);
@@ -65,6 +67,7 @@ public class TaskGeneratorTest {
     String walltime = "01:23:45";
     String protocolName = "step0";
     Protocol protocol = when(mock(Protocol.class).getName()).thenReturn(protocolName).getMock();
+    when(protocol.getType()).thenReturn("sh");
     Step step = when(mock(Step.class).getProtocol()).thenReturn(protocol).getMock();
     DataEntity localParamater = mock(DataEntity.class);
     DataEntity defaultResourcesMap = mock(DataEntity.class);
@@ -78,6 +81,7 @@ public class TaskGeneratorTest {
     String walltime = "01:23:45";
     Protocol protocol = mock(Protocol.class);
     when(protocol.getName()).thenReturn("MyProtocol");
+    when(protocol.getType()).thenReturn("sh");
     when(protocol.getDefaultWalltime()).thenReturn(walltime).getMock();
     Step step = when(mock(Step.class).getProtocol()).thenReturn(protocol).getMock();
     DataEntity localParamater = mock(DataEntity.class);
@@ -91,6 +95,7 @@ public class TaskGeneratorTest {
     String memory = "4gb";
     Protocol protocol = mock(Protocol.class);
     when(protocol.getName()).thenReturn("MyProtocol");
+    when(protocol.getType()).thenReturn("sh");
     when(protocol.getMemory()).thenReturn(memory).getMock();
     Step step = when(mock(Step.class).getProtocol()).thenReturn(protocol).getMock();
     DataEntity localParamater = mock(DataEntity.class);
@@ -104,6 +109,7 @@ public class TaskGeneratorTest {
     String nodes = "4";
     Protocol protocol = mock(Protocol.class);
     when(protocol.getName()).thenReturn("MyProtocol");
+    when(protocol.getType()).thenReturn("sh");
     when(protocol.getNodes()).thenReturn(nodes).getMock();
     Step step = when(mock(Step.class).getProtocol()).thenReturn(protocol).getMock();
     DataEntity localParamater = mock(DataEntity.class);
@@ -117,6 +123,7 @@ public class TaskGeneratorTest {
     String queue = "short";
     Protocol protocol = mock(Protocol.class);
     when(protocol.getName()).thenReturn("MyProtocol");
+    when(protocol.getType()).thenReturn("sh");
     when(protocol.getQueue()).thenReturn(queue);
     Step step = when(mock(Step.class).getProtocol()).thenReturn(protocol).getMock();
     DataEntity localParamater = mock(DataEntity.class);
@@ -130,6 +137,7 @@ public class TaskGeneratorTest {
     String ppn = "4";
     Protocol protocol = mock(Protocol.class);
     when(protocol.getName()).thenReturn("MyProtocol");
+    when(protocol.getType()).thenReturn("sh");
     when(protocol.getPpn()).thenReturn(ppn);
     Step step = when(mock(Step.class).getProtocol()).thenReturn(protocol).getMock();
     DataEntity localParamater = mock(DataEntity.class);
