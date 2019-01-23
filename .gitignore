@@ -16,3 +16,4 @@ test-output/
 molgenis-app-compute-db/.openstack.properties
 molgenis-compute-core/src/main/java/org/molgenis/compute5/ClientCommandLine.java
 .DS_Store
+.idea/
