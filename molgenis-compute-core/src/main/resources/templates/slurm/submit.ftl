@@ -55,7 +55,7 @@ function cancelJobs () {
 
 function processJob () {
 	local _jobName="${1}"
-	local _jobScript="${jobName}.sh"
+	local _jobScript="${_jobName}.sh"
 	local _submitOptions="${2:-}" # Optional.
 	local _dependencies="${3:-}"  # Optional.
 	local _n=1
