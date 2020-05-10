@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=<#if project??>${project}_</#if>${taskId}
+#SBATCH --job-name=<#if project??>${project// /_}_</#if>${taskId}
 #SBATCH --output=${taskId}.out
 #SBATCH --error=${taskId}.err
 #SBATCH --time=${walltime}
